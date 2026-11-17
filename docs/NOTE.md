@@ -1,0 +1,3 @@
+1. Keep the raw data out of git, especially if the repo will ever go on GitHub. The kickoff PDF also lists mentors' names and emails, so keep it out too.
+2. Check with your mentor before sending raw line items to a cloud LLM API. That arguably counts as sharing outside the event. A safe default is to send only aggregates or one item at a time, or run a local model. That also gives you a strong answer for the "governance" part of the deck.
+3. Map all three ERPs into one common schema early. The data notes call the multi-ERP problem out as a pain point, so a single shared format is both useful engineering and a business-value point for the pitch.

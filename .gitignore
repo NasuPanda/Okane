@@ -1,0 +1,24 @@
+# Confidential hackathon data (do NOT commit)
+data/**
+!data/**/
+!data/**/.gitkeep
+*.xlsx
+*.xls
+*.xlsm
+*.feather
+*.joblib
+
+# kickoff deck contains mentor contact details
+docs/reference
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+*.swp
