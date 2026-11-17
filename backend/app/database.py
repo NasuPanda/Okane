@@ -1,0 +1,1 @@
+"""DuckDB connection and queries."""

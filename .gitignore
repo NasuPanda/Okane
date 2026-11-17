@@ -1,0 +1,49 @@
+# Confidential hackathon data (do NOT commit)
+data/**
+!data/**/
+!data/**/.gitkeep
+*.xlsx
+*.xls
+*.xlsm
+*.feather
+*.joblib
+
+# kickoff deck contains mentor contact details
+docs/reference
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+*.swp
+
+# Personal working notes
+docs/NOTE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# DuckDB files anywhere (the database lives under data/)
+*.duckdb
+*.duckdb.wal
+
+# Node and build output
+node_modules/
+frontend/dist/
+build/
+dist/
+*.tsbuildinfo

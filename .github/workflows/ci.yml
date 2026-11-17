@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  forbidden-files:
+    name: No confidential files tracked
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on spreadsheets, databases, caches, secrets, data or private docs
+        shell: bash
+        run: |
+          set -euo pipefail
+          bad=$(git ls-files | grep -Ei '\.(xlsx|xls|xlsm|duckdb|feather|joblib)$|(^|/)\.env$|(^|/)\.env\.[^/]+$' | grep -v '\.env\.example$' || true)
+          data=$(git ls-files 'data/**' | grep -v '/\.gitkeep$' | grep -v '^data/\.gitkeep$' || true)
+          ref=$(git ls-files 'docs/reference' 'docs/reference/**' || true)
+          note=$(git ls-files 'docs/NOTE.md' || true)
+          status=0
+          for list in "$bad" "$data" "$ref" "$note"; do
+            if [ -n "$list" ]; then echo "Forbidden tracked file(s):"; echo "$list"; status=1; fi
+          done
+          # Committed fixtures must come from the synthetic generator, never from real data.
+          for f in $(git ls-files 'fixtures/*.json'); do
+            grep -q '"synthetic": true' "$f" || { echo "Fixture not marked synthetic: $f"; status=1; }
+          done
+          exit $status
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
