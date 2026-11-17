@@ -22,3 +22,6 @@ docs/reference
 .vscode/*
 !.vscode/settings.json
 *.swp
+
+# Personal working notes
+docs/NOTE.md

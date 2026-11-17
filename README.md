@@ -11,11 +11,10 @@ Nokia Finance Hackathon 2026 (Budapest) project.
 ├── .env.example        # template for local env vars (copy to .env)
 ├── .gitignore
 ├── README.md
-├── data
-│   ├── interim/        # intermediate outputs (git-ignored)
-│   └── processed/      # final outputs (git-ignored)
-└── docs
-    └── NOTE.md         # working notes
+└── data
+    ├── raw/            # hackathon datasets go here (git-ignored)
+    ├── interim/        # intermediate outputs (git-ignored)
+    └── processed/      # final outputs (git-ignored)
 ```
 
 ## Local files (not in git)
