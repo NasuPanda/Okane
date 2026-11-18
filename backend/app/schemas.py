@@ -175,6 +175,12 @@ class Rules(BaseModel):
     typo_rarity_ratio: float = 2.5  # the common spelling is used at least this many times more
     # ADDITION / ASSUMPTION: Recurring-Correction Miner.
     miner_min_repeats: int = 3
+    # ADDITION (#14, docs/ASSUMPTIONS.md A7): a repeated manual posting reaches the Inbox when
+    # its score (distinct entities x distinct months) is at least this.
+    miner_min_score: int = 12
+    # ADDITION (#14, A7): True = the person who posted is part of the fingerprint (the original
+    # rule); False = the same header text by anyone on the account forms one pattern.
+    miner_by_user: bool = True
     # ADDITION / ASSUMPTION: risk score scaling.
     penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
     exposure_cap_multiple: float = 5.0
