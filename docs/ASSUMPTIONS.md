@@ -20,7 +20,7 @@ so nobody re-investigates).
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
 | A6 | Typo prompts: fields, thresholds, dictionary | Decide | Per-account dictionary, similarity 80, rarity 2.5x |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
-| A8 | Lead time: "today's detection date" per type | Decide | Ageing rule / close review + 5 days / never |
+| A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
 | A10 | AI prompt contract and model | Decide | `{"comment": str}`, qwen2.5 7B instruct, temperature 0 |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
@@ -203,14 +203,33 @@ Owner: team.
 
 ## Lead time and score
 
-**A8. Today's detection date.** *Decide.* Per type:
-- `pulse_missing_payment`: accrual date + the account's Ageing Allowed (Days) (when the 365-day
-  rule would first show it); exempt (pension-type) accounts: never.
-- `sentinel_*`, `typo`, `label_mismatch`, `pulse_spike`: the month-end close review, month end
-  + `Rules.close_review_days` (5). Badge: "N days before the close review".
-- `pulse_gap`, `pulse_missing_batch`, `miner_cluster`: never (today's process has no check that
-  sees them). The UI shows "today's process: not detected".
-Real data: median 19 days earlier over findings with a date; 45 findings are blind spots.
+**A8. Lead time.** *Decided (#16, 19 Nov 2026; the original rule per A37; the close review day
+is pending mentor question 2).*
+- Today's detection date, per type:
+  - `sentinel_*`, `typo`, `label_mismatch`, `pulse_spike`: the close review on the
+    `Rules.close_review_working_day` (5th) working day after the end of the posting month.
+    Working days are Monday to Friday, minus the dates in `Rules.close_review_holidays`
+    (empty by default; the close team's public holidays can be added once the mentor answers).
+  - `pulse_missing_payment`: accrual date + the account's Ageing Allowed (Days), the day the
+    ageing rule would first show it (not "posting + 365"); exempt (pension-type) accounts:
+    never.
+  - `pulse_gap`, `pulse_missing_batch`, `miner_cluster`: never (today's process has no check
+    that sees them). The badge says "Today's process would miss this".
+- First signal (set by each engine): the posting date for Sentinel and typo findings; the day
+  after the expected-by date for a missing payment (a payment can still arrive on its
+  expected-by day; the original uses the expected-by date itself, one day earlier).
+- Weekly view (`Rules.lead_time_view` = `weekly`): Okane runs weekly, so lead days count from
+  the run on or after the first signal (`Rules.weekly_run_weekday`, 0 = Monday, matching the
+  Monday 06:00 job) to today's detection date. The badge, the record's `lead_days` and the KPI
+  "median days earlier" use this figure; the daily figure (from the first signal itself) is
+  kept in the facts and shown in the badge's tooltip. `daily` switches back.
+- Badge: "Caught N days before the close review" or "Caught N days before the 365-day ageing
+  rule" (the account's own allowed age); "Seen N days after ..." when negative.
+- Real Payroll (aggregates, as of 18 Nov 2026): 62 findings with a date, 9 blind spots;
+  median 17.5 days earlier (weekly, 5th working day), against 21 daily and 19 under the
+  earlier rule (month end + 5 calendar days, daily).
+- Rejected: month end + 5 calendar days (it can fall on a weekend); a daily-only badge
+  (overstates what a Monday run delivers by up to 6 days).
 Owner: team.
 
 **A9. Risk score.** *Decide.* Weights come from Rules (40/20/20/10/10). Each component is scaled
