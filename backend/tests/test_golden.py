@@ -12,9 +12,21 @@ Only aggregates are asserted; no row-level real data is printed or stored.
 
 from __future__ import annotations
 
+from datetime import date
+
 import pandas as pd
 import pytest
 
+from app.engines import is_person
+from app.engines.exposure import payroll_netting
+from app.engines.miner import run_miner
+from app.engines.pairs import paired_count
+from app.engines.pulse import PulseResult, expected_by, run_pulse
+from app.engines.sentinel import outlier_hits, run_sentinel
+from app.engines.typos import run_typos
+from app.schemas import Rules
+
+AS_OF = date(2026, 11, 18)
 PAYROLL_RATES = {
     "HUF": 366.2, "XOF": 655.957, "AUD": 1.6297, "CZK": 24.44, "GBP": 0.85463,
     "IDR": 20_315.3, "KRW": 1_539.1,
@@ -45,3 +57,177 @@ def test_synthetic_pension_account_is_exempt(synthetic_lines: pd.DataFrame) -> N
     assert len(pension) == 3
     assert pension["allowed_age"].isna().all()
     assert (pension["overdue_abs"] == 0).all()
+
+
+# ----- engines on real data (brief section 8 "Expected") ------------------------------------
+@pytest.fixture(scope="module")
+def real_pulse(real_lines: pd.DataFrame) -> PulseResult:
+    return run_pulse(real_lines, Rules(), AS_OF)
+
+
+def test_real_exact_pairs(real_lines: pd.DataFrame) -> None:
+    assert paired_count(real_lines[real_lines["workbook"] == "Payroll"]) == 476
+
+
+def test_real_payroll_netting(real_lines: pd.DataFrame) -> None:
+    result = payroll_netting(real_lines, 500_000)
+    assert result.old_rule_lines == 5_475
+    assert result.old_rule_overdue_abs == pytest.approx(145_668_628, abs=1)
+    assert result.net_eur == pytest.approx(-5_693_332, abs=1)
+    assert result.groups_above() == 4
+    assert payroll_netting(real_lines, 100_000).groups_above() == 7
+    top = [(g.entity, g.account, round(g.net_eur)) for g in result.groups[:4]]
+    assert top == [
+        ("C242", "34900001", -6_497_211), ("C192", "279006", 1_087_864),
+        ("C192", "179003", 679_839), ("C192", "279014", -649_069),
+    ]  # fmt: skip
+    c242 = next(g for g in result.groups if (g.entity, g.account) == ("C242", "34900015"))
+    assert c242.lines == 15
+    assert c242.overdue_abs == pytest.approx(24_935_919, abs=1)
+    assert round(c242.net_eur) == -2_493
+
+
+def test_real_c192_pulse(real_pulse: PulseResult) -> None:
+    c192 = real_pulse.profiles["P20/C192/279006"]
+    assert sum(m.matched for m in c192.matches) == 21
+    assert c192.lag_median == 30
+    assert c192.lag_p90 == 37
+    latest = c192.timeline[-1]
+    assert latest.month == "2026-09"
+    assert latest.balance == pytest.approx(1_324_638, abs=1)
+    assert latest.gap == pytest.approx(1_838_462, abs=1)
+    sep = next(m for m in c192.matches if m.batch.period == (2026, 9))
+    assert sep.batch.amount == pytest.approx(-513_823.36)
+    assert len(sep.batch.lines) == 68
+    assert sep.batch.accrual_date == date(2026, 9, 29)
+    assert expected_by(sep.batch, c192.profile, c192.lag_p90, Rules()) == date(2026, 11, 21)
+    since_may = [p for p in c192.timeline if p.month >= "2025-05"]
+    assert all(p.gap >= 500_000 for p in since_may)
+    lowest = min(since_may, key=lambda p: p.gap)
+    assert (lowest.month, round(lowest.gap)) == ("2025-07", 1_058_373)
+
+
+def test_real_c192_alerts(real_pulse: PulseResult) -> None:
+    c192 = [r for r in real_pulse.records if (r.entity, r.account) == ("C192", "279006")]
+    gap = next(r for r in c192 if r.type == "pulse_gap")
+    assert gap.title == "Liability 1.84M above expected"
+    assert gap.first_signal == date(2025, 5, 31)
+    spikes = [r for r in c192 if r.type == "pulse_spike"]
+    assert [(r.facts["batch_period"], r.facts["multiple"]) for r in spikes] == [("2026-08", 4.1)]
+    assert spikes[0].facts["batch_eur"] == pytest.approx(-2_531_445.87)
+    assert round(float(spikes[0].facts["median_eur"])) == 620_878
+    missing = [r.facts["missing_period"] for r in c192 if r.type == "pulse_missing_batch"]
+    assert missing == ["2025-08"]
+    labels = {
+        (r.first_signal, r.facts["label_period"]): r for r in c192 if r.type == "label_mismatch"
+    }
+    jan = labels[(date(2024, 3, 28), "2024-01")]
+    assert jan.facts["settles_period"] == "2024-02"
+    assert jan.facts["diff_pct"] == pytest.approx(-0.29)
+    assert jan.facts["payment_eur"] == pytest.approx(653_106.90)
+    # ASSUMPTION (docs/ASSUMPTIONS.md): the brief says this payment settles August (-0.30%);
+    # greedy date-order matching assigns it to July. The mismatch fires either way.
+    assert (date(2024, 9, 27), "2024-09") in labels
+    sep = [
+        r
+        for r in c192
+        if r.type == "pulse_missing_payment" and r.facts["batch_period"] == "2026-09"
+    ]
+    assert sep == [], "the September 2026 batch is not due before 21 Nov 2026"
+
+
+def test_real_c242_matches(real_pulse: PulseResult) -> None:
+    c242 = {m.batch.period: m for m in real_pulse.profiles["BPP/C242/34900015"].matches}
+    july, august, september = c242[(2025, 7)], c242[(2025, 8)], c242[(2025, 9)]
+    assert july.batch.amount == pytest.approx(-4_091_302.21)
+    assert sum(u.amount for u in july.units) == pytest.approx(4_090_894.37)
+    assert (len(july.units), july.lag) == (3, 12)
+    assert (len(august.units), august.lag) == (4, 9)
+    assert (len(september.units), september.lag, september.diff) == (3, 12, 0)
+    gaps = [r for r in real_pulse.records if r.type == "pulse_gap" and r.entity == "C242"]
+    assert gaps == []
+
+
+def test_real_sentinel_s1(real_lines: pd.DataFrame) -> None:
+    rules = Rules()
+    every = outlier_hits(real_lines, rules, "all")
+    p20 = every[every["erp"] == "P20"]
+    assert len(p20) == 174
+    assert int((~p20["user_name"].map(is_person)).sum()) == 165
+    people = outlier_hits(real_lines, rules, "people_only")
+    top = people.sort_values("multiple", ascending=False).iloc[0]
+    assert (top["erp"], top["entity"], top["account"], top["document_no"], top["year"]) == (
+        "BPP",
+        "C242",
+        "48900002",
+        "7910008634",
+        2019,
+    )
+    assert top["user_name"] == "USER_120"
+    assert round(top["multiple"]) == 57_769
+
+
+def test_real_typos_find_known_misspellings(real_lines: pd.DataFrame) -> None:
+    found = {str(r.facts.get("found")).lower() for r in run_typos(real_lines, Rules())}
+    assert {"auzahl", "ursaaf"} <= found
+
+
+# ----- engines on synthetic data (always run) -----------------------------------------------
+@pytest.fixture(scope="module")
+def synthetic_pulse(synthetic_lines: pd.DataFrame) -> PulseResult:
+    return run_pulse(synthetic_lines, Rules(), AS_OF)
+
+
+def test_synthetic_pairs_and_netting(synthetic_lines: pd.DataFrame) -> None:
+    payroll = synthetic_lines[synthetic_lines["workbook"] == "Payroll"]
+    assert paired_count(payroll) == 26
+    assert paired_count(synthetic_lines[synthetic_lines["workbook"] == "Fixed assets"]) == 16
+    result = payroll_netting(synthetic_lines, 500_000)
+    assert result.groups_above() == 3
+    assert payroll_netting(synthetic_lines, 100_000).groups_above() == 4
+    assert [g for g in result.groups if g.account == "279020"] == [], "pension lines never age"
+    pairs_group = next(g for g in result.groups if g.account == "279014")
+    assert pairs_group.net_eur == 0 and pairs_group.paired_lines == pairs_group.lines
+
+
+def test_synthetic_c192_pulse(synthetic_pulse: PulseResult) -> None:
+    c192 = synthetic_pulse.profiles["P20/C192/279006"]
+    assert len(c192.matches) == 20
+    assert sum(m.matched for m in c192.matches) == 17
+    records = [r for r in synthetic_pulse.records if r.entity == "C192"]
+    assert sum(r.type == "pulse_gap" for r in records) == 1
+    unpaid = sorted(r.facts["batch_period"] for r in records if r.type == "pulse_missing_payment")
+    assert unpaid == ["2025-05", "2025-06"]
+    missing = [r.facts["missing_period"] for r in records if r.type == "pulse_missing_batch"]
+    assert missing == ["2025-08"]
+    assert [r.facts["batch_period"] for r in records if r.type == "pulse_spike"] == ["2026-08"]
+    mismatch = [
+        (r.facts["label_period"], r.facts["settles_period"])
+        for r in records
+        if r.type == "label_mismatch"
+    ]
+    assert mismatch == [("2026-01", "2026-02")]
+
+
+def test_synthetic_c242_pulse(synthetic_pulse: PulseResult) -> None:
+    c242 = synthetic_pulse.profiles["BPP/C242/34900015"]
+    assert [len(m.units) for m in c242.matches] == [3, 3, 4, 3]
+    assert all(m.lag <= 14 for m in c242.matches)
+    assert c242.matches[-1].diff == 0
+
+
+def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
+    rules = Rules()
+    sentinel = run_sentinel(synthetic_lines, rules)
+    outliers = {(r.entity, r.facts["posted_by"]) for r in sentinel if r.type == "sentinel_outlier"}
+    assert outliers == {("C192", "person"), ("C218", "person")}
+    every = run_sentinel(synthetic_lines, rules.model_copy(update={"sentinel_s1_scope": "all"}))
+    assert sum(r.type == "sentinel_outlier" for r in every) == 3
+    assert {r.entity for r in sentinel if r.type == "sentinel_currency_code"} == {"C141", "C218"}
+    assert {r.entity for r in sentinel if r.type == "sentinel_two_currencies"} == {"C132"}
+    typos = {
+        (r.facts.get("found"), r.facts.get("suggestion")) for r in run_typos(synthetic_lines, rules)
+    }
+    assert {("Auzahl", "Auszahl"), ("URSAAF", "URSSAF"), ("trnasit", "transit")} <= typos
+    planted = [r for r in run_miner(synthetic_lines, rules) if r.account == "279002"]
+    assert len(planted) == 1 and planted[0].facts["months"] == 4

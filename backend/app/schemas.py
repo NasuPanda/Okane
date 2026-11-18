@@ -86,6 +86,10 @@ class PaymentProfile(BaseModel):
     window_start_days: int = -5
     window_end_days: int = 70
     tolerance_pct: float = 0.02
+    # ASSUMPTION: match preference. True = fewest payment units, then smallest difference,
+    # then shortest lag (reproduces the C192 Expected values); False = the brief's literal
+    # "smallest difference, then shortest lag" (reproduces the C242 Expected values).
+    prefer_fewest_units: bool = False
 
     @property
     def key(self) -> str:
@@ -111,6 +115,7 @@ def default_payment_profiles() -> list[PaymentProfile]:
             window_start_days=-5,
             window_end_days=70,
             tolerance_pct=0.02,
+            prefer_fewest_units=True,
         ),
         PaymentProfile(
             erp="BPP",
@@ -159,8 +164,9 @@ class Rules(BaseModel):
     # ADDITION / ASSUMPTION: today's close review happens this many days after month end.
     close_review_days: int = 5
     # ADDITION / ASSUMPTION: typo prompts.
-    typo_min_similarity: float = 85.0
+    typo_min_similarity: float = 80.0
     typo_dictionary_min_count: int = 5
+    typo_rarity_ratio: float = 2.5  # the common spelling is used at least this many times more
     # ADDITION / ASSUMPTION: Recurring-Correction Miner.
     miner_min_repeats: int = 3
     # ADDITION / ASSUMPTION: risk score scaling.

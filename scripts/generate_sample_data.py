@@ -173,7 +173,7 @@ C192_TYPO = {(2026, 3)}
 def build_c192(p20: PayrollSheet, docs: DocCounter) -> None:
     """Profile 1: social security batches and their payments."""
     cocd, account, name = "C192", "279006", "Social security liabilities"
-    for (year, month), amount in C192_BATCHES.items():
+    for index, ((year, month), amount) in enumerate(C192_BATCHES.items()):
         end = month_end(year, month)
         posted = end - timedelta(days=1)
         doc = docs.next(year)
@@ -182,7 +182,7 @@ def build_c192(p20: PayrollSheet, docs: DocCounter) -> None:
                     f"Payroll{year}{month:02d}")  # fmt: skip
         if (year, month) in C192_UNPAID:
             continue
-        paid_on = end + timedelta(days=30 if month % 3 else 28)
+        paid_on = end + timedelta(days=28 + index % 10)  # lags of 28 to 37 days
         label_year, label_month = C192_LABEL_SHIFT.get((year, month), (year, month))
         agency = "URSAAF" if (year, month) in C192_TYPO else "URSSAF"
         label = f"{agency}/ASSEDIC SITE03 - {MONTHS[label_month - 1]}'{label_year}"
