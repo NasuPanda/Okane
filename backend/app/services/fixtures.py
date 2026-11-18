@@ -24,7 +24,8 @@ FIXTURE_AS_OF = date(2026, 11, 18)
 
 def _write(out: Path, name: str, data: Any) -> None:
     wrapped = {"synthetic": True, "generated_at": FIXTURE_AS_OF.isoformat(), "data": data}
-    (out / f"{name}.json").write_text(json.dumps(wrapped, indent=1, default=str) + "\n", "utf-8")
+    text = json.dumps(wrapped, indent=1, default=str) + "\n"
+    (out / f"{name}.json").write_text(text, encoding="utf-8", newline="\n")
 
 
 def export_fixtures(out: Path) -> list[str]:

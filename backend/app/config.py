@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     ollama_model: str = "qwen2.5:7b-instruct"
     ollama_timeout_s: float = 60.0
     ai_enabled: bool = True
+    # Draft comments during a run for this many top-ranked exceptions (0 = only on demand).
+    ai_predraft_top: int = 3
 
     cors_origins: list[str] = ["http://localhost:5173"]
 

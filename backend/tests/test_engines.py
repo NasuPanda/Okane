@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date
 
 import pandas as pd
@@ -351,3 +352,170 @@ def test_exception_ids_are_stable_across_runs(synthetic_lines: pd.DataFrame) -> 
     first = {r.id for r in run_pulse(synthetic_lines, rules, AS_OF).records}
     second = {r.id for r in run_pulse(synthetic_lines.copy(), rules, AS_OF).records}
     assert first == second and len(first) > 0
+
+
+# ----- AI layer: verifier, prompts, client ---------------------------------------------------
+GAP_FACTS: dict[str, float | str] = {
+    "gap_eur": 1_838_461.53,
+    "balance_eur": 1_324_638.17,
+    "expected_eur": -513_823.36,
+    "diff_pct": -0.29,
+    "multiple": 4.1,
+    "expected_by": "2026-11-21",
+    "since_month": "2025-05",
+    "rule": "Batch above 3x the trailing 12-month median",
+}
+
+
+@pytest.mark.parametrize(
+    ("comment", "passes"),
+    [
+        ("The gap is 1,838,462 EUR.", True),
+        ("The gap is 1,838,461.53 EUR.", True),
+        ("The gap is 1,838,461.5 EUR.", True),
+        ("The gap is 1.84M.", True),
+        ("The gap is 1.8M.", True),
+        ("The gap is 1.838M.", True),
+        ("The gap is 1.84 million.", True),
+        ("The gap is 1,838 thousand.", True),
+        ("The gap is 1.85M.", False),  # near miss
+        ("The gap is 1.839M.", False),  # wrong at the shown precision
+        ("The gap is 1,838,460 EUR.", False),  # near miss
+        ("The gap is 1,838 EUR.", False),  # unit dropped
+        ("The gap is EUR 1,838,462 against a balance of 1,324,638.", True),
+        ("The expected balance is -513,823.36.", True),  # sign ignored
+        ("The payment is 0.29% short.", True),
+        ("The payment is 0.3% short.", True),
+        ("The payment is 0.30% short.", False),
+        ("The batch is 4.1x the median.", True),
+        ("The batch is 4.2x the median.", False),
+        ("It is above 3x the 12-month median.", True),  # numbers from the rule text
+        ("Expected by 21 Nov 2026.", True),
+        ("Expected by November 21, 2026.", True),
+        ("Expected by 2026-11-21.", True),
+        ("Expected by 22 Nov 2026.", False),
+        ("Above materiality since May 2025.", True),
+        ("Above materiality since 2025-05.", True),
+        ("Above materiality since June 2025.", False),
+        ("Two payments of 7 days.", False),  # invented figure
+        ("Check the batch for C192 and the Payroll202609 lines.", True),  # identifiers
+        ("No numbers here at all.", True),
+    ],
+)
+def test_verifier(comment: str, passes: bool) -> None:
+    from app.ai.verifier import verify
+
+    outcome = verify(comment, GAP_FACTS)
+    assert (outcome.result == "passed") is passes, (outcome.checked, outcome.failed)
+    if not passes:
+        assert outcome.failed
+
+
+def test_verifier_reports_each_figure_and_allows_identifiers() -> None:
+    from app.ai.verifier import verify
+
+    outcome = verify("Account 279006 shows 1.84M, not 2.5M, since 2025-05.", GAP_FACTS)
+    assert outcome.result == "failed"
+    assert outcome.failed == ["279006", "2.5M"]
+    with_ids = verify("Account 279006 shows 1.84M since 2025-05.", GAP_FACTS, ["C192", "279006"])
+    assert with_ids.result == "passed"
+    assert set(with_ids.checked) == {"2025-05", "279006", "1.84M"}
+
+
+def test_every_template_comment_passes_the_verifier(synthetic_lines: pd.DataFrame) -> None:
+    from app.ai.prompts import TEMPLATE_LABEL, template_comment
+    from app.ai.verifier import verify
+    from app.services.pipeline import run_engines
+
+    records = run_engines(synthetic_lines, Rules(), AS_OF).records
+    assert len({r.type for r in records}) >= 9
+    for record in records:
+        text = template_comment(record)
+        assert text.startswith(TEMPLATE_LABEL)
+        body = text.removeprefix(TEMPLATE_LABEL)
+        outcome = verify(body, record.facts, [record.entity, record.account])
+        assert outcome.result == "passed", (record.type, outcome.failed)
+
+
+def test_prompt_masks_names_and_hides_documents(synthetic_lines: pd.DataFrame) -> None:
+    from app.ai.prompts import user_prompt
+
+    records = run_miner(synthetic_lines, Rules()) + run_sentinel(synthetic_lines, Rules())
+    for record in records:
+        prompt = user_prompt(record)
+        assert not re.search(r"NAME\d+", prompt, re.IGNORECASE)
+        for document in record.evidence:
+            assert document.split("/")[0] not in prompt
+
+
+def _record(synthetic_lines: pd.DataFrame):  # type: ignore[no-untyped-def]
+    return next(r for r in run_pulse(synthetic_lines, Rules(), AS_OF).records
+                if r.type == "pulse_gap")  # fmt: skip
+
+
+def _mock_ollama(replies: list[str], calls: list[int]):  # type: ignore[no-untyped-def]
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        content = replies[min(len(calls), len(replies)) - 1]
+        return httpx.Response(200, json={"message": {"role": "assistant", "content": content}})
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_client_verifies_caches_and_retries(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    import json as jsonlib
+
+    from app.ai.client import draft_comment
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    record = _record(synthetic_lines)
+    gap = abs(float(record.facts["gap_eur"]))
+    good = jsonlib.dumps({"comment": f"The liability is {gap:,.0f} away from the expected level."})
+    bad = jsonlib.dumps({"comment": "The liability is 9,999,999 away from the expected level."})
+
+    calls: list[int] = []
+    first = draft_comment(record, db, settings, http=_mock_ollama([bad, good], calls))
+    assert (first.source, first.verifier, len(calls)) == ("model", "passed", 2)
+    assert first.checked_figures == [f"{gap:,.0f}"]
+    again = draft_comment(record, db, settings, http=_mock_ollama([bad], calls))
+    assert again.cached and again.comment == first.comment and len(calls) == 2
+
+    calls.clear()
+    failing = draft_comment(record, db, settings, refresh=True,
+                            http=_mock_ollama([bad, bad], calls))  # fmt: skip
+    assert (failing.verifier, failing.failed_figures, len(calls)) == ("failed", ["9,999,999"], 2)
+    db.close()
+
+
+def test_client_falls_back_to_labelled_template(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    import httpx
+
+    from app.ai.client import draft_comment, ollama_available
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    record = _record(synthetic_lines)
+
+    def refuse(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("connection refused")
+
+    down = httpx.Client(transport=httpx.MockTransport(refuse))
+    settings = Settings(ai_enabled=True)
+    result = draft_comment(record, db, settings, http=down)
+    assert (result.source, result.verifier) == ("template", "not_run")
+    assert result.comment.startswith("Template comment")
+    assert not ollama_available(settings, http=down)
+    assert db.cache_get(f"{record.id}:x") is None
+
+    calls: list[int] = []
+    junk = _mock_ollama(["not json", '{"text": "wrong field"}'], calls)
+    assert draft_comment(record, db, settings, http=junk).source == "template"
+    disabled = draft_comment(record, db, Settings(ai_enabled=False))
+    assert disabled.source == "template"
+    db.close()

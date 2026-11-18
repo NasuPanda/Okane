@@ -219,10 +219,16 @@ class Pipeline:
         return run
 
     def attach_comments(self, records: list[ExceptionRecord]) -> list[ExceptionRecord]:
-        """Cached AI comments only; new drafts are made on demand or by Phase 5 pre-drafting."""
+        """Cached AI comments; new drafts for the top-ranked findings when a model runs."""
+        predraft = self.settings.ai_enabled and self.settings.ai_predraft_top > 0
+        if predraft and not ai.ollama_available(self.settings):
+            predraft = False
         out = []
-        for record in records:
+        for index, record in enumerate(records):
             hit = ai.cached_comment(record, self.db)
+            if hit is None and predraft and index < self.settings.ai_predraft_top:
+                drafted = ai.draft_comment(record, self.db, self.settings)
+                hit = drafted if drafted.source == "model" else None
             if hit is not None:
                 record = record.model_copy(
                     update={"ai_comment": hit.comment, "verifier": hit.verifier}
