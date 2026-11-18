@@ -15,7 +15,7 @@ so nobody re-investigates).
 |---|------|--------|--------------------|
 | A1 | Sentinel S1 scope (brief open item 2) | Decide | `people_only` |
 | A2 | Demo step 5 Sentinel example (brief open item 1) | Decide | C242 48900002 document 7910008634 |
-| A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Decide | Yes: Sentinel, typos, Miner; not Pulse or netting |
+| A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Two document currencies in one document, or two local currencies in one company code |
 | A5 | Sentinel S3 rule | Decide | Invalid ISO code, or an amount copied unconverted |
 | A6 | Typo prompts: fields, thresholds, dictionary | Decide | Per-account dictionary, similarity 80, rarity 2.5x |
@@ -37,7 +37,9 @@ so nobody re-investigates).
 **A11. Fixed assets EUR rates.** *Confirm.* The brief lists the Payroll rates but only says
 rates.csv "also needs rates for JPY, USD, PLN and CNY". `backend/tests/data/rates.sample.csv`
 holds placeholder values for these four (JPY 162.5, USD 1.09, PLN 4.29, CNY 7.85, dated
-2 Oct 2026). Confirm the real rates and the date before using Fixed assets figures.
+2 Oct 2026). Confirm the real rates and the date before using Fixed assets figures. On the
+real file the Fixed assets local currencies are only EUR (BPP), JPY and PLN (P20); USD and CNY
+appear only as document currencies, so today only the JPY and PLN rates affect EUR amounts.
 Owner: team.
 
 **A17. Payroll keeps its own EUR amount.** *Info.* Per the brief, Payroll sheets keep
@@ -50,16 +52,20 @@ DocumentNo appears in several years (for example payment documents in C192). A d
 therefore identified by (CoCd, Year, DocumentNo) and evidence is written `DocumentNo/Year`.
 Without this, the C192 matching finds 7 instead of 21 batches. Owner: team.
 
-**A19. Fixed assets workbook not available.** *Info.* Only the Payroll workbook was provided.
-The Fixed assets mapping (`Amount in DC`, `Amount in Local Currency`, `Lcurr`, `Type`, `Item`,
-`Doc. Date`, `Ageing(No of days)`, `Reversal`) is implemented from the brief's table and tested
-on synthetic data only. Run `pytest` once the real file is in `data/inbox/`; the ingest raises
-a clear error naming any column that differs. Owner: team.
+**A19. Fixed assets workbook.** *Info (resolved 18 Nov 2026, #7).* The real workbook is now
+available and every mapped column (`Amount in DC`, `Amount in Local Currency`, `Lcurr`, `Type`,
+`Item`, `Doc. Date`, `Ageing(No of days)`, `Reversal`) is present. It ingests with no warnings:
+BPP 5,976 and P20 4,222 lines, so the four sheets total 24,165 as the brief says. Each sheet
+holds one account; local currency is EUR on BPP and JPY / PLN on P20. `Reversal` exists on BPP
+only. Extra source columns (Clrng doc., Entry Date, PK, Profit Ctr, Supplier, Vendor name and
+others) are ignored. Real golden tests cover row counts, column mapping and EUR conversion.
+Owner: team.
 
-**A3. Fixed assets scope.** *Decide (brief open item 4).* Fixed assets lines go through
-Sentinel S1 to S3, typo prompts and the Miner. They are excluded from payroll netting and Pulse.
-The brief expects S1 to return 185 hits / 12 person-posted on Payroll plus Fixed assets; on
-Payroll alone we get 183 / 11, consistent with that. Owner: team.
+**A3. Fixed assets scope.** *Info (confirmed 18 Nov 2026, #7; brief open item 4).* Fixed
+assets lines go through Sentinel S1 to S3, typo prompts and the Miner. They are excluded from
+payroll netting, Pulse and lead time. On the real Payroll plus Fixed assets workbooks S1 returns
+exactly the brief's 185 hits / 12 person-posted (Payroll alone 183 / 11; Fixed assets P20 adds
+2 / 1), and netting and Pulse give the same figures as on Payroll alone. Owner: team.
 
 **A20. Inbox and sample data.** *Info.* A run reads the newest Payroll and the newest Fixed
 assets workbook in `data/inbox/`. If the inbox has none, it reads `data/sample/` (synthetic)

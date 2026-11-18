@@ -1,7 +1,8 @@
 """Shared fixtures.
 
-Real workbooks are never in Git: tests that need them use ``real_payroll`` / ``real_lines`` and
-skip when ``data/inbox/`` has no Payroll workbook. Synthetic workbooks are generated once per
+Real workbooks are never in Git: tests that need them use ``real_payroll`` / ``real_lines``
+(Payroll), ``real_fixed_assets`` (Fixed assets) or ``real_all_lines`` (both), and skip when
+``data/inbox/`` lacks the workbook they need. Synthetic workbooks are generated once per
 session into a temp folder (spreadsheets are git-ignored and never committed).
 """
 
@@ -55,6 +56,29 @@ def real_payroll(real_payroll_path: Path, rates: dict[str, float]) -> IngestResu
 @pytest.fixture(scope="session")
 def real_lines(real_payroll: IngestResult) -> pd.DataFrame:
     return real_payroll.lines
+
+
+@pytest.fixture(scope="session")
+def real_fixed_assets_path() -> Path:
+    """The real Fixed assets workbook, or skip."""
+    paths = _real_paths("fixed")
+    if not paths:
+        pytest.skip("real Fixed assets workbook not present in data/inbox/")
+    return paths[0]
+
+
+@pytest.fixture(scope="session")
+def real_fixed_assets(real_fixed_assets_path: Path, rates: dict[str, float]) -> IngestResult:
+    """Ingested real Fixed assets lines (session cached)."""
+    return ingest([real_fixed_assets_path], rates)
+
+
+@pytest.fixture(scope="session")
+def real_all_lines(
+    real_payroll_path: Path, real_fixed_assets_path: Path, rates: dict[str, float]
+) -> pd.DataFrame:
+    """Payroll and Fixed assets ingested together, as a run sees them (session cached)."""
+    return ingest([real_payroll_path, real_fixed_assets_path], rates).lines
 
 
 @pytest.fixture(scope="session")
