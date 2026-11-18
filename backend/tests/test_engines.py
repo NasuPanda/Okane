@@ -351,26 +351,84 @@ def test_period_label_prompt() -> None:
 
 
 # ----- miner --------------------------------------------------------------------------------
-def test_fingerprint_masks_names_and_digits() -> None:
-    assert fingerprint_text("Manual correction NAME205 reclass to 279006") == (
-        "manual correction <name> reclass to #"
-    )
+def test_fingerprint_masks_names_spells_out_corr_and_masks_digits() -> None:
+    assert fingerprint_text("Corr. NAME205 reclass to 279006") == ("correction <name> reclass to #")
+    assert fingerprint_text("CORR NAME1 05/2026") == "correction <name> #/#"
+    assert fingerprint_text("Correction run 7") == "correction run #", "only the word corr"
+    assert fingerprint_text("Accorr 1") == "accorr #"
+    assert fingerprint_text(None) == fingerprint_text("  ") == ""
+
+
+def _manual(months: list[int], entity: str = "C192", user: str = "USER_045",
+            header: str | None = "Corr. NAME{m} reclass {m}", day: int = 20,
+            first_doc: int = 0) -> list[dict[str, object]]:  # fmt: skip
+    """One person-posted line per month with a header text (A7)."""
+    return [
+        {"user_name": user, "doc_type": "SA", "entity": entity, "posting_date": date(2026, m, day),
+         "header_text": None if header is None else header.format(m=m), "text": "Reclass",
+         "document_no": f"{first_doc + i:010d}", "amount_dc": 100.0 + m}
+        for i, m in enumerate(months)
+    ]  # fmt: skip
+
+
+def test_miner_score_is_entities_times_months() -> None:
+    """A7: score = distinct entities x distinct months; Inbox at miner_min_score (12)."""
+    one_entity = _manual(list(range(1, 7)))  # 6 months x 1 entity = 6
+    assert run_miner(frame(one_entity), Rules()) == []
+    assert len(run_miner(frame(one_entity), Rules(miner_min_score=6))) == 1
+    second = _manual([5, 6], entity="C132", day=25, first_doc=100)  # 6 months x 2 = 12
+    records = run_miner(frame(one_entity + second), Rules())
+    assert len(records) == 1
+    record = records[0]
+    assert record.type == "miner_cluster"
+    assert (record.facts["months"], record.facts["entities"]) == (6, 2)
+    assert record.facts["miner_score"] == 12
+    assert record.facts["entity_list"] == "C132, C192"
+    assert record.entity == "C192", "the record sits on the entity with most lines"
+    assert record.title == "Repeated manual posting: 6 months"
+    # 25 May adds the second entity (5 x 2 = 10); 20 Jun adds the sixth month (6 x 2 = 12).
+    assert record.first_signal == date(2026, 6, 20), "the line that lifted the score to 12"
+    assert record.facts["pattern"] == "correction <name> reclass #"
+    assert "NAME" not in str(record.facts["fingerprint"])
+    assert "USER" not in str(record.facts), "user ids never reach the facts (the AI layer)"
+    assert str(record.facts["hint"]).startswith("This may be a correction")
+    assert len(record.evidence) == 8
 
 
 def test_miner_needs_min_repeats_in_distinct_months() -> None:
-    rows = [
-        {"user_name": "USER_045", "doc_type": "SA", "posting_date": date(2026, m, 20),
-         "text": f"Manual correction NAME{200 + m} reclass", "document_no": f"00000000{m}"}
-        for m in (5, 6, 7)
-    ]  # fmt: skip
-    rows.append({"user_name": "BOT_RPA_001", "doc_type": "SA", "posting_date": date(2026, 8, 1),
-                 "text": "Manual correction NAME999 reclass"})  # fmt: skip
-    assert len(run_miner(frame(rows), Rules(miner_min_repeats=3))) == 1
-    assert run_miner(frame(rows), Rules(miner_min_repeats=4)) == []
-    record = run_miner(frame(rows), Rules())[0]
+    rows = _manual([5, 6, 7])
+    assert len(run_miner(frame(rows), Rules(miner_min_score=0, miner_min_repeats=3))) == 1
+    assert run_miner(frame(rows), Rules(miner_min_score=0, miner_min_repeats=4)) == []
+    record = run_miner(frame(rows), Rules(miner_min_score=0))[0]
     assert record.facts["months"] == 3
     assert record.first_signal == date(2026, 7, 20)
-    assert "NAME" not in str(record.facts["pattern"])
+
+
+def test_miner_ignores_bots_and_lines_without_header_text() -> None:
+    rules = Rules(miner_min_score=0)
+    assert run_miner(frame(_manual([1, 2, 3, 4], user="BOT_RPA_001")), rules) == []
+    assert run_miner(frame(_manual([1, 2, 3, 4], header=None)), rules) == []
+    assert run_miner(frame(_manual([1, 2, 3, 4], header="   ")), rules) == []
+
+
+def test_miner_by_user_switch() -> None:
+    """The original rule keeps people apart; miner_by_user=False joins them."""
+    rows = _manual([1, 2]) + _manual([3, 4], user="USER_046", first_doc=50)
+    rules = Rules(miner_min_score=0)
+    assert run_miner(frame(rows), rules) == [], "two people, two months each"
+    joined = run_miner(frame(rows), rules.model_copy(update={"miner_by_user": False}))
+    assert len(joined) == 1
+    assert (joined[0].facts["months"], joined[0].facts["people"]) == (4, 2)
+
+
+def test_miner_ids_are_stable_and_ranked_by_score() -> None:
+    rules = Rules(miner_min_score=0)
+    strong = _manual(list(range(1, 9)))
+    weak = _manual([1, 2, 3], user="USER_046", header="True-up {m}", first_doc=50)
+    records = run_miner(frame(weak + strong), rules)
+    assert [r.facts["months"] for r in records] == [8, 3], "highest score first"
+    later = run_miner(frame(strong[1:] + weak), rules)
+    assert {r.id for r in later} == {r.id for r in records}, "a cleared line keeps the id"
 
 
 # ----- lead time and score ------------------------------------------------------------------

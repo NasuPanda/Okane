@@ -37,6 +37,9 @@ const FIELD_LABEL: Record<string, string> = {
   sentinel_s1_scope: "Large amounts checked for",
   sentinel_s2_min_amount: "Same amount, two currencies: smallest amount",
   close_review_days: "Month-end review day",
+  miner_min_score: "Repeated postings: smallest repeat strength",
+  miner_min_repeats: "Repeated postings: fewest months",
+  miner_by_user: "Repeated postings: same person only",
 };
 
 function fieldLabel(field: string) {
@@ -219,6 +222,40 @@ export function RulesPage() {
                 value={draft.sentinel_s2_min_amount ?? 0}
                 onChange={(v) => set("sentinel_s2_min_amount", v)}
               />
+            </Card>
+
+            <Card className="space-y-4 p-6">
+              <div className="eyebrow">Repeated manual postings</div>
+              <NumberField
+                label="Smallest repeat strength"
+                hint="Company codes × months the same header text must reach before it is listed"
+                value={draft.miner_min_score ?? 0}
+                onChange={(v) => set("miner_min_score", v)}
+              />
+              <NumberField
+                label="Fewest months"
+                hint="The same posting must appear in at least this many different months"
+                value={draft.miner_min_repeats ?? 0}
+                onChange={(v) => set("miner_min_repeats", v)}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  [true, "Same person only", "One colleague repeats the posting"],
+                  [false, "Anyone", "Joins the same posting by different colleagues"],
+                ] as const).map(([value, label, hint]) => (
+                  <button
+                    key={label}
+                    onClick={() => set("miner_by_user", value)}
+                    className={cn(
+                      "rounded-xl border p-3 text-left transition",
+                      (draft.miner_by_user ?? true) === value ? "border-foreground bg-secondary" : "hover:bg-secondary/60",
+                    )}
+                  >
+                    <div className="text-sm font-medium">{label}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
+                  </button>
+                ))}
+              </div>
             </Card>
 
             <Card className="space-y-3 p-6">

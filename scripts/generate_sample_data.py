@@ -17,7 +17,10 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
 - Sentinel: a person-posted outlier (USER_901) and a bot-posted outlier; the same amount
   posted in EUR and RWF on one day (C132); a withdrawn currency code in Payroll (C141) and a
   currency the euro replaced in Fixed assets (C218).
-- Miner: the same manual correction by USER_045 in four consecutive months.
+- Miner (A7): USER_045 posts the same header text ("Corr. ...") on 279030 in six months
+  and two entities (score 6 x 2 = 12, found); USER_046 repeats another header text in five
+  months and two entities (score 10, a near-miss). The older USER_045 lines on 279002 have
+  no header text, so they are not a pattern.
 - Pension-type account with "Actual ageing ( No Overdue )" (exempt from the 365-day rule).
 """
 
@@ -110,6 +113,7 @@ class PayrollSheet:
         allowed: str = "365",
         partner: str | None = None,
         reference: str = "",
+        header: str = "",
     ) -> None:
         rate = RATES[lcurr]
         curr = curr or lcurr
@@ -128,7 +132,7 @@ class PayrollSheet:
                 "Debit Credit Indicator": "H" if amount_lc < 0 else "S",
                 "Internal/External": "External", "Pstng Date": posted.isoformat(),
                 "Doc Date": posted.isoformat(), "Entry Date": posted.isoformat(),
-                "User Name": user, "Text": text, "Doc.Header Text": "", "Profit Ctr": "PC100",
+                "User Name": user, "Text": text, "Doc.Header Text": header, "Profit Ctr": "PC100",
                 "Clearing": "", "Clrng Doc.": None, "Reference": reference,
                 "Tr.Prt": partner if self.erp == "BPP" else None, "WBS Elem.": 0,
                 "Assignment": "", "ItemNo in  Purch Doc.": 0, "ERP System": self.erp,
@@ -226,6 +230,20 @@ def build_payroll_p20(docs: DocCounter) -> PayrollSheet:
                 "USER_045", f"Manual correction NAME{200 + month} reclass to 279006")  # fmt: skip
         p20.add("C192", "279002", "Payroll deductions", doc, 2, "SA", posted, -(3_100.0 + month),
                 "USER_045", f"Manual correction NAME{200 + month} reclass to 279006")  # fmt: skip
+    # Miner (A7): the same header text by one person in six months and two entities (score
+    # 12), and a near-miss in five months and two entities (score 10). Recent and one-sided, so
+    # no pairs, no ageing and no outliers.
+    for month in range(5, 11):
+        for cocd in ("C192", "C132") if month >= 9 else ("C192",):
+            p20.add(cocd, "279030", "Payroll corrections", docs.next(2026), 1, "SA",
+                    date(2026, month, 21), 2_000.0 + 37 * month, "USER_045",
+                    "Reclass to social security",
+                    header=f"Corr. NAME{210 + month} reclass to 279006 {month:02d}/2026")  # fmt: skip
+    for month in range(5, 10):
+        for cocd in ("C192", "C132") if month == 9 else ("C192",):
+            p20.add(cocd, "279030", "Payroll corrections", docs.next(2026), 1, "SA",
+                    date(2026, month, 24), 900.0 + 11 * month, "USER_046", "Accrual true-up",
+                    header=f"True-up accrual {month:02d}/2026")  # fmt: skip
     # Old aged debit balance on 179003 (an exposure group above 500K).
     for i, amount in enumerate([310_000.0, 245_500.0, 124_339.48]):
         p20.add("C192", "179003", "Employee receivables", docs.next(2023), 1, "SA",

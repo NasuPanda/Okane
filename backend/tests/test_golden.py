@@ -252,6 +252,40 @@ def test_real_typos_find_known_misspellings(real_lines: pd.DataFrame) -> None:
     assert {"auzahl", "ursaaf"} <= found
 
 
+def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
+    """A7 (decided, #14), aggregates only: 6 patterns reach the Inbox at score 12 (16 at 6, 4 at
+    20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242."""
+    rules = Rules()
+    records = run_miner(real_lines, rules)
+    assert len(records) == 6
+    assert all(r.workgroup == "Payroll" for r in records)
+    assert all(float(r.facts["miner_score"]) >= 12 for r in records)
+    lower = rules.model_copy(update={"miner_min_score": 6})
+    assert len(run_miner(real_lines, lower)) == 16
+    assert len(run_miner(real_lines, rules.model_copy(update={"miner_min_score": 20}))) == 4
+    top = records[0]
+    assert (top.erp, top.entity, top.account) == ("BPP", "C242", "48900002")
+    assert (top.facts["miner_score"], top.facts["months"], top.facts["entities"]) == (42, 42, 1)
+    assert top.facts["lines"] == 111
+    # No top pattern names a correction, so the card stays a hypothesis.
+    assert not any("correction" in str(r.facts["pattern"]) for r in records)
+
+
+def test_real_miner_fixed_assets(real_fixed_assets: object) -> None:
+    """A3, A7: Fixed assets feed the Miner. Invariants only: the counts were not measured,
+    because the workbook was not available when #15 was built (see the PR)."""
+    lines = real_fixed_assets.lines  # type: ignore[attr-defined]
+    rules = Rules()
+    records = run_miner(lines, rules)
+    for record in records:
+        assert record.workgroup == "Fixed assets"
+        assert float(record.facts["miner_score"]) >= rules.miner_min_score
+        assert float(record.facts["months"]) >= rules.miner_min_repeats
+        assert record.evidence
+    scores = [float(r.facts["miner_score"]) for r in records]
+    assert scores == sorted(scores, reverse=True)
+
+
 # ----- engines on synthetic data (always run) -----------------------------------------------
 @pytest.fixture(scope="module")
 def synthetic_pulse(synthetic_lines: pd.DataFrame) -> PulseResult:
@@ -317,8 +351,25 @@ def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
         (r.facts.get("found"), r.facts.get("suggestion")) for r in run_typos(synthetic_lines, rules)
     }
     assert {("Auzahl", "Auszahl"), ("URSAAF", "URSSAF"), ("trnasit", "transit")} <= typos
-    planted = [r for r in run_miner(synthetic_lines, rules) if r.account == "279002"]
-    assert len(planted) == 1 and planted[0].facts["months"] == 4
+
+
+def test_synthetic_miner_planted_pattern_and_near_miss(synthetic_lines: pd.DataFrame) -> None:
+    """A7 (decided, #14): the planted pattern (6 months x 2 company codes = 12) is found; the
+    near-miss (5 x 2 = 10) and the older lines without a header text are not."""
+    rules = Rules()
+    records = run_miner(synthetic_lines, rules)
+    assert len(records) == 1
+    top = records[0]
+    assert (top.erp, top.entity, top.account) == ("P20", "C192", "279030")
+    assert (top.facts["months"], top.facts["entities"], top.facts["miner_score"]) == (6, 2, 12)
+    assert top.facts["entity_list"] == "C132, C192"
+    assert top.facts["pattern"] == "correction <name> reclass to # #/#"
+    assert top.title == "Repeated manual posting: 6 months"
+    assert top.first_signal == date(2026, 10, 21)
+    assert len(top.evidence) == 8
+    lower = run_miner(synthetic_lines, rules.model_copy(update={"miner_min_score": 10}))
+    assert {(r.account, r.facts["miner_score"]) for r in lower} == {("279030", 12), ("279030", 10)}
+    assert [r for r in lower if r.account == "279002"] == [], "no header text, no pattern"
 
 
 def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:

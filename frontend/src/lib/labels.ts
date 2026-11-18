@@ -12,7 +12,7 @@ export const TYPE_LABEL: Record<ExceptionType, string> = {
   sentinel_currency_code: "Currency looks off",
   sentinel_reversal: "Reversal doesn't match",
   typo: "Possible typo",
-  miner_cluster: "Same fix, every month",
+  miner_cluster: "Repeated manual posting",
 };
 
 /** One plain sentence per finding, with the accounting term kept in it. */
@@ -27,7 +27,8 @@ export const TYPE_HINT: Record<ExceptionType, string> = {
   sentinel_currency_code: "The currency code doesn't exist, or the euro had replaced it when this was posted.",
   sentinel_reversal: "A reversal that doesn't mirror the entry it reverses.",
   typo: "A word or month label that looks like a slip of the keyboard.",
-  miner_cluster: "Someone fixes the same thing by hand every month. Fix it once at the source.",
+  miner_cluster:
+    "The same posting is typed by hand month after month. It may be a correction; check whether the automated posting can do it.",
 };
 
 export type TypeGroup = "pulse" | "sentinel" | "mistakes" | "miner";
@@ -50,7 +51,7 @@ export const GROUP_LABEL: Record<TypeGroup, string> = {
   pulse: "Payments & accruals",
   sentinel: "Posting checks",
   mistakes: "Possible typos",
-  miner: "Repeat fixes",
+  miner: "Repeated postings",
 };
 
 /** Tailwind classes per group: solid colour, soft background, text on soft background. */
@@ -134,15 +135,19 @@ const FACT_LABEL: Record<string, string> = {
   dictionary_count: "Times written the usual way",
   found_period: "Month on the line",
   expected_period: "Month of the document",
-  pattern: "The repeated fix (names hidden)",
+  pattern: "The repeated header text (names hidden)",
+  fingerprint: "What counts as the same posting",
   doc_type: "Document type",
-  months: "Months in a row",
+  months: "Months seen",
+  entities: "Company codes",
+  entity_list: "Company codes involved",
+  miner_score: "Repeat strength (company codes × months)",
   first_month: "First seen",
   last_month: "Last seen",
   documents: "Documents",
   people: "People involved",
-  total_abs_eur: "Total moved by hand",
-  hint: "Where to look",
+  total_abs_eur: "Total posted by hand",
+  hint: "Our hypothesis",
   today_detection_basis: "Today's report would catch it via",
   lead_days: "Days earlier than today's report",
 };
