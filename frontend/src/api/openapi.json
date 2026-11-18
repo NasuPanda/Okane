@@ -1,0 +1,2248 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Okane",
+    "description": "Read-only reconciliation copilot. Amounts are scaled EUR.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/runs/latest": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Latest Run",
+        "description": "The most recent run (running, finished or failed), or null before the first run.",
+        "operationId": "latest_run_api_runs_latest_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Run"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Latest Run Api Runs Latest Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "List Runs",
+        "description": "Recent runs, newest first.",
+        "operationId": "list_runs_api_runs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Run"
+                  },
+                  "title": "Response List Runs Api Runs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Start Run",
+        "description": "Start a run on the newest workbooks. ``wait=true`` returns the finished run.",
+        "operationId": "start_run_api_runs_post",
+        "parameters": [
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Wait"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Events",
+        "description": "Server-sent events: ``run_started`` and ``run_finished``.",
+        "operationId": "events_api_events_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exceptions": {
+      "get": {
+        "tags": [
+          "exceptions"
+        ],
+        "summary": "List Exceptions",
+        "description": "Exceptions of the latest run, highest score first, with optional filters.",
+        "operationId": "list_exceptions_api_exceptions_get",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pulse_gap",
+                    "pulse_missing_payment",
+                    "pulse_spike",
+                    "pulse_missing_batch",
+                    "label_mismatch",
+                    "sentinel_outlier",
+                    "sentinel_two_currencies",
+                    "sentinel_currency_code",
+                    "sentinel_reversal",
+                    "typo",
+                    "miner_cluster"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "name": "workgroup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "Payroll",
+                    "Fixed assets"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workgroup"
+            }
+          },
+          {
+            "name": "entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity"
+            }
+          },
+          {
+            "name": "min_exposure",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Exposure"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "new",
+                    "explained",
+                    "dismissed",
+                    "escalated"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExceptionRecord"
+                  },
+                  "title": "Response List Exceptions Api Exceptions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exceptions/{exception_id}": {
+      "get": {
+        "tags": [
+          "exceptions"
+        ],
+        "summary": "Get Exception",
+        "description": "One exception with its evidence lines, gap chart series and decision history.",
+        "operationId": "get_exception_api_exceptions__exception_id__get",
+        "parameters": [
+          {
+            "name": "exception_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exception Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "exceptions"
+        ],
+        "summary": "Decide",
+        "description": "Set status, class, reason or an edited comment. A decision always needs a reason.",
+        "operationId": "decide_api_exceptions__exception_id__patch",
+        "parameters": [
+          {
+            "name": "exception_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exception Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExceptionRecord"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exceptions/{exception_id}/comment": {
+      "post": {
+        "tags": [
+          "exceptions"
+        ],
+        "summary": "Comment",
+        "description": "AI draft with the verifier result (cached by exception id and facts).",
+        "operationId": "comment_api_exceptions__exception_id__comment_post",
+        "parameters": [
+          {
+            "name": "exception_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Exception Id"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exposure/payroll": {
+      "get": {
+        "tags": [
+          "exposure"
+        ],
+        "summary": "Payroll Exposure",
+        "description": "Old-rule totals and per-account netting. ``materiality`` overrides the rule for a\nwhat-if view (the slider); it does not change the saved rules.",
+        "operationId": "payroll_exposure_api_exposure_payroll_get",
+        "parameters": [
+          {
+            "name": "materiality",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Materiality"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExposureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pulse/accounts": {
+      "get": {
+        "tags": [
+          "pulse"
+        ],
+        "summary": "Pulse Accounts",
+        "description": "Accounts with a payment profile in the latest run (``ERP/entity/account``).",
+        "operationId": "pulse_accounts_api_pulse_accounts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Response Pulse Accounts Api Pulse Accounts Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pulse/{erp}/{entity}/{account}/timeline": {
+      "get": {
+        "tags": [
+          "pulse"
+        ],
+        "summary": "Timeline",
+        "description": "Month-end balance, expected balance and gap, plus each batch and its payments.",
+        "operationId": "timeline_api_pulse__erp___entity___account__timeline_get",
+        "parameters": [
+          {
+            "name": "erp",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Erp"
+            }
+          },
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entity"
+            }
+          },
+          {
+            "name": "account",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Account"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PulseTimeline"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rules": {
+      "get": {
+        "tags": [
+          "rules"
+        ],
+        "summary": "Get Rules",
+        "description": "The rules every engine uses.",
+        "operationId": "get_rules_api_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rules"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "rules"
+        ],
+        "summary": "Put Rules",
+        "description": "Replace the rules; log each changed field; re-run on the current snapshot.",
+        "operationId": "put_rules_api_rules_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RulesUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rules"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rules/log": {
+      "get": {
+        "tags": [
+          "rules"
+        ],
+        "summary": "Rules Log",
+        "description": "Who changed which rule, when, from what to what, and why (newest first).",
+        "operationId": "rules_log_api_rules_log_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RuleChange"
+                  },
+                  "type": "array",
+                  "title": "Response Rules Log Api Rules Log Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kpis": {
+      "get": {
+        "tags": [
+          "kpis"
+        ],
+        "summary": "Kpis",
+        "description": "Header numbers for the latest run (zeros before the first run).",
+        "operationId": "kpis_api_kpis_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kpis"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Health",
+        "description": "Liveness probe.",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BatchMatch": {
+        "properties": {
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "accrual_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Accrual Date"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "batch_eur": {
+            "type": "number",
+            "title": "Batch Eur"
+          },
+          "lines": {
+            "type": "integer",
+            "title": "Lines"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "matched": {
+            "type": "boolean",
+            "title": "Matched"
+          },
+          "payment_eur": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Eur"
+          },
+          "payment_dates": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Payment Dates"
+          },
+          "payment_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Payment Evidence"
+          },
+          "payment_labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Payment Labels"
+          },
+          "diff_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diff Pct"
+          },
+          "lag_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lag Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "accrual_date",
+          "period_end",
+          "batch_eur",
+          "lines",
+          "evidence",
+          "matched"
+        ],
+        "title": "BatchMatch",
+        "description": "One accrual batch and the payments that settled it, if any."
+      },
+      "Comment": {
+        "properties": {
+          "exception_id": {
+            "type": "string",
+            "title": "Exception Id"
+          },
+          "comment": {
+            "type": "string",
+            "title": "Comment"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "model",
+              "template"
+            ],
+            "title": "Source"
+          },
+          "verifier": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "not_run"
+            ],
+            "title": "Verifier"
+          },
+          "checked_figures": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Checked Figures"
+          },
+          "failed_figures": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Failed Figures"
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exception_id",
+          "comment",
+          "source",
+          "verifier",
+          "checked_figures",
+          "failed_figures",
+          "cached"
+        ],
+        "title": "Comment",
+        "description": "POST /api/exceptions/{id}/comment response."
+      },
+      "DecisionEntry": {
+        "properties": {
+          "exception_id": {
+            "type": "string",
+            "title": "Exception Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "explained",
+              "dismissed",
+              "escalated"
+            ],
+            "title": "Status"
+          },
+          "decision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Reason"
+          },
+          "decided_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "List component",
+                  "Timing item",
+                  "Required Adjustment Item"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided Class"
+          },
+          "edited_comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edited Comment"
+          },
+          "decided_by": {
+            "type": "string",
+            "title": "Decided By"
+          },
+          "decided_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Decided At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exception_id",
+          "status",
+          "decision_reason",
+          "decided_class",
+          "edited_comment",
+          "decided_by",
+          "decided_at"
+        ],
+        "title": "DecisionEntry",
+        "description": "Audit trail entry for a decision on an exception."
+      },
+      "DecisionUpdate": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "new",
+                  "explained",
+                  "dismissed",
+                  "escalated"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "decision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Reason"
+          },
+          "decided_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "List component",
+                  "Timing item",
+                  "Required Adjustment Item"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided Class"
+          },
+          "edited_comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edited Comment"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          }
+        },
+        "type": "object",
+        "title": "DecisionUpdate",
+        "description": "Body of PATCH /api/exceptions/{id}. A reason is required for any decided status."
+      },
+      "EvidenceLine": {
+        "properties": {
+          "document": {
+            "type": "string",
+            "title": "Document"
+          },
+          "posting_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posting Date"
+          },
+          "doc_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doc Type"
+          },
+          "user_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Name"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "amount_eur": {
+            "type": "number",
+            "title": "Amount Eur"
+          },
+          "currency_dc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Dc"
+          },
+          "amount_dc": {
+            "type": "number",
+            "title": "Amount Dc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document",
+          "posting_date",
+          "doc_type",
+          "user_name",
+          "text",
+          "amount_eur",
+          "currency_dc",
+          "amount_dc"
+        ],
+        "title": "EvidenceLine",
+        "description": "A source line shown in the drawer (text is shown as-is to the user, never to a model)."
+      },
+      "ExceptionDetail": {
+        "properties": {
+          "exception": {
+            "$ref": "#/components/schemas/ExceptionRecord"
+          },
+          "evidence_lines": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceLine"
+            },
+            "type": "array",
+            "title": "Evidence Lines"
+          },
+          "timeline": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TimelinePoint"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeline"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/DecisionEntry"
+            },
+            "type": "array",
+            "title": "Decisions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exception",
+          "evidence_lines",
+          "timeline",
+          "decisions"
+        ],
+        "title": "ExceptionDetail",
+        "description": "GET /api/exceptions/{id}: the record, its evidence lines and chart series."
+      },
+      "ExceptionRecord": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "pulse_gap",
+              "pulse_missing_payment",
+              "pulse_spike",
+              "pulse_missing_batch",
+              "label_mismatch",
+              "sentinel_outlier",
+              "sentinel_two_currencies",
+              "sentinel_currency_code",
+              "sentinel_reversal",
+              "typo",
+              "miner_cluster"
+            ],
+            "title": "Type"
+          },
+          "workgroup": {
+            "type": "string",
+            "enum": [
+              "Payroll",
+              "Fixed assets"
+            ],
+            "title": "Workgroup"
+          },
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "account": {
+            "type": "string",
+            "title": "Account"
+          },
+          "account_name": {
+            "type": "string",
+            "title": "Account Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "exposure_eur": {
+            "type": "number",
+            "title": "Exposure Eur"
+          },
+          "facts": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Facts"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "first_signal": {
+            "type": "string",
+            "format": "date",
+            "title": "First Signal"
+          },
+          "today_detection": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Today Detection"
+          },
+          "lead_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Days"
+          },
+          "expected_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected By"
+          },
+          "suggested_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "List component",
+                  "Timing item",
+                  "Required Adjustment Item"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Class"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "score_breakdown": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Score Breakdown"
+          },
+          "ai_comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Comment"
+          },
+          "verifier": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "not_run"
+            ],
+            "title": "Verifier"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "explained",
+              "dismissed",
+              "escalated"
+            ],
+            "title": "Status"
+          },
+          "decision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Reason"
+          },
+          "decided_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "List component",
+                  "Timing item",
+                  "Required Adjustment Item"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided Class"
+          },
+          "edited_comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edited Comment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "run_id",
+          "type",
+          "workgroup",
+          "erp",
+          "entity",
+          "account",
+          "account_name",
+          "title",
+          "exposure_eur",
+          "facts",
+          "evidence",
+          "first_signal",
+          "today_detection",
+          "lead_days",
+          "expected_by",
+          "suggested_class",
+          "score",
+          "score_breakdown",
+          "ai_comment",
+          "verifier",
+          "status",
+          "decision_reason"
+        ],
+        "title": "ExceptionRecord",
+        "description": "One finding. Every engine emits this shape (brief section 7)."
+      },
+      "ExposureGroup": {
+        "properties": {
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "account": {
+            "type": "string",
+            "title": "Account"
+          },
+          "account_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Name"
+          },
+          "lines": {
+            "type": "integer",
+            "title": "Lines"
+          },
+          "overdue_abs": {
+            "type": "number",
+            "title": "Overdue Abs"
+          },
+          "net_eur": {
+            "type": "number",
+            "title": "Net Eur"
+          },
+          "paired_lines": {
+            "type": "integer",
+            "title": "Paired Lines"
+          },
+          "above_materiality": {
+            "type": "boolean",
+            "title": "Above Materiality"
+          },
+          "exception_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exception Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "erp",
+          "entity",
+          "account",
+          "account_name",
+          "lines",
+          "overdue_abs",
+          "net_eur",
+          "paired_lines",
+          "above_materiality"
+        ],
+        "title": "ExposureGroup",
+        "description": "Payroll netting per ERP, entity and account (brief section 8)."
+      },
+      "ExposureResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "materiality_eur": {
+            "type": "number",
+            "title": "Materiality Eur"
+          },
+          "old_rule_lines": {
+            "type": "integer",
+            "title": "Old Rule Lines"
+          },
+          "old_rule_overdue_abs": {
+            "type": "number",
+            "title": "Old Rule Overdue Abs"
+          },
+          "net_eur": {
+            "type": "number",
+            "title": "Net Eur"
+          },
+          "groups_above": {
+            "type": "integer",
+            "title": "Groups Above"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/ExposureGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "materiality_eur",
+          "old_rule_lines",
+          "old_rule_overdue_abs",
+          "net_eur",
+          "groups_above",
+          "groups"
+        ],
+        "title": "ExposureResponse",
+        "description": "GET /api/exposure/payroll: the old report next to the real exposure."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Kpis": {
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "exceptions": {
+            "type": "integer",
+            "title": "Exceptions"
+          },
+          "open_exceptions": {
+            "type": "integer",
+            "title": "Open Exceptions"
+          },
+          "median_days_earlier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Days Earlier"
+          },
+          "blind_spots": {
+            "type": "integer",
+            "title": "Blind Spots"
+          },
+          "by_type": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Type"
+          },
+          "old_rule_lines": {
+            "type": "integer",
+            "title": "Old Rule Lines"
+          },
+          "old_rule_overdue_abs": {
+            "type": "number",
+            "title": "Old Rule Overdue Abs"
+          },
+          "exposure_groups_above": {
+            "type": "integer",
+            "title": "Exposure Groups Above"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "exceptions",
+          "open_exceptions",
+          "median_days_earlier",
+          "blind_spots",
+          "by_type",
+          "old_rule_lines",
+          "old_rule_overdue_abs",
+          "exposure_groups_above"
+        ],
+        "title": "Kpis",
+        "description": "GET /api/kpis: header statistics."
+      },
+      "PaymentProfile": {
+        "properties": {
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "account": {
+            "type": "string",
+            "title": "Account"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "batch_text_pattern": {
+            "type": "string",
+            "title": "Batch Text Pattern",
+            "description": "Regex on the line Text; group 'period' holds the period label"
+          },
+          "batch_users": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Batch Users",
+            "description": "User Name filter, if any"
+          },
+          "batch_doc_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Batch Doc Types"
+          },
+          "batch_group": {
+            "type": "string",
+            "enum": [
+              "period",
+              "document"
+            ],
+            "title": "Batch Group",
+            "default": "period"
+          },
+          "min_batch_eur": {
+            "type": "number",
+            "title": "Min Batch Eur",
+            "default": 0.0
+          },
+          "payment_unit": {
+            "type": "string",
+            "enum": [
+              "document",
+              "line"
+            ],
+            "title": "Payment Unit",
+            "default": "document"
+          },
+          "payment_doc_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Payment Doc Types"
+          },
+          "min_payment_eur": {
+            "type": "number",
+            "title": "Min Payment Eur",
+            "default": 0.0
+          },
+          "max_units": {
+            "type": "integer",
+            "title": "Max Units",
+            "default": 2
+          },
+          "window_anchor": {
+            "type": "string",
+            "enum": [
+              "period_end",
+              "accrual_date"
+            ],
+            "title": "Window Anchor",
+            "default": "period_end"
+          },
+          "window_start_days": {
+            "type": "integer",
+            "title": "Window Start Days",
+            "default": -5
+          },
+          "window_end_days": {
+            "type": "integer",
+            "title": "Window End Days",
+            "default": 70
+          },
+          "tolerance_pct": {
+            "type": "number",
+            "title": "Tolerance Pct",
+            "default": 0.02
+          },
+          "prefer_fewest_units": {
+            "type": "boolean",
+            "title": "Prefer Fewest Units",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "erp",
+          "entity",
+          "account",
+          "label",
+          "batch_text_pattern"
+        ],
+        "title": "PaymentProfile",
+        "description": "How one account accrues and pays (brief section 8, Pulse table)."
+      },
+      "PulseTimeline": {
+        "properties": {
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "account": {
+            "type": "string",
+            "title": "Account"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/TimelinePoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "batches": {
+            "items": {
+              "$ref": "#/components/schemas/BatchMatch"
+            },
+            "type": "array",
+            "title": "Batches"
+          },
+          "lag_median": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lag Median"
+          },
+          "lag_p90": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lag P90"
+          }
+        },
+        "type": "object",
+        "required": [
+          "erp",
+          "entity",
+          "account",
+          "label",
+          "points",
+          "batches",
+          "lag_median",
+          "lag_p90"
+        ],
+        "title": "PulseTimeline",
+        "description": "GET /api/pulse/{erp}/{entity}/{account}/timeline."
+      },
+      "RuleChange": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "changed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Changed At"
+          },
+          "changed_by": {
+            "type": "string",
+            "title": "Changed By"
+          },
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "old_value": {
+            "type": "string",
+            "title": "Old Value"
+          },
+          "new_value": {
+            "type": "string",
+            "title": "New Value"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "changed_at",
+          "changed_by",
+          "field",
+          "old_value",
+          "new_value",
+          "reason"
+        ],
+        "title": "RuleChange",
+        "description": "One entry of the append-only rules change log."
+      },
+      "Rules": {
+        "properties": {
+          "materiality_eur": {
+            "type": "number",
+            "title": "Materiality Eur",
+            "default": 500000
+          },
+          "tolerance_pct": {
+            "type": "number",
+            "title": "Tolerance Pct",
+            "default": 0.01
+          },
+          "tolerance_eur": {
+            "type": "number",
+            "title": "Tolerance Eur",
+            "default": 1000
+          },
+          "grace_days": {
+            "type": "integer",
+            "title": "Grace Days",
+            "default": 15
+          },
+          "outlier_multiple": {
+            "type": "number",
+            "title": "Outlier Multiple",
+            "default": 1000
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Weights",
+            "default": {
+              "exposure": 40,
+              "days_past_expected": 20,
+              "penalty_account": 20,
+              "error_type": 10,
+              "repeats": 10
+            }
+          },
+          "payment_profiles": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentProfile"
+            },
+            "type": "array",
+            "title": "Payment Profiles"
+          },
+          "spike_multiple": {
+            "type": "number",
+            "title": "Spike Multiple",
+            "default": 3.0
+          },
+          "spike_lookback_months": {
+            "type": "integer",
+            "title": "Spike Lookback Months",
+            "default": 12
+          },
+          "missing_batch_lookback_months": {
+            "type": "integer",
+            "title": "Missing Batch Lookback Months",
+            "default": 24
+          },
+          "sentinel_s1_scope": {
+            "type": "string",
+            "enum": [
+              "people_only",
+              "exempt_bot_upload",
+              "all"
+            ],
+            "title": "Sentinel S1 Scope",
+            "default": "people_only"
+          },
+          "close_review_days": {
+            "type": "integer",
+            "title": "Close Review Days",
+            "default": 5
+          },
+          "typo_min_similarity": {
+            "type": "number",
+            "title": "Typo Min Similarity",
+            "default": 80.0
+          },
+          "typo_dictionary_min_count": {
+            "type": "integer",
+            "title": "Typo Dictionary Min Count",
+            "default": 5
+          },
+          "typo_rarity_ratio": {
+            "type": "number",
+            "title": "Typo Rarity Ratio",
+            "default": 2.5
+          },
+          "miner_min_repeats": {
+            "type": "integer",
+            "title": "Miner Min Repeats",
+            "default": 3
+          },
+          "penalty_accounts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Penalty Accounts"
+          },
+          "exposure_cap_multiple": {
+            "type": "number",
+            "title": "Exposure Cap Multiple",
+            "default": 5.0
+          },
+          "days_past_expected_cap": {
+            "type": "integer",
+            "title": "Days Past Expected Cap",
+            "default": 90
+          },
+          "repeats_cap": {
+            "type": "integer",
+            "title": "Repeats Cap",
+            "default": 5
+          },
+          "error_type_severity": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Error Type Severity",
+            "default": {
+              "pulse_gap": 1.0,
+              "pulse_missing_payment": 0.9,
+              "sentinel_currency_code": 0.8,
+              "sentinel_two_currencies": 0.7,
+              "sentinel_outlier": 0.7,
+              "sentinel_reversal": 0.7,
+              "pulse_missing_batch": 0.6,
+              "label_mismatch": 0.5,
+              "pulse_spike": 0.5,
+              "miner_cluster": 0.4,
+              "typo": 0.2
+            }
+          }
+        },
+        "type": "object",
+        "title": "Rules",
+        "description": "Controller-set parameters. Brief fields first; every engine threshold lives here."
+      },
+      "RulesUpdate": {
+        "properties": {
+          "rules": {
+            "$ref": "#/components/schemas/Rules"
+          },
+          "changed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rules",
+          "reason"
+        ],
+        "title": "RulesUpdate",
+        "description": "Body of PUT /api/rules: the full new rules plus who and why."
+      },
+      "Run": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "watcher",
+              "schedule",
+              "startup",
+              "rules_change"
+            ],
+            "title": "Trigger"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "source_files": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Files"
+          },
+          "file_hashes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "File Hashes"
+          },
+          "synthetic": {
+            "type": "boolean",
+            "title": "Synthetic"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "snapshot_id",
+          "trigger",
+          "status",
+          "source_files",
+          "file_hashes",
+          "synthetic",
+          "as_of",
+          "started_at"
+        ],
+        "title": "Run",
+        "description": "One pipeline run over one snapshot."
+      },
+      "TimelinePoint": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "balance": {
+            "type": "number",
+            "title": "Balance"
+          },
+          "expected": {
+            "type": "number",
+            "title": "Expected"
+          },
+          "gap": {
+            "type": "number",
+            "title": "Gap"
+          },
+          "batch_eur": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Eur"
+          },
+          "batch_matched": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Matched"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "balance",
+          "expected",
+          "gap",
+          "batch_eur",
+          "batch_matched"
+        ],
+        "title": "TimelinePoint",
+        "description": "Gap chart point: month-end balance, expected balance and gap (brief section 8)."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Okane tokens. Light, quiet canvas with near-black ink; one signal colour (lime-mint) for
+   "verified" and live run state. Amounts are always tabular. */
+:root {
+  --radius: 0.75rem;
+  --background: #ebebed;
+  --foreground: #0b0b0c;
+  --card: #f5f5f6;
+  --card-foreground: #0b0b0c;
+  --popover: #ffffff;
+  --popover-foreground: #0b0b0c;
+  --primary: #0b0b0c;
+  --primary-foreground: #ffffff;
+  --secondary: #ffffff;
+  --secondary-foreground: #0b0b0c;
+  --muted: #e2e2e5;
+  --muted-foreground: #85858c;
+  --accent: #e4e4e7;
+  --accent-foreground: #0b0b0c;
+  --destructive: #e5484d;
+  --border: #dcdce0;
+  --input: #d6d6db;
+  --ring: #0b0b0c;
+  --signal: #a6f27c;
+  --signal-ink: #1f6b1f;
+  --signal-soft: #e3fbd3;
+  --warn: #c2790a;
+  --warn-soft: #fdf0d8;
+  --danger-soft: #fde4e4;
+  --dock: #111113;
+  --dock-raised: #26262a;
+  --chart-1: #0b0b0c;
+  --chart-2: #b9b9bf;
+  --chart-3: #85858c;
+  --chart-4: #a6f27c;
+  --chart-5: #e5484d;
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-signal-soft: var(--signal-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger-soft: var(--danger-soft);
+  --color-dock: var(--dock);
+  --color-dock-raised: var(--dock-raised);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+  html,
+  body,
+  #root {
+    @apply min-h-full;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+@utility num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+@utility eyebrow {
+  font-size: 10.5px;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+@utility hairline-bars {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--chart-2) 0 1px,
+    transparent 1px 6px
+  );
+}
