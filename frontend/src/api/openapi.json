@@ -1942,6 +1942,11 @@
             "title": "Close Review Days",
             "default": 5
           },
+          "sentinel_s2_min_amount": {
+            "type": "number",
+            "title": "Sentinel S2 Min Amount",
+            "default": 1000
+          },
           "typo_min_similarity": {
             "type": "number",
             "title": "Typo Min Similarity",

@@ -215,6 +215,38 @@ def test_real_fixed_assets_scope(real_all_lines: pd.DataFrame, real_lines: pd.Da
     assert all(t.startswith("sentinel_") or t in allowed for t in fixed_types), fixed_types
 
 
+def test_real_sentinel_s2(real_all_lines: pd.DataFrame, real_lines: pd.DataFrame) -> None:
+    """A4 (decided, #10): one S2 hit, on Fixed assets P20 C218 119001, in EUR and JPY."""
+    from app.engines.sentinel import two_currency_alerts
+
+    rules = Rules()
+    hits = two_currency_alerts(real_all_lines, rules)
+    assert len(hits) == 1
+    hit = hits[0]
+    assert (hit.workgroup, hit.erp, hit.entity, hit.account) == (
+        "Fixed assets", "P20", "C218", "119001"
+    )  # fmt: skip
+    assert hit.facts["currencies"] == "EUR, JPY"
+    assert hit.facts["lines"] == 3 and len(hit.evidence) == 3
+    assert two_currency_alerts(real_lines, rules) == [], "Payroll has none"
+    lowest = rules.model_copy(update={"sentinel_s2_min_amount": 0.01})
+    assert len(two_currency_alerts(real_all_lines, lowest)) == 1, "the minimum does not matter"
+
+
+def test_real_sentinel_s3(real_all_lines: pd.DataFrame, real_lines: pd.DataFrame) -> None:
+    """A5 (decided, #10): one S3 hit, a DEM line on Fixed assets P20 C238."""
+    from app.engines.sentinel import currency_code_alerts
+
+    hits = currency_code_alerts(real_all_lines)
+    assert len(hits) == 1
+    hit = hits[0]
+    assert (hit.workgroup, hit.erp, hit.entity) == ("Fixed assets", "P20", "C238")
+    assert hit.facts["currency_dc"] == "DEM"
+    assert hit.title == "DEM was replaced by the euro"
+    assert hit.facts["lines"] == 1
+    assert currency_code_alerts(real_lines) == [], "Payroll has none"
+
+
 def test_real_typos_find_known_misspellings(real_lines: pd.DataFrame) -> None:
     found = {str(r.facts.get("found")).lower() for r in run_typos(real_lines, Rules())}
     assert {"auzahl", "ursaaf"} <= found
@@ -272,8 +304,15 @@ def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
     assert outliers == {("C192", "person"), ("C218", "person")}
     every = run_sentinel(synthetic_lines, rules.model_copy(update={"sentinel_s1_scope": "all"}))
     assert sum(r.type == "sentinel_outlier" for r in every) == 3
-    assert {r.entity for r in sentinel if r.type == "sentinel_currency_code"} == {"C141", "C218"}
-    assert {r.entity for r in sentinel if r.type == "sentinel_two_currencies"} == {"C132"}
+    codes = {r.entity: r.title for r in sentinel if r.type == "sentinel_currency_code"}
+    assert codes == {
+        "C141": "'GHC' is not a valid currency code",
+        "C218": "FRF was replaced by the euro",
+    }
+    two = [r for r in sentinel if r.type == "sentinel_two_currencies"]
+    assert [(r.entity, r.facts["currencies"], r.facts["lines"]) for r in two] == [
+        ("C132", "EUR, RWF", 2)
+    ]
     typos = {
         (r.facts.get("found"), r.facts.get("suggestion")) for r in run_typos(synthetic_lines, rules)
     }

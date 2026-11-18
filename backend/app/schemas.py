@@ -166,6 +166,9 @@ class Rules(BaseModel):
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
     # ADDITION / ASSUMPTION: today's close review happens this many days after month end.
     close_review_days: int = 5
+    # ADDITION (#10, docs/ASSUMPTIONS.md A4): Sentinel S2 ignores amounts below this, in the
+    # document currency (the figure as typed).
+    sentinel_s2_min_amount: float = 1_000
     # ADDITION / ASSUMPTION: typo prompts.
     typo_min_similarity: float = 80.0
     typo_dictionary_min_count: int = 5

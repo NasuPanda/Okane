@@ -20,7 +20,14 @@ from app.engines.pulse import (
     parse_period,
     run_pulse,
 )
-from app.engines.sentinel import outlier_hits, run_sentinel
+from app.engines.sentinel import (
+    ISO_CURRENCIES,
+    REPLACED_BY_EURO,
+    currency_code_alerts,
+    outlier_hits,
+    run_sentinel,
+    two_currency_alerts,
+)
 from app.engines.typos import run_typos
 from app.schemas import PaymentProfile, Rules
 
@@ -252,22 +259,75 @@ def test_s1_records_carry_evidence_and_rule() -> None:
     assert "S1" in str(record.facts["rule"])
 
 
-def test_s2_and_s3() -> None:
+def test_s2_same_amount_in_two_currencies() -> None:
+    day, next_day = date(2026, 3, 9), date(2026, 3, 10)
     lines = frame([
-        {"document_no": "1", "currency_dc": "RWF", "amount_dc": -6_000.0, "amount_lc": -4.0,
-         "amount_eur": -4.0},
-        {"document_no": "1", "currency_dc": "EUR", "amount_dc": 4.0},
-        {"document_no": "2", "currency_dc": "GHS", "amount_dc": -1_845.0},  # unconverted
-        {"document_no": "3", "currency_dc": "XXQ", "amount_dc": -5.0, "amount_lc": -1.0},
-        {"document_no": "4", "currency_dc": "GHS", "amount_dc": -0.4},  # below 1 unit
+        # Hit: 4,200.40 EUR and 4,200 RWF on one day are the same amount in whole units.
+        {"document_no": "1", "posting_date": day, "amount_dc": -4_200.4},
+        {"document_no": "2", "posting_date": day, "currency_dc": "RWF", "amount_dc": -4_200.0,
+         "amount_lc": -2.8, "amount_eur": -2.8},
+        # No hit: different days.
+        {"document_no": "3", "posting_date": day, "amount_dc": 7_000.0},
+        {"document_no": "4", "posting_date": next_day, "currency_dc": "GHS", "amount_dc": 7_000.0,
+         "amount_lc": 600.0, "amount_eur": 600.0},
+        # No hit: the same currency.
+        {"document_no": "5", "posting_date": day, "amount_dc": 8_000.0},
+        {"document_no": "6", "posting_date": day, "amount_dc": -8_000.0},
+        # No hit: one document in two currencies, but different amounts.
+        {"document_no": "7", "posting_date": day, "amount_dc": 5_000.0},
+        {"document_no": "7", "item": 2, "posting_date": day, "currency_dc": "RWF",
+         "amount_dc": -7_500_000.0, "amount_lc": -5_000.0, "amount_eur": -5_000.0},
+        # Below the default minimum of 1,000.
+        {"document_no": "8", "posting_date": day, "amount_dc": 600.0},
+        {"document_no": "9", "posting_date": day, "currency_dc": "GHS", "amount_dc": 600.0,
+         "amount_lc": 50.0, "amount_eur": 50.0},
     ])  # fmt: skip
-    records = run_sentinel(lines, Rules())
-    by_type = sorted((r.type, r.evidence[0]) for r in records)
-    assert by_type == [
-        ("sentinel_currency_code", "2/2026"),
-        ("sentinel_currency_code", "3/2026"),
-        ("sentinel_two_currencies", "1/2026"),
-    ]
+    rules = Rules()
+    assert rules.sentinel_s2_min_amount == 1_000
+    records = [r for r in run_sentinel(lines, rules) if r.type == "sentinel_two_currencies"]
+    assert len(records) == 1
+    record = records[0]
+    assert record.evidence == ["1/2026", "2/2026"]
+    assert record.facts["currencies"] == "EUR, RWF"
+    assert record.facts["amount_dc"] == 4_200
+    assert record.facts["lines"] == 2
+    assert record.exposure_eur == 4_200.4
+    assert "1,000" in str(record.facts["rule"])
+    assert record.suggested_class == "Required Adjustment Item"
+    assert len(two_currency_alerts(lines, Rules(sentinel_s2_min_amount=500))) == 2
+    # A third line of the same amount joins the finding; the finding keeps its id.
+    more = frame([{"document_no": "10", "posting_date": day, "amount_dc": 4_200.0}])
+    grown = two_currency_alerts(pd.concat([lines, more], ignore_index=True), rules)
+    assert [(r.id, len(r.evidence)) for r in grown] == [(record.id, 3)]
+
+
+def test_s3_currency_codes() -> None:
+    lines = frame([
+        {"document_no": "1", "currency_dc": "XXQ", "amount_dc": -5.0, "amount_lc": -1.0},
+        {"document_no": "2", "currency_dc": "DEM", "posting_date": date(2015, 6, 1),
+         "amount_dc": 900.0, "amount_lc": 460.0},
+        # Still valid: DEM before 2002, BGN before 2026.
+        {"document_no": "3", "currency_dc": "DEM", "posting_date": date(2001, 6, 1),
+         "amount_dc": 900.0, "amount_lc": 460.0},
+        {"document_no": "4", "currency_dc": "BGN", "posting_date": date(2025, 12, 31),
+         "amount_dc": 900.0, "amount_lc": 460.0},
+        {"document_no": "5", "currency_dc": "BGN", "posting_date": date(2026, 1, 2),
+         "amount_dc": 900.0, "amount_lc": 460.0},
+        # An amount equal in two currencies is no longer an S3 finding (dropped in #10).
+        {"document_no": "6", "currency_dc": "GHS", "amount_dc": -1_845.0},
+    ])  # fmt: skip
+    records = {r.evidence[0]: r for r in currency_code_alerts(lines)}
+    assert sorted(records) == ["1/2026", "2/2015", "5/2026"]
+    assert records["1/2026"].title == "'XXQ' is not a valid currency code"
+    assert "euro_since" not in records["1/2026"].facts
+    assert records["2/2015"].title == "DEM was replaced by the euro"
+    assert records["2/2015"].facts["euro_since"] == "2002-01-01"
+    assert records["5/2026"].facts["euro_since"] == "2026-01-01"
+    # Both kinds keep the id key used before #10, so earlier decisions survive.
+    assert records["2/2015"].id == stable_id(
+        "sentinel_currency_code", "P20", "C192", "279006", ["2/2015", "invalid"]
+    )
+    assert not ISO_CURRENCIES & REPLACED_BY_EURO.keys()
 
 
 # ----- typos --------------------------------------------------------------------------------

@@ -14,8 +14,9 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
 - C242 BPP 34900015 (payment profile 2): monthly GX batches "Auszahl. Rente_MM.YYYY" from
   BOT_UPLOAD_002, settled by 3-4 bank (TX) lines within 14 days; one text misspelt "Auzahl.".
 - Exact offsetting pairs on C192 279014 and in Fixed assets.
-- Sentinel: a person-posted outlier (USER_901) and a bot-posted outlier; a document in two
-  currencies; an unconverted amount (currency code mix-up) in Payroll and Fixed assets.
+- Sentinel: a person-posted outlier (USER_901) and a bot-posted outlier; the same amount
+  posted in EUR and RWF on one day (C132); a withdrawn currency code in Payroll (C141) and a
+  currency the euro replaced in Fixed assets (C218).
 - Miner: the same manual correction by USER_045 in four consecutive months.
 - Pension-type account with "Actual ageing ( No Overdue )" (exempt from the 365-day rule).
 """
@@ -239,17 +240,16 @@ def build_payroll_p20(docs: DocCounter) -> PayrollSheet:
         p20.add("C172", "279006", "Social security liabilities", docs.next(2024), 1, "P0",
                 date(2024, 2 + i, 28), -(40_000.0 * 366.2 + i), "BOT_UPLOAD_001",
                 f"Payroll2024{2 + i:02d}", lcurr="HUF")  # fmt: skip
-    # S2: one document with lines in two document currencies.
-    doc = docs.next(2026)
-    p20.add("C132", "279006", "Social security liabilities", doc, 1, "SA", date(2026, 9, 14),
-            -4_200.0, "USER_077", "Social charges RW", curr="RWF",
-            amount_dc=-6_300_000.0)  # fmt: skip
-    p20.add("C132", "279006", "Social security liabilities", doc, 2, "SA", date(2026, 9, 14),
-            4_200.0, "USER_077", "Social charges RW", curr="EUR", amount_dc=4_200.0)  # fmt: skip
-    # S3: amount copied unconverted (GHS document currency, same figure as EUR local).
+    # S2: the same amount posted in EUR and in RWF on one day (equal in whole units only).
+    p20.add("C132", "279006", "Social security liabilities", docs.next(2026), 1, "SA",
+            date(2026, 9, 14), -4_200.40, "USER_077", "Social charges RW")  # fmt: skip
+    p20.add("C132", "279006", "Social security liabilities", docs.next(2026), 1, "SA",
+            date(2026, 9, 14), -2.80, "USER_077", "Social charges RW", curr="RWF",
+            amount_dc=-4_200.0)  # fmt: skip
+    # S3: a withdrawn currency code (GHC, not an ISO code any more).
     p20.add("C141", "279006", "Social security liabilities", docs.next(2026), 1, "SA",
             date(2026, 10, 2), -18_450.0, "USER_088", "SSNIT contribution Sep",
-            curr="GHS", amount_dc=-18_450.0)  # fmt: skip
+            curr="GHC", amount_dc=-1_845.0)  # fmt: skip
     return p20
 
 
@@ -321,7 +321,7 @@ def build_fixed_assets() -> tuple[pd.DataFrame, pd.DataFrame]:
     p20_rows.append(row("C218", "119001", date(2026, 9, 18), 2_400_000_000.0, "JPY", "USER_902",
                         "Capitalisation correction"))  # fmt: skip
     p20_rows.append(row("C218", "119001", date(2026, 9, 21), 88_000.0, "JPY", "USER_902",
-                        "Import duty", curr="USD", amount_dc=88_000.0))  # fmt: skip
+                        "Import duty", curr="FRF", amount_dc=3_600.0))  # fmt: skip
     for i in range(4):
         p20_rows.append(row("C219", "119001", date(2025, 3 + i, 9), 42_000.0 + i, "PLN",
                             "BOT_RPA_011", "Machine capitalisation"))  # fmt: skip
