@@ -781,6 +781,11 @@ export interface components {
              */
             close_review_days: number;
             /**
+             * Sentinel S2 Min Amount
+             * @default 1000
+             */
+            sentinel_s2_min_amount: number;
+            /**
              * Typo Min Similarity
              * @default 80
              */

@@ -128,27 +128,27 @@
    "failed_figures": [],
    "cached": false
   },
-  "5c38a8c1eb2a8a04": {
-   "exception_id": "5c38a8c1eb2a8a04",
-   "comment": "Standard note (no AI was used): GHS amount equals the EUR amount: not converted?. Rule: S3: document and local currency differ but the amounts are equal. Review the evidence documents.",
+  "8ddaf5b9472587a2": {
+   "exception_id": "8ddaf5b9472587a2",
+   "comment": "Standard note (no AI was used): 'GHC' is not a valid currency code. Rule: S3: the document currency is not an ISO currency code. Review the evidence documents.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],
    "failed_figures": [],
    "cached": false
   },
-  "6d90360746fcc33b": {
-   "exception_id": "6d90360746fcc33b",
-   "comment": "Standard note (no AI was used): USD amount equals the JPY amount: not converted?. Rule: S3: document and local currency differ but the amounts are equal. Review the evidence documents.",
+  "f04ae2adff34c19c": {
+   "exception_id": "f04ae2adff34c19c",
+   "comment": "Standard note (no AI was used): FRF was replaced by the euro. Rule: S3: the document currency had been replaced by the euro by the posting date. Review the evidence documents.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],
    "failed_figures": [],
    "cached": false
   },
-  "6155aa0337180b63": {
-   "exception_id": "6155aa0337180b63",
-   "comment": "Standard note (no AI was used): One document posted in EUR and RWF. Rule: S2: one document carries more than one document currency. Review the evidence documents.",
+  "0c33474c40046521": {
+   "exception_id": "0c33474c40046521",
+   "comment": "Standard note (no AI was used): Same amount posted in EUR and RWF on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Review the evidence documents.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],

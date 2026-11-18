@@ -16,8 +16,8 @@ so nobody re-investigates).
 | A1 | Sentinel S1 scope (brief open item 2) | Decide | `people_only` |
 | A2 | Demo step 5 Sentinel example (brief open item 1) | Decide | C242 48900002 document 7910008634 |
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
-| A4 | Sentinel S2 rule | Decide | Two document currencies in one document, or two local currencies in one company code |
-| A5 | Sentinel S3 rule | Decide | Invalid ISO code, or an amount copied unconverted |
+| A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
+| A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
 | A6 | Typo prompts: fields, thresholds, dictionary | Decide | Per-account dictionary, similarity 80, rarity 2.5x |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Person-posted text fingerprint in 3+ months |
 | A8 | Lead time: "today's detection date" per type | Decide | Ageing rule / close review + 5 days / never |
@@ -139,13 +139,28 @@ median). With our lead-time rule (A8) it is flagged 19 days before that month's 
 The alternative candidate (Fixed assets P20 C218 119001 document 7750001797) needs the Fixed
 assets workbook. Owner: team.
 
-**A4. S2 two currencies.** *Decide.* Implemented as: one document whose lines carry more than
-one document currency, or one company code whose lines carry more than one local currency.
-Real Payroll data: no hits. Owner: team.
+**A4. S2 two currencies.** *Decided (#10).* S2 flags the same amount posted in different
+document currencies on the same ERP, entity, account and posting date, when the amount in
+document currency is at least `Rules.sentinel_s2_min_amount` (1,000; on the Rules page). "The
+same amount" is compared in whole units: a currency without decimals cannot repeat the cents of
+one with them, and compared to the cent the real data has no hit. One record per group: its
+evidence is every document in the group, its exposure the largest EUR value in the group, and
+its id comes from the posting date and the amount, so a decision survives when one of the lines
+is cleared. Real data: exactly one hit, Fixed assets P20 C218 119001, three lines in three
+documents (EUR and JPY); Payroll has none; any minimum from 0.01 to 1,000 gives the same hit.
+This replaces the placeholder rule (two document currencies in one document, or two local
+currencies in one company code), which found nothing and which SAP does not normally produce.
+Golden test: `test_real_sentinel_s2`. Owner: team.
 
-**A5. S3 currency code.** *Decide.* Implemented as: a document currency that is not an ISO 4217
-code, or a line whose document and local currencies differ while the amounts are equal (copied
-unconverted; amounts below 1 ignored). Real Payroll data: no hits. Owner: team.
+**A5. S3 currency code.** *Decided (#10).* S3 flags a document currency that is not an ISO 4217
+code ("not a valid currency code"), or one the euro had already replaced on the posting date
+("replaced by the euro"). The replaced codes are the 21 national currencies of euro-area
+members, each from the first day it could no longer be used: 1 Jan 2002 for the 1999 and 2001
+joiners, the changeover day for later ones (BGN from 1 Jan 2026). A replaced code posted before
+that day is not flagged. The earlier branch for amounts copied without conversion (document and
+local currency differ, amounts equal) is dropped: it is not part of the agreed rule and found
+nothing on real data. Real data: one hit, a DEM line on Fixed assets P20 C238; Payroll has
+none. Golden test: `test_real_sentinel_s3`. Owner: team.
 
 **A26. S5 reversal mismatch.** *Info.* P1; not built. The type exists in the schema.
 Owner: team.
@@ -213,8 +228,9 @@ verifier anyway. Owner: team.
 
 **A30. Schema additions.** *Confirm.* Additive only: `ExceptionRecord.decided_class` and
 `ExceptionRecord.edited_comment` (the person's class and edited comment, kept apart from the AI
-draft); `Rules` gains `payment_profiles`, `sentinel_s1_scope`, spike, look-back, close-review,
-typo, Miner and score-scaling parameters, so no threshold lives in an engine. Owner: team.
+draft); `Rules` gains `payment_profiles`, `sentinel_s1_scope`, `sentinel_s2_min_amount`, spike,
+look-back, close-review, typo, Miner and score-scaling parameters, so no threshold lives in an
+engine. Owner: team.
 
 **A31. Decisions.** *Info.* "Accept" in the UI sets status `explained`, "Dismiss" `dismissed`,
 "Escalate" `escalated`; each needs a reason (HTTP 422 otherwise). Every decision is appended to

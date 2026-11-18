@@ -4,7 +4,7 @@
  "data": [
   {
    "id": "b80b0b905e1fe118",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "pulse_gap",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -54,7 +54,7 @@
   },
   {
    "id": "c52c3931a9d01b05",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "pulse_spike",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -98,7 +98,7 @@
   },
   {
    "id": "5b2756df8b78173c",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -145,7 +145,7 @@
   },
   {
    "id": "7bbbe9271b0a2e1d",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -192,7 +192,7 @@
   },
   {
    "id": "532032f4fe383650",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "sentinel_outlier",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -239,7 +239,7 @@
   },
   {
    "id": "5cb790939c58a948",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "sentinel_outlier",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -286,7 +286,7 @@
   },
   {
    "id": "2bfb780a3f72d9bf",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "BPP",
@@ -332,7 +332,7 @@
   },
   {
    "id": "ca26141f45d62ffe",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "label_mismatch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -379,7 +379,7 @@
   },
   {
    "id": "3267f451b8da112e",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -425,7 +425,7 @@
   },
   {
    "id": "b47b6674d9d026bc",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -475,7 +475,7 @@
   },
   {
    "id": "0c7228820c2b5ca8",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "pulse_missing_batch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -514,7 +514,7 @@
   },
   {
    "id": "964330a843f480e5",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -564,7 +564,7 @@
   },
   {
    "id": "2d23e84fc0e1083b",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -615,7 +615,7 @@
   },
   {
    "id": "642c728b835e7a01",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "BPP",
@@ -664,28 +664,29 @@
    "edited_comment": null
   },
   {
-   "id": "5c38a8c1eb2a8a04",
-   "run_id": "run_20261118T141116_d8c33e",
+   "id": "8ddaf5b9472587a2",
+   "run_id": "run_20261118T173235_057094",
    "type": "sentinel_currency_code",
    "workgroup": "Payroll",
    "erp": "P20",
    "entity": "C141",
    "account": "279006",
    "account_name": "Social security liabilities",
-   "title": "GHS amount equals the EUR amount: not converted?",
+   "title": "'GHC' is not a valid currency code",
    "exposure_eur": -18450.0,
    "facts": {
-    "rule": "S3: document and local currency differ but the amounts are equal",
-    "currency_dc": "GHS",
+    "rule": "S3: the document currency is not an ISO currency code",
+    "currency_dc": "GHC",
     "currency_lc": "EUR",
-    "amount_dc": -18450.0,
+    "amount_dc": -1845.0,
     "amount_lc": -18450.0,
+    "lines": 1.0,
     "posting_date": "2026-10-02",
     "today_detection_basis": "month-end close review",
     "lead_days": 34.0
    },
    "evidence": [
-    "0000000039/2026"
+    "0000000040/2026"
    ],
    "first_signal": "2026-10-02",
    "today_detection": "2026-11-05",
@@ -700,7 +701,7 @@
     "error_type": 8.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): GHS amount equals the EUR amount: not converted?. Rule: S3: document and local currency differ but the amounts are equal. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): 'GHC' is not a valid currency code. Rule: S3: the document currency is not an ISO currency code. Review the evidence documents.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -708,22 +709,24 @@
    "edited_comment": null
   },
   {
-   "id": "6d90360746fcc33b",
-   "run_id": "run_20261118T141116_d8c33e",
+   "id": "f04ae2adff34c19c",
+   "run_id": "run_20261118T173235_057094",
    "type": "sentinel_currency_code",
    "workgroup": "Fixed assets",
    "erp": "P20",
    "entity": "C218",
    "account": "119001",
    "account_name": "Assets under construction",
-   "title": "USD amount equals the JPY amount: not converted?",
+   "title": "FRF was replaced by the euro",
    "exposure_eur": 541.54,
    "facts": {
-    "rule": "S3: document and local currency differ but the amounts are equal",
-    "currency_dc": "USD",
+    "rule": "S3: the document currency had been replaced by the euro by the posting date",
+    "euro_since": "2002-01-01",
+    "currency_dc": "FRF",
     "currency_lc": "JPY",
-    "amount_dc": 88000.0,
+    "amount_dc": 3600.0,
     "amount_lc": 88000.0,
+    "lines": 1.0,
     "posting_date": "2026-09-21",
     "today_detection_basis": "month-end close review",
     "lead_days": 14.0
@@ -744,7 +747,7 @@
     "error_type": 8.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): USD amount equals the JPY amount: not converted?. Rule: S3: document and local currency differ but the amounts are equal. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): FRF was replaced by the euro. Rule: S3: the document currency had been replaced by the euro by the posting date. Review the evidence documents.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -752,26 +755,29 @@
    "edited_comment": null
   },
   {
-   "id": "6155aa0337180b63",
-   "run_id": "run_20261118T141116_d8c33e",
+   "id": "0c33474c40046521",
+   "run_id": "run_20261118T173235_057094",
    "type": "sentinel_two_currencies",
    "workgroup": "Payroll",
    "erp": "P20",
    "entity": "C132",
    "account": "279006",
    "account_name": "Social security liabilities",
-   "title": "One document posted in EUR and RWF",
-   "exposure_eur": 4200.0,
+   "title": "Same amount posted in EUR and RWF on the same day",
+   "exposure_eur": 4200.4,
    "facts": {
-    "rule": "S2: one document carries more than one document currency",
+    "rule": "S2: the same amount of at least 1,000 posted in different currencies on one day",
     "currencies": "EUR, RWF",
+    "amount_dc": 4200.0,
+    "min_amount": 1000.0,
     "lines": 2.0,
     "posting_date": "2026-09-14",
     "today_detection_basis": "month-end close review",
     "lead_days": 21.0
    },
    "evidence": [
-    "0000000038/2026"
+    "0000000038/2026",
+    "0000000039/2026"
    ],
    "first_signal": "2026-09-14",
    "today_detection": "2026-10-05",
@@ -786,7 +792,7 @@
     "error_type": 7.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): One document posted in EUR and RWF. Rule: S2: one document carries more than one document currency. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): Same amount posted in EUR and RWF on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Review the evidence documents.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -795,7 +801,7 @@
   },
   {
    "id": "2853e8b1894ed623",
-   "run_id": "run_20261118T141116_d8c33e",
+   "run_id": "run_20261118T173235_057094",
    "type": "typo",
    "workgroup": "Fixed assets",
    "erp": "BPP",

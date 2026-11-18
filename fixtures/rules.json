@@ -67,6 +67,7 @@
   "missing_batch_lookback_months": 24,
   "sentinel_s1_scope": "people_only",
   "close_review_days": 5,
+  "sentinel_s2_min_amount": 1000.0,
   "typo_min_similarity": 80.0,
   "typo_dictionary_min_count": 5,
   "typo_rarity_ratio": 2.5,

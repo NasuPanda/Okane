@@ -35,6 +35,7 @@ const FIELD_LABEL: Record<string, string> = {
   grace_days: "Grace days",
   outlier_multiple: "Unusually large means",
   sentinel_s1_scope: "Large amounts checked for",
+  sentinel_s2_min_amount: "Same amount, two currencies: smallest amount",
   close_review_days: "Month-end review day",
 };
 
@@ -212,6 +213,13 @@ export function RulesPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">Still an open team decision (see docs/ASSUMPTIONS.md, A1).</p>
               </div>
+              <NumberField
+                label="Same amount, two currencies: smallest amount"
+                hint="Amounts below this, as typed in the document currency, are not checked"
+                step={100}
+                value={draft.sentinel_s2_min_amount ?? 0}
+                onChange={(v) => set("sentinel_s2_min_amount", v)}
+              />
             </Card>
 
             <Card className="space-y-3 p-6">

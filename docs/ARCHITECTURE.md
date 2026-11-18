@@ -41,7 +41,7 @@ id, so decisions survive later runs), `rules` + `rule_changes`, `ai_cache`.
 |---|---|---|
 | `pairs.py` | Exact offsetting pairs (8) | pair id per line |
 | `pulse.py` | Payment profiles, matching, gap timeline, five alerts (8) | records + timelines |
-| `sentinel.py` | S1 outlier (8); S2, S3 (assumptions) | records |
+| `sentinel.py` | S1 outlier (8); S2, S3 (A4, A5, decided in #10) | records |
 | `typos.py` | Spelling and period-label prompts (assumption) | records |
 | `miner.py` | Recurring manual corrections, CC06 (assumption) | records |
 | `leadtime.py` | Today's detection date per type (assumption) | fills lead time |
