@@ -31,6 +31,7 @@ so nobody re-investigates).
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
+| A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
 
 ## Data and ingestion
 
@@ -269,3 +270,27 @@ and account codes are structural and allowed everywhere. Rejected: moving row-le
 a git-ignored file, because the authoritative brief and Git history already hold them.
 Governance line: "Real workbooks never enter Git; the repo holds only synthetic fixtures and the
 handful of reference figures the brief itself quotes." Owner: team.
+
+## Mentor questions
+
+**A36. Mentor questions.** *Decide (#2).* Several decisions wait on the mentor: the questions
+below come from issue #2 and are asked in one message, with lettered options so each can be
+answered in a few words. When an answer arrives, record it here (status, answer, date), update
+the A# item it affects, and comment on each issue it unblocks with a link to this section. If
+there is no answer by the issue's due date, apply the default and set the status to "no answer,
+default applied". Issue #2 closes when every row is answered or has its default applied. No
+names or contact details go in this file. Owner: team.
+
+Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default applied`.
+
+| Q | Question | Unblocks | Status | Default if no answer | Answer | Date |
+|---|----------|----------|--------|----------------------|--------|------|
+| 1 | Exact deadline and format for the deck, video and summary | #36, #37, #38, #39 | drafted, not yet sent | Brief section 2: deck at most 12 slides plus appendix (PDF), video at most 3 minutes (MP4), one-page summary (PDF); submit Tue 24 Nov, with Mon 23 Nov as code freeze | | |
+| 2 | Which working day after month end the close review falls on | #16 (then #17) | drafted, not yet sent | The original rule: the 5th working day after month end (today the code uses month end + 5 calendar days, A8) | | |
+| 3 | Group closing rates for the run date, or ECB reference rates | #8 | drafted, not yet sent | ECB euro reference rates on each workbook's ageing date (public and reproducible), A11 | | |
+| 4 | Is the cross-ERP posting text on C192's payment lines a known route, and are some C192 batches paid quarterly? | #20 | drafted, not yet sent | Keep one alert per unmatched batch, as built (A15) | | |
+| 5 | What repeated manual corrections on payroll and fixed-asset accounts usually fix (replaces the CC06 question) | #14 (then #15, #31) | drafted, not yet sent | The original Miner rule: person-posted lines with a header text, score = distinct entities x distinct months; the card is labelled a hypothesis and not called CC06 (A7) | | |
+| 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as built (A9) | | |
+| 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |
+| 8 | May the video and deck show the real (scaled) data, or must they use the synthetic sample? | #25 (then #26, #37, #38) | drafted, not yet sent | Synthetic sample on screen; real figures only as the aggregates the brief quotes | | |
+| 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | drafted, not yet sent | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | | |
