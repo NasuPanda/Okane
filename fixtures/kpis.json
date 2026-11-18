@@ -2,10 +2,10 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261118T233100_a48332",
+  "run_id": "run_20261118T233834_ffb9c7",
   "exceptions": 15,
   "open_exceptions": 15,
-  "median_days_earlier": 26.0,
+  "median_days_earlier": 27.5,
   "blind_spots": 3,
   "by_type": {
    "pulse_gap": 1,

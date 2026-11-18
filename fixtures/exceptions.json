@@ -4,7 +4,7 @@
  "data": [
   {
    "id": "b80b0b905e1fe118",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "pulse_gap",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -25,7 +25,8 @@
     "lowest_gap_month": "2025-06",
     "materiality_eur": 500000.0,
     "unmatched_batches": 3.0,
-    "today_detection_basis": "not detected by today's process"
+    "today_detection_basis": "not detected by today's process",
+    "lead_badge": "Today's process would miss this"
    },
    "evidence": [
     "0000000009/2025",
@@ -54,7 +55,7 @@
   },
   {
    "id": "c52c3931a9d01b05",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "pulse_spike",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -71,14 +72,19 @@
     "multiple": 4.1,
     "posting_date": "2026-08-30",
     "today_detection_basis": "month-end close review",
-    "lead_days": 6.0
+    "lead_days": 7.0,
+    "lead_days_daily": 8.0,
+    "lead_days_weekly": 7.0,
+    "okane_run_date": "2026-08-31",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 7 days before the close review"
    },
    "evidence": [
     "0000000017/2026"
    ],
    "first_signal": "2026-08-30",
-   "today_detection": "2026-09-05",
-   "lead_days": 6,
+   "today_detection": "2026-09-07",
+   "lead_days": 7,
    "expected_by": null,
    "suggested_class": null,
    "score": 65.0,
@@ -98,7 +104,7 @@
   },
   {
    "id": "5b2756df8b78173c",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -118,14 +124,19 @@
     "grace_days": 15.0,
     "days_past_expected": 485.0,
     "today_detection_basis": "365-day ageing rule",
-    "lead_days": 312.0
+    "lead_days": 306.0,
+    "lead_days_daily": 312.0,
+    "lead_days_weekly": 306.0,
+    "okane_run_date": "2025-07-28",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 306 days before the 365-day ageing rule"
    },
    "evidence": [
     "0000000009/2025"
    ],
    "first_signal": "2025-07-22",
    "today_detection": "2026-05-30",
-   "lead_days": 312,
+   "lead_days": 306,
    "expected_by": "2025-07-21",
    "suggested_class": "Required Adjustment Item",
    "score": 62.2,
@@ -145,7 +156,7 @@
   },
   {
    "id": "7bbbe9271b0a2e1d",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -165,14 +176,19 @@
     "grace_days": 15.0,
     "days_past_expected": 455.0,
     "today_detection_basis": "365-day ageing rule",
-    "lead_days": 312.0
+    "lead_days": 308.0,
+    "lead_days_daily": 312.0,
+    "lead_days_weekly": 308.0,
+    "okane_run_date": "2025-08-25",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 308 days before the 365-day ageing rule"
    },
    "evidence": [
     "0000000010/2025"
    ],
    "first_signal": "2025-08-21",
    "today_detection": "2026-06-29",
-   "lead_days": 312,
+   "lead_days": 308,
    "expected_by": "2025-08-20",
    "suggested_class": "Required Adjustment Item",
    "score": 62.0,
@@ -192,7 +208,7 @@
   },
   {
    "id": "532032f4fe383650",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "sentinel_outlier",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -212,14 +228,19 @@
     "posting_date": "2026-10-05",
     "scope": "people_only",
     "today_detection_basis": "month-end close review",
-    "lead_days": 31.0
+    "lead_days": 32.0,
+    "lead_days_daily": 32.0,
+    "lead_days_weekly": 32.0,
+    "okane_run_date": "2026-10-05",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 32 days before the close review"
    },
    "evidence": [
     "0000000032/2026"
    ],
    "first_signal": "2026-10-05",
-   "today_detection": "2026-11-05",
-   "lead_days": 31,
+   "today_detection": "2026-11-06",
+   "lead_days": 32,
    "expected_by": null,
    "suggested_class": "Required Adjustment Item",
    "score": 47.0,
@@ -239,7 +260,7 @@
   },
   {
    "id": "5cb790939c58a948",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "sentinel_outlier",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -259,14 +280,19 @@
     "posting_date": "2026-09-18",
     "scope": "people_only",
     "today_detection_basis": "month-end close review",
-    "lead_days": 17.0
+    "lead_days": 16.0,
+    "lead_days_daily": 19.0,
+    "lead_days_weekly": 16.0,
+    "okane_run_date": "2026-09-21",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 16 days before the close review"
    },
    "evidence": [
     "4900000001/2026"
    ],
    "first_signal": "2026-09-18",
-   "today_detection": "2026-10-05",
-   "lead_days": 17,
+   "today_detection": "2026-10-07",
+   "lead_days": 16,
    "expected_by": null,
    "suggested_class": "Required Adjustment Item",
    "score": 47.0,
@@ -286,7 +312,7 @@
   },
   {
    "id": "2bfb780a3f72d9bf",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "BPP",
@@ -305,13 +331,18 @@
     "posting_date": "2026-07-25",
     "prompt": "You may have made a mistake: 'Auzahl' looks like 'Auszahl', which this account uses 9 times.",
     "today_detection_basis": "month-end close review",
-    "lead_days": 11.0
+    "lead_days": 11.0,
+    "lead_days_daily": 13.0,
+    "lead_days_weekly": 11.0,
+    "okane_run_date": "2026-07-27",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 11 days before the close review"
    },
    "evidence": [
     "7900000005/2026"
    ],
    "first_signal": "2026-07-25",
-   "today_detection": "2026-08-05",
+   "today_detection": "2026-08-07",
    "lead_days": 11,
    "expected_by": null,
    "suggested_class": null,
@@ -332,7 +363,7 @@
   },
   {
    "id": "ca26141f45d62ffe",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "label_mismatch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -351,15 +382,20 @@
     "posting_date": "2026-03-30",
     "prompt": "You may have made a mistake: the payment text names 2026-01, but the amount settles the 2026-02 batch.",
     "today_detection_basis": "month-end close review",
-    "lead_days": 6.0
+    "lead_days": 8.0,
+    "lead_days_daily": 8.0,
+    "lead_days_weekly": 8.0,
+    "okane_run_date": "2026-03-30",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 8 days before the close review"
    },
    "evidence": [
     "0000000006/2026",
     "0000000005/2026"
    ],
    "first_signal": "2026-03-30",
-   "today_detection": "2026-04-05",
-   "lead_days": 6,
+   "today_detection": "2026-04-07",
+   "lead_days": 8,
    "expected_by": null,
    "suggested_class": "Timing item",
    "score": 34.8,
@@ -379,7 +415,7 @@
   },
   {
    "id": "3267f451b8da112e",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -398,14 +434,19 @@
     "posting_date": "2026-05-01",
     "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which this account uses 32 times.",
     "today_detection_basis": "month-end close review",
-    "lead_days": 35.0
+    "lead_days": 32.0,
+    "lead_days_daily": 35.0,
+    "lead_days_weekly": 32.0,
+    "okane_run_date": "2026-05-04",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 32 days before the close review"
    },
    "evidence": [
     "0000000008/2026"
    ],
    "first_signal": "2026-05-01",
    "today_detection": "2026-06-05",
-   "lead_days": 35,
+   "lead_days": 32,
    "expected_by": null,
    "suggested_class": null,
    "score": 32.0,
@@ -425,7 +466,7 @@
   },
   {
    "id": "0c7228820c2b5ca8",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "pulse_missing_batch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -439,7 +480,8 @@
     "missing_period": "2025-08",
     "typical_batch_eur": 618389.0,
     "lookback_months": 24.0,
-    "today_detection_basis": "not detected by today's process"
+    "today_detection_basis": "not detected by today's process",
+    "lead_badge": "Today's process would miss this"
    },
    "evidence": [],
    "first_signal": "2025-08-31",
@@ -464,7 +506,7 @@
   },
   {
    "id": "364325a3d446129c",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -489,7 +531,8 @@
     "people": 1.0,
     "total_abs_eur": 18368.0,
     "hint": "This may be a correction made by hand every month. Check whether the automated posting or mapping can do it.",
-    "today_detection_basis": "not detected by today's process"
+    "today_detection_basis": "not detected by today's process",
+    "lead_badge": "Today's process would miss this"
    },
    "evidence": [
     "0000000038/2026",
@@ -523,7 +566,7 @@
   },
   {
    "id": "f5cb477294a2b6ac",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "sentinel_currency_code",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -541,14 +584,19 @@
     "lines": 1.0,
     "posting_date": "2026-10-02",
     "today_detection_basis": "month-end close review",
-    "lead_days": 34.0
+    "lead_days": 32.0,
+    "lead_days_daily": 35.0,
+    "lead_days_weekly": 32.0,
+    "okane_run_date": "2026-10-05",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 32 days before the close review"
    },
    "evidence": [
     "0000000054/2026"
    ],
    "first_signal": "2026-10-02",
-   "today_detection": "2026-11-05",
-   "lead_days": 34,
+   "today_detection": "2026-11-06",
+   "lead_days": 32,
    "expected_by": null,
    "suggested_class": "Required Adjustment Item",
    "score": 8.3,
@@ -568,7 +616,7 @@
   },
   {
    "id": "f04ae2adff34c19c",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "sentinel_currency_code",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -587,14 +635,19 @@
     "lines": 1.0,
     "posting_date": "2026-09-21",
     "today_detection_basis": "month-end close review",
-    "lead_days": 14.0
+    "lead_days": 16.0,
+    "lead_days_daily": 16.0,
+    "lead_days_weekly": 16.0,
+    "okane_run_date": "2026-09-21",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 16 days before the close review"
    },
    "evidence": [
     "4900000002/2026"
    ],
    "first_signal": "2026-09-21",
-   "today_detection": "2026-10-05",
-   "lead_days": 14,
+   "today_detection": "2026-10-07",
+   "lead_days": 16,
    "expected_by": null,
    "suggested_class": "Required Adjustment Item",
    "score": 8.0,
@@ -614,7 +667,7 @@
   },
   {
    "id": "0c33474c40046521",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "sentinel_two_currencies",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -631,15 +684,20 @@
     "lines": 2.0,
     "posting_date": "2026-09-14",
     "today_detection_basis": "month-end close review",
-    "lead_days": 21.0
+    "lead_days": 23.0,
+    "lead_days_daily": 23.0,
+    "lead_days_weekly": 23.0,
+    "okane_run_date": "2026-09-14",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 23 days before the close review"
    },
    "evidence": [
     "0000000052/2026",
     "0000000053/2026"
    ],
    "first_signal": "2026-09-14",
-   "today_detection": "2026-10-05",
-   "lead_days": 21,
+   "today_detection": "2026-10-07",
+   "lead_days": 23,
    "expected_by": null,
    "suggested_class": "Required Adjustment Item",
    "score": 7.1,
@@ -659,7 +717,7 @@
   },
   {
    "id": "2853e8b1894ed623",
-   "run_id": "run_20261118T233100_a48332",
+   "run_id": "run_20261118T233834_ffb9c7",
    "type": "typo",
    "workgroup": "Fixed assets",
    "erp": "BPP",
@@ -678,14 +736,19 @@
     "posting_date": "2019-05-02",
     "prompt": "You may have made a mistake: 'trnasit' looks like 'transit', which this account uses 16 times.",
     "today_detection_basis": "month-end close review",
-    "lead_days": 34.0
+    "lead_days": 32.0,
+    "lead_days_daily": 36.0,
+    "lead_days_weekly": 32.0,
+    "okane_run_date": "2019-05-06",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 32 days before the close review"
    },
    "evidence": [
     "4900000001/2019"
    ],
    "first_signal": "2019-05-02",
-   "today_detection": "2019-06-05",
-   "lead_days": 34,
+   "today_detection": "2019-06-07",
+   "lead_days": 32,
    "expected_by": null,
    "suggested_class": null,
    "score": 2.2,
