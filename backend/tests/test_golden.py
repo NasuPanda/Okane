@@ -23,7 +23,7 @@ from app.engines.exposure import payroll_netting
 from app.engines.miner import run_miner
 from app.engines.pairs import paired_count
 from app.engines.pulse import PulseResult, expected_by, run_pulse
-from app.engines.sentinel import outlier_hits, run_sentinel
+from app.engines.sentinel import outlier_alerts, outlier_hits, run_sentinel
 from app.engines.typos import run_typos
 from app.schemas import Rules
 
@@ -171,14 +171,29 @@ def test_real_sentinel_s1(real_lines: pd.DataFrame) -> None:
 
 
 def test_real_sentinel_s1_with_fixed_assets(real_all_lines: pd.DataFrame) -> None:
-    """Brief section 8: on Payroll plus Fixed assets, S1 returns 185 hits, 12 by people."""
+    """Brief section 8: on Payroll plus Fixed assets, S1 returns 185 hits: 173 bots, 12 people."""
     every = outlier_hits(real_all_lines, Rules(), "all")
     assert len(every) == 185
+    assert int((~every["user_name"].map(is_person)).sum()) == 173
     assert int(every["user_name"].map(is_person).sum()) == 12
     fixed = every[every["workbook"] == "Fixed assets"]
     assert len(fixed) == 2
     assert int(fixed["user_name"].map(is_person).sum()) == 1
-    assert len(outlier_hits(real_all_lines, Rules(), "people_only")) == 12
+
+
+def test_real_sentinel_s1_default_scope(
+    real_all_lines: pd.DataFrame, real_lines: pd.DataFrame
+) -> None:
+    """A1 (decided, #9): S1 flags person-posted lines only, the brief's 12 hits (11 + 1)."""
+    rules = Rules()
+    assert rules.sentinel_s1_scope == "people_only"
+    both = outlier_hits(real_all_lines, rules)
+    assert len(both) == 12
+    assert both["user_name"].map(is_person).all()
+    assert (both["workbook"] == "Payroll").sum() == 11
+    assert (both["workbook"] == "Fixed assets").sum() == 1
+    assert len(outlier_hits(real_lines, rules)) == 11
+    assert len(outlier_alerts(real_all_lines, rules)) == 12, "one Inbox record per hit"
 
 
 def test_real_fixed_assets_scope(real_all_lines: pd.DataFrame, real_lines: pd.DataFrame) -> None:
@@ -251,6 +266,7 @@ def test_synthetic_c242_pulse(synthetic_pulse: PulseResult) -> None:
 
 def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
     rules = Rules()
+    assert rules.sentinel_s1_scope == "people_only", "A1, decided in #9"
     sentinel = run_sentinel(synthetic_lines, rules)
     outliers = {(r.entity, r.facts["posted_by"]) for r in sentinel if r.type == "sentinel_outlier"}
     assert outliers == {("C192", "person"), ("C218", "person")}

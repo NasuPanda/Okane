@@ -13,7 +13,7 @@ so nobody re-investigates).
 
 | # | Item | Status | Default we shipped |
 |---|------|--------|--------------------|
-| A1 | Sentinel S1 scope (brief open item 2) | Decide | `people_only` |
+| A1 | Sentinel S1 scope (brief open item 2) | Decide | Decided (#9): `people_only` |
 | A2 | Demo step 5 Sentinel example (brief open item 1) | Decide | C242 48900002 document 7910008634 |
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Two document currencies in one document, or two local currencies in one company code |
@@ -128,10 +128,12 @@ links to the highest-scored exception on its account. Owner: team.
 
 ## Sentinel, typos, Miner
 
-**A1. Sentinel S1 scope.** *Decide (brief open item 2).* `Rules.sentinel_s1_scope`:
-`people_only` (default; 11 Payroll hits), `exempt_bot_upload` (42), or `all` (183; P20 has
-174, of which 165 are bot postings, as in the brief). Set the golden test once decided.
-Owner: team.
+**A1. Sentinel S1 scope.** *Decided (#9, brief open item 2).* `Rules.sentinel_s1_scope`
+defaults to `people_only`: S1 flags person-posted lines only. On Payroll plus Fixed assets
+this gives the brief's 12 hits (11 Payroll, 1 Fixed assets); the unrestricted rule gives 185,
+173 of them bot postings (Payroll P20 alone: 174, 165 by bots). `exempt_bot_upload` (44
+hits, 42 of them Payroll) and `all` stay selectable on the Rules page. Golden test:
+`test_real_sentinel_s1_default_scope`. Owner: team.
 
 **A2. Demo step 5 example.** *Decide (brief open item 1).* With `people_only` the top hit is
 Payroll BPP C242 48900002 document 7910008634 (2019, USER_120, about 57,769x the account
