@@ -1,0 +1,94 @@
+{
+ "synthetic": true,
+ "generated_at": "2026-11-18",
+ "data": {
+  "materiality_eur": 500000.0,
+  "tolerance_pct": 0.01,
+  "tolerance_eur": 1000.0,
+  "grace_days": 15,
+  "outlier_multiple": 1000.0,
+  "weights": {
+   "exposure": 40,
+   "days_past_expected": 20,
+   "penalty_account": 20,
+   "error_type": 10,
+   "repeats": 10
+  },
+  "payment_profiles": [
+   {
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "label": "C192 social security",
+    "batch_text_pattern": "^Payroll(?P<period>\\d{6})$",
+    "batch_users": [],
+    "batch_doc_types": [],
+    "batch_group": "period",
+    "min_batch_eur": 50000.0,
+    "payment_unit": "document",
+    "payment_doc_types": [],
+    "min_payment_eur": 1000.0,
+    "max_units": 2,
+    "window_anchor": "period_end",
+    "window_start_days": -5,
+    "window_end_days": 70,
+    "tolerance_pct": 0.02,
+    "prefer_fewest_units": true
+   },
+   {
+    "erp": "BPP",
+    "entity": "C242",
+    "account": "34900015",
+    "label": "C242 accrued payroll",
+    "batch_text_pattern": "(?i)^Aus?zahl\\.\\s*Rente_(?P<period>\\d{2}\\.\\d{4})",
+    "batch_users": [
+     "BOT_UPLOAD_002"
+    ],
+    "batch_doc_types": [
+     "GX"
+    ],
+    "batch_group": "document",
+    "min_batch_eur": 0.0,
+    "payment_unit": "line",
+    "payment_doc_types": [
+     "TX"
+    ],
+    "min_payment_eur": 0.0,
+    "max_units": 5,
+    "window_anchor": "accrual_date",
+    "window_start_days": 0,
+    "window_end_days": 14,
+    "tolerance_pct": 0.01,
+    "prefer_fewest_units": false
+   }
+  ],
+  "spike_multiple": 3.0,
+  "spike_lookback_months": 12,
+  "missing_batch_lookback_months": 24,
+  "sentinel_s1_scope": "people_only",
+  "close_review_days": 5,
+  "typo_min_similarity": 80.0,
+  "typo_dictionary_min_count": 5,
+  "typo_rarity_ratio": 2.5,
+  "miner_min_repeats": 3,
+  "penalty_accounts": [
+   "P20/C192/279006"
+  ],
+  "exposure_cap_multiple": 5.0,
+  "days_past_expected_cap": 90,
+  "repeats_cap": 5,
+  "error_type_severity": {
+   "pulse_gap": 1.0,
+   "pulse_missing_payment": 0.9,
+   "sentinel_currency_code": 0.8,
+   "sentinel_two_currencies": 0.7,
+   "sentinel_outlier": 0.7,
+   "sentinel_reversal": 0.7,
+   "pulse_missing_batch": 0.6,
+   "label_mismatch": 0.5,
+   "pulse_spike": 0.5,
+   "miner_cluster": 0.4,
+   "typo": 0.2
+  }
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "synthetic": true,
+ "generated_at": "2026-11-18",
+ "data": {
+  "run_id": "run_20261118T012756_772fda",
+  "snapshot_id": "d0438870ff030b10",
+  "trigger": "manual",
+  "status": "finished",
+  "source_files": [
+   "Fixed_assets_sample.xlsx",
+   "Payroll_sample.xlsx"
+  ],
+  "file_hashes": [
+   "c9a3e52badfd6957547e7752358b0f0850414e7db924e07e7248b97c8bbcdf58",
+   "5d4d9f2d85b12f2e93b5ae683c624d713e788afad6e145617c3be6f2cac330ce"
+  ],
+  "synthetic": false,
+  "as_of": "2026-11-18",
+  "started_at": "2026-11-18T01:27:56.882460",
+  "finished_at": "2026-11-18T01:27:57.162432",
+  "counts": {
+   "lines": 230,
+   "paired_lines": 42,
+   "exceptions": 18,
+   "old_rule_lines": 72,
+   "exposure_groups_above": 3,
+   "type:label_mismatch": 1,
+   "type:miner_cluster": 4,
+   "type:pulse_gap": 1,
+   "type:pulse_missing_batch": 1,
+   "type:pulse_missing_payment": 2,
+   "type:pulse_spike": 1,
+   "type:sentinel_currency_code": 2,
+   "type:sentinel_outlier": 2,
+   "type:sentinel_two_currencies": 1,
+   "type:typo": 3
+  },
+  "warnings": [],
+  "error": null
+ }
+}

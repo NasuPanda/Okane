@@ -1,0 +1,405 @@
+"""Pydantic data contracts (brief section 7).
+
+``ExceptionRecord`` and ``Rules`` follow the brief field for field. Additive fields are marked
+``# ADDITION`` and listed in docs/ASSUMPTIONS.md; nothing from the brief is renamed or removed.
+These models are the source of truth for the generated TypeScript types (``make types``).
+"""
+
+from __future__ import annotations
+
+from datetime import date, datetime
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+ExceptionType = Literal[
+    "pulse_gap",
+    "pulse_missing_payment",
+    "pulse_spike",
+    "pulse_missing_batch",
+    "label_mismatch",
+    "sentinel_outlier",
+    "sentinel_two_currencies",
+    "sentinel_currency_code",
+    "sentinel_reversal",
+    "typo",
+    "miner_cluster",
+]
+Workgroup = Literal["Payroll", "Fixed assets"]
+Erp = Literal["P20", "BPP"]
+ExceptionClass = Literal["List component", "Timing item", "Required Adjustment Item"]
+Status = Literal["new", "explained", "dismissed", "escalated"]
+VerifierResult = Literal["passed", "failed", "not_run"]
+
+
+class ExceptionRecord(BaseModel):
+    """One finding. Every engine emits this shape (brief section 7)."""
+
+    id: str
+    run_id: str
+    type: ExceptionType
+    workgroup: Workgroup
+    erp: Erp
+    entity: str
+    account: str
+    account_name: str
+    title: str
+    exposure_eur: float
+    facts: dict[str, float | str]
+    evidence: list[str]
+    first_signal: date
+    today_detection: date | None
+    lead_days: int | None
+    expected_by: date | None
+    suggested_class: ExceptionClass | None
+    score: float
+    score_breakdown: dict[str, float]
+    ai_comment: str | None
+    verifier: VerifierResult
+    status: Status
+    decision_reason: str | None
+    # ADDITION: the class the person chose (the brief says the person decides the class).
+    decided_class: ExceptionClass | None = None
+    # ADDITION: the preparer's edited comment, kept separate from the AI draft for audit.
+    edited_comment: str | None = None
+
+
+class PaymentProfile(BaseModel):
+    """How one account accrues and pays (brief section 8, Pulse table)."""
+
+    erp: Erp
+    entity: str
+    account: str
+    label: str
+    batch_text_pattern: str = Field(
+        description="Regex on the line Text; group 'period' holds the period label"
+    )
+    batch_users: list[str] = Field(default_factory=list, description="User Name filter, if any")
+    batch_doc_types: list[str] = Field(default_factory=list)
+    batch_group: Literal["period", "document"] = "period"
+    min_batch_eur: float = 0.0
+    payment_unit: Literal["document", "line"] = "document"
+    payment_doc_types: list[str] = Field(default_factory=list)
+    min_payment_eur: float = 0.0
+    max_units: int = 2
+    window_anchor: Literal["period_end", "accrual_date"] = "period_end"
+    window_start_days: int = -5
+    window_end_days: int = 70
+    tolerance_pct: float = 0.02
+    # ASSUMPTION: match preference. True = fewest payment units, then smallest difference,
+    # then shortest lag (reproduces the C192 Expected values); False = the brief's literal
+    # "smallest difference, then shortest lag" (reproduces the C242 Expected values).
+    prefer_fewest_units: bool = False
+
+    @property
+    def key(self) -> str:
+        """Stable account key, e.g. ``P20/C192/279006``."""
+        return f"{self.erp}/{self.entity}/{self.account}"
+
+
+def default_payment_profiles() -> list[PaymentProfile]:
+    """The two profiles the brief specifies (C192 social security, C242 accrued payroll)."""
+    return [
+        PaymentProfile(
+            erp="P20",
+            entity="C192",
+            account="279006",
+            label="C192 social security",
+            batch_text_pattern=r"^Payroll(?P<period>\d{6})$",
+            batch_group="period",
+            min_batch_eur=50_000,
+            payment_unit="document",
+            min_payment_eur=1_000,
+            max_units=2,
+            window_anchor="period_end",
+            window_start_days=-5,
+            window_end_days=70,
+            tolerance_pct=0.02,
+            prefer_fewest_units=True,
+        ),
+        PaymentProfile(
+            erp="BPP",
+            entity="C242",
+            account="34900015",
+            label="C242 accrued payroll",
+            batch_text_pattern=r"(?i)^Aus?zahl\.\s*Rente_(?P<period>\d{2}\.\d{4})",
+            batch_users=["BOT_UPLOAD_002"],
+            batch_doc_types=["GX"],
+            batch_group="document",
+            payment_unit="line",
+            payment_doc_types=["TX"],
+            max_units=5,
+            window_anchor="accrual_date",
+            window_start_days=0,
+            window_end_days=14,
+            tolerance_pct=0.01,
+        ),
+    ]
+
+
+class Rules(BaseModel):
+    """Controller-set parameters. Brief fields first; every engine threshold lives here."""
+
+    materiality_eur: float = 500_000
+    tolerance_pct: float = 0.01  # a batch matches within max(1% of batch, tolerance_eur)
+    tolerance_eur: float = 1_000
+    grace_days: int = 15
+    outlier_multiple: float = 1_000
+    weights: dict[str, int] = {
+        "exposure": 40,
+        "days_past_expected": 20,
+        "penalty_account": 20,
+        "error_type": 10,
+        "repeats": 10,
+    }
+    # ADDITION (brief section 8, "payment profile ... is part of the Rules").
+    payment_profiles: list[PaymentProfile] = Field(default_factory=default_payment_profiles)
+    # ADDITION: Pulse thresholds the brief states as numbers (3x, trailing 12 months).
+    spike_multiple: float = 3.0
+    spike_lookback_months: int = 12
+    # ADDITION / ASSUMPTION: only months inside this look-back are checked for a missing batch.
+    missing_batch_lookback_months: int = 24
+    # ADDITION / OPEN DECISION (brief open item 2): which lines Sentinel S1 may flag.
+    sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
+    # ADDITION / ASSUMPTION: today's close review happens this many days after month end.
+    close_review_days: int = 5
+    # ADDITION / ASSUMPTION: typo prompts.
+    typo_min_similarity: float = 80.0
+    typo_dictionary_min_count: int = 5
+    typo_rarity_ratio: float = 2.5  # the common spelling is used at least this many times more
+    # ADDITION / ASSUMPTION: Recurring-Correction Miner.
+    miner_min_repeats: int = 3
+    # ADDITION / ASSUMPTION: risk score scaling.
+    penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
+    exposure_cap_multiple: float = 5.0
+    days_past_expected_cap: int = 90
+    repeats_cap: int = 5
+    error_type_severity: dict[str, float] = {
+        "pulse_gap": 1.0,
+        "pulse_missing_payment": 0.9,
+        "sentinel_currency_code": 0.8,
+        "sentinel_two_currencies": 0.7,
+        "sentinel_outlier": 0.7,
+        "sentinel_reversal": 0.7,
+        "pulse_missing_batch": 0.6,
+        "label_mismatch": 0.5,
+        "pulse_spike": 0.5,
+        "miner_cluster": 0.4,
+        "typo": 0.2,
+    }
+
+
+class Line(BaseModel):
+    """One open line item in the common model (brief section 6 mapping table)."""
+
+    line_id: int
+    workbook: Workgroup
+    erp: Erp
+    sheet: str
+    source_row: int
+    entity: str
+    account: str
+    account_name: str | None
+    document_no: str
+    item: int | None
+    year: int | None
+    period: int | None
+    doc_type: str | None
+    posting_date: date | None
+    doc_date: date | None
+    amount_dc: float
+    currency_dc: str | None
+    amount_lc: float
+    currency_lc: str
+    amount_eur: float
+    eur_rate: float
+    partner: str | None
+    user_name: str | None
+    text: str | None
+    header_text: str | None
+    reference: str | None
+    assignment: str | None
+    age_days: int | None
+    allowed_age: int | None
+    overdue_abs: float | None
+    reversal: str | None
+
+
+RunTrigger = Literal["manual", "watcher", "schedule", "startup", "rules_change"]
+
+
+class Run(BaseModel):
+    """One pipeline run over one snapshot."""
+
+    run_id: str
+    snapshot_id: str
+    trigger: RunTrigger
+    status: Literal["running", "finished", "failed"]
+    source_files: list[str]
+    file_hashes: list[str]
+    synthetic: bool
+    as_of: date
+    started_at: datetime
+    finished_at: datetime | None = None
+    counts: dict[str, int] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+    error: str | None = None
+
+
+class RuleChange(BaseModel):
+    """One entry of the append-only rules change log."""
+
+    seq: int
+    changed_at: datetime
+    changed_by: str
+    field: str
+    old_value: str
+    new_value: str
+    reason: str
+
+
+class RulesUpdate(BaseModel):
+    """Body of PUT /api/rules: the full new rules plus who and why."""
+
+    rules: Rules
+    changed_by: str | None = None
+    reason: str = Field(min_length=3)
+
+
+class DecisionUpdate(BaseModel):
+    """Body of PATCH /api/exceptions/{id}. A reason is required for any decided status."""
+
+    status: Status | None = None
+    decision_reason: str | None = None
+    decided_class: ExceptionClass | None = None
+    edited_comment: str | None = None
+    decided_by: str | None = None
+
+
+class DecisionEntry(BaseModel):
+    """Audit trail entry for a decision on an exception."""
+
+    exception_id: str
+    status: Status
+    decision_reason: str | None
+    decided_class: ExceptionClass | None
+    edited_comment: str | None
+    decided_by: str
+    decided_at: datetime
+
+
+class TimelinePoint(BaseModel):
+    """Gap chart point: month-end balance, expected balance and gap (brief section 8)."""
+
+    month: str
+    balance: float
+    expected: float
+    gap: float
+    batch_eur: float | None
+    batch_matched: bool | None
+
+
+class BatchMatch(BaseModel):
+    """One accrual batch and the payments that settled it, if any."""
+
+    period: str | None
+    accrual_date: date
+    period_end: date | None
+    batch_eur: float
+    lines: int
+    evidence: list[str]
+    matched: bool
+    payment_eur: float | None = None
+    payment_dates: list[date] = Field(default_factory=list)
+    payment_evidence: list[str] = Field(default_factory=list)
+    payment_labels: list[str] = Field(default_factory=list)
+    diff_pct: float | None = None
+    lag_days: int | None = None
+
+
+class PulseTimeline(BaseModel):
+    """GET /api/pulse/{erp}/{entity}/{account}/timeline."""
+
+    erp: Erp
+    entity: str
+    account: str
+    label: str
+    points: list[TimelinePoint]
+    batches: list[BatchMatch]
+    lag_median: float | None
+    lag_p90: float | None
+
+
+class EvidenceLine(BaseModel):
+    """A source line shown in the drawer (text is shown as-is to the user, never to a model)."""
+
+    document: str
+    posting_date: date | None
+    doc_type: str | None
+    user_name: str | None
+    text: str | None
+    amount_eur: float
+    currency_dc: str | None
+    amount_dc: float
+
+
+class Comment(BaseModel):
+    """POST /api/exceptions/{id}/comment response."""
+
+    exception_id: str
+    comment: str
+    source: Literal["model", "template"]
+    verifier: VerifierResult
+    checked_figures: list[str]
+    failed_figures: list[str]
+    cached: bool
+
+
+class ExceptionDetail(BaseModel):
+    """GET /api/exceptions/{id}: the record, its evidence lines and chart series."""
+
+    exception: ExceptionRecord
+    evidence_lines: list[EvidenceLine]
+    timeline: list[TimelinePoint] | None
+    decisions: list[DecisionEntry]
+
+
+class ExposureGroup(BaseModel):
+    """Payroll netting per ERP, entity and account (brief section 8)."""
+
+    erp: Erp
+    entity: str
+    account: str
+    account_name: str | None
+    lines: int
+    overdue_abs: float
+    net_eur: float
+    paired_lines: int
+    above_materiality: bool
+    exception_id: str | None = None
+
+
+class ExposureResponse(BaseModel):
+    """GET /api/exposure/payroll: the old report next to the real exposure."""
+
+    run_id: str
+    materiality_eur: float
+    old_rule_lines: int
+    old_rule_overdue_abs: float
+    net_eur: float
+    groups_above: int
+    groups: list[ExposureGroup]
+
+
+class Kpis(BaseModel):
+    """GET /api/kpis: header statistics."""
+
+    run_id: str | None
+    exceptions: int
+    open_exceptions: int
+    median_days_earlier: float | None
+    blind_spots: int
+    by_type: dict[str, int]
+    old_rule_lines: int
+    old_rule_overdue_abs: float
+    exposure_groups_above: int

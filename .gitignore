@@ -25,3 +25,25 @@ docs/reference
 
 # Personal working notes
 docs/NOTE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# DuckDB files anywhere (the database lives under data/)
+*.duckdb
+*.duckdb.wal
+
+# Node and build output
+node_modules/
+frontend/dist/
+build/
+dist/
+*.tsbuildinfo
