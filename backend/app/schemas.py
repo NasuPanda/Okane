@@ -161,7 +161,8 @@ class Rules(BaseModel):
     # ADDITION / ASSUMPTION: only months inside this look-back are checked for a missing batch.
     # Confirmed in #4 (docs/ASSUMPTIONS.md A14).
     missing_batch_lookback_months: int = 24
-    # ADDITION / OPEN DECISION (brief open item 2): which lines Sentinel S1 may flag.
+    # ADDITION (brief open item 2): which lines Sentinel S1 may flag. Decided in #9
+    # (docs/ASSUMPTIONS.md A1): person-posted lines only.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
     # ADDITION / ASSUMPTION: today's close review happens this many days after month end.
     close_review_days: int = 5

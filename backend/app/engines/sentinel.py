@@ -3,7 +3,7 @@
 - S1 outlier (specified): |amount_lc| at or above ``outlier_multiple`` x the median |amount_lc|
   of the same ERP, entity and account, skipping lines with amount_dc = 0 (FX valuations).
   As written it fires on routine bot payroll batches, so ``Rules.sentinel_s1_scope`` restricts
-  it (open item 2): ``people_only`` (default), ``exempt_bot_upload`` or ``all``.
+  it (open item 2): ``people_only`` (default, decided in #9), ``exempt_bot_upload`` or ``all``.
 - S2 two currencies (decided in #10, docs/ASSUMPTIONS.md A4): the same amount posted in
   different document currencies on the same ERP, entity, account and posting date, with
   |amount_dc| at or above ``Rules.sentinel_s2_min_amount``. One record per such group.
