@@ -1,0 +1,4405 @@
+{
+ "synthetic": true,
+ "generated_at": "2026-11-18",
+ "data": {
+  "b80b0b905e1fe118": {
+   "exception": {
+    "id": "b80b0b905e1fe118",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "pulse_gap",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "Liability 1.94M below expected",
+    "exposure_eur": -1937894.83,
+    "facts": {
+     "rule": "Latest month-end gap at or above materiality",
+     "gap_eur": -1937894.83,
+     "balance_eur": -1937894.83,
+     "expected_eur": 0.0,
+     "latest_month": "2026-10",
+     "since_month": "2025-06",
+     "months_above_materiality": 17.0,
+     "lowest_gap_eur": -705292.26,
+     "lowest_gap_month": "2025-06",
+     "materiality_eur": 500000.0,
+     "unmatched_batches": 3.0,
+     "today_detection_basis": "not detected by today's process"
+    },
+    "evidence": [
+     "0000000009/2025",
+     "0000000010/2025",
+     "0000000019/2026"
+    ],
+    "first_signal": "2025-06-30",
+    "today_detection": null,
+    "lead_days": null,
+    "expected_by": null,
+    "suggested_class": "Required Adjustment Item",
+    "score": 91.0,
+    "score_breakdown": {
+     "exposure": 31.0,
+     "days_past_expected": 20.0,
+     "penalty_account": 20.0,
+     "error_type": 10.0,
+     "repeats": 10.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -280924.22,
+     "currency_dc": "EUR",
+     "amount_dc": -280924.22
+    },
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -210693.17,
+     "currency_dc": "EUR",
+     "amount_dc": -210693.17
+    },
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -140462.11,
+     "currency_dc": "EUR",
+     "amount_dc": -140462.11
+    },
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -70231.05,
+     "currency_dc": "EUR",
+     "amount_dc": -70231.05
+    },
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -275576.08,
+     "currency_dc": "EUR",
+     "amount_dc": -275576.08
+    },
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -206682.06,
+     "currency_dc": "EUR",
+     "amount_dc": -206682.06
+    },
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -137788.04,
+     "currency_dc": "EUR",
+     "amount_dc": -137788.04
+    },
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -68894.02,
+     "currency_dc": "EUR",
+     "amount_dc": -68894.02
+    },
+    {
+     "document": "0000000019/2026",
+     "posting_date": "2026-09-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202609",
+     "amount_eur": -205529.34,
+     "currency_dc": "EUR",
+     "amount_dc": -205529.34
+    },
+    {
+     "document": "0000000019/2026",
+     "posting_date": "2026-09-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202609",
+     "amount_eur": -154147.01,
+     "currency_dc": "EUR",
+     "amount_dc": -154147.01
+    },
+    {
+     "document": "0000000019/2026",
+     "posting_date": "2026-09-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202609",
+     "amount_eur": -102764.67,
+     "currency_dc": "EUR",
+     "amount_dc": -102764.67
+    },
+    {
+     "document": "0000000019/2026",
+     "posting_date": "2026-09-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202609",
+     "amount_eur": -51382.34,
+     "currency_dc": "EUR",
+     "amount_dc": -51382.34
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "c52c3931a9d01b05": {
+   "exception": {
+    "id": "c52c3931a9d01b05",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "pulse_spike",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "2026-08 batch is 4.1x the usual size",
+    "exposure_eur": -2531445.87,
+    "facts": {
+     "rule": "Batch above 3x the trailing 12-month median",
+     "batch_eur": -2531445.87,
+     "batch_period": "2026-08",
+     "median_eur": 615900.0,
+     "multiple": 4.1,
+     "posting_date": "2026-08-30",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 6.0
+    },
+    "evidence": [
+     "0000000017/2026"
+    ],
+    "first_signal": "2026-08-30",
+    "today_detection": "2026-09-05",
+    "lead_days": 6,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 65.0,
+    "score_breakdown": {
+     "exposure": 40.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 20.0,
+     "error_type": 5.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000017/2026",
+     "posting_date": "2026-08-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202608",
+     "amount_eur": -1012578.35,
+     "currency_dc": "EUR",
+     "amount_dc": -1012578.35
+    },
+    {
+     "document": "0000000017/2026",
+     "posting_date": "2026-08-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202608",
+     "amount_eur": -759433.76,
+     "currency_dc": "EUR",
+     "amount_dc": -759433.76
+    },
+    {
+     "document": "0000000017/2026",
+     "posting_date": "2026-08-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202608",
+     "amount_eur": -506289.17,
+     "currency_dc": "EUR",
+     "amount_dc": -506289.17
+    },
+    {
+     "document": "0000000017/2026",
+     "posting_date": "2026-08-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202608",
+     "amount_eur": -253144.59,
+     "currency_dc": "EUR",
+     "amount_dc": -253144.59
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "5b2756df8b78173c": {
+   "exception": {
+    "id": "5b2756df8b78173c",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "pulse_missing_payment",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "No payment found for the 2025-05 batch",
+    "exposure_eur": -702310.55,
+    "facts": {
+     "rule": "Batch unmatched after period end + 90th-percentile lag + grace days",
+     "batch_eur": -702310.55,
+     "batch_period": "2025-05",
+     "batch_lines": 4.0,
+     "accrual_date": "2025-05-30",
+     "expected_by": "2025-07-21",
+     "lag_p90_days": 36.0,
+     "grace_days": 15.0,
+     "days_past_expected": 485.0,
+     "today_detection_basis": "365-day ageing rule",
+     "lead_days": 312.0
+    },
+    "evidence": [
+     "0000000009/2025"
+    ],
+    "first_signal": "2025-07-22",
+    "today_detection": "2026-05-30",
+    "lead_days": 312,
+    "expected_by": "2025-07-21",
+    "suggested_class": "Required Adjustment Item",
+    "score": 62.2,
+    "score_breakdown": {
+     "exposure": 11.2,
+     "days_past_expected": 20.0,
+     "penalty_account": 20.0,
+     "error_type": 9.0,
+     "repeats": 2.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -280924.22,
+     "currency_dc": "EUR",
+     "amount_dc": -280924.22
+    },
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -210693.17,
+     "currency_dc": "EUR",
+     "amount_dc": -210693.17
+    },
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -140462.11,
+     "currency_dc": "EUR",
+     "amount_dc": -140462.11
+    },
+    {
+     "document": "0000000009/2025",
+     "posting_date": "2025-05-30",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202505",
+     "amount_eur": -70231.05,
+     "currency_dc": "EUR",
+     "amount_dc": -70231.05
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "7bbbe9271b0a2e1d": {
+   "exception": {
+    "id": "7bbbe9271b0a2e1d",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "pulse_missing_payment",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "No payment found for the 2025-06 batch",
+    "exposure_eur": -688940.2,
+    "facts": {
+     "rule": "Batch unmatched after period end + 90th-percentile lag + grace days",
+     "batch_eur": -688940.2,
+     "batch_period": "2025-06",
+     "batch_lines": 4.0,
+     "accrual_date": "2025-06-29",
+     "expected_by": "2025-08-20",
+     "lag_p90_days": 36.0,
+     "grace_days": 15.0,
+     "days_past_expected": 455.0,
+     "today_detection_basis": "365-day ageing rule",
+     "lead_days": 312.0
+    },
+    "evidence": [
+     "0000000010/2025"
+    ],
+    "first_signal": "2025-08-21",
+    "today_detection": "2026-06-29",
+    "lead_days": 312,
+    "expected_by": "2025-08-20",
+    "suggested_class": "Required Adjustment Item",
+    "score": 62.0,
+    "score_breakdown": {
+     "exposure": 11.0,
+     "days_past_expected": 20.0,
+     "penalty_account": 20.0,
+     "error_type": 9.0,
+     "repeats": 2.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -275576.08,
+     "currency_dc": "EUR",
+     "amount_dc": -275576.08
+    },
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -206682.06,
+     "currency_dc": "EUR",
+     "amount_dc": -206682.06
+    },
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -137788.04,
+     "currency_dc": "EUR",
+     "amount_dc": -137788.04
+    },
+    {
+     "document": "0000000010/2025",
+     "posting_date": "2025-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202506",
+     "amount_eur": -68894.02,
+     "currency_dc": "EUR",
+     "amount_dc": -68894.02
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "532032f4fe383650": {
+   "exception": {
+    "id": "532032f4fe383650",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "sentinel_outlier",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279002",
+    "account_name": "Payroll deductions",
+    "title": "Amount 4,874x the account's usual size, posted by a person",
+    "exposure_eur": -9870000.0,
+    "facts": {
+     "rule": "S1: amount at or above 1000x the median",
+     "amount_lc": -9870000.0,
+     "currency_lc": "EUR",
+     "median_abs_lc": 2025.0,
+     "multiple": 4874.1,
+     "outlier_multiple": 1000.0,
+     "posted_by": "person",
+     "posting_date": "2026-10-05",
+     "scope": "people_only",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 31.0
+    },
+    "evidence": [
+     "0000000032/2026"
+    ],
+    "first_signal": "2026-10-05",
+    "today_detection": "2026-11-05",
+    "lead_days": 31,
+    "expected_by": null,
+    "suggested_class": "Required Adjustment Item",
+    "score": 47.0,
+    "score_breakdown": {
+     "exposure": 40.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 7.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000032/2026",
+     "posting_date": "2026-10-05",
+     "doc_type": "SA",
+     "user_name": "USER_120",
+     "text": "Reclass deductions NAME122",
+     "amount_eur": -9870000.0,
+     "currency_dc": "EUR",
+     "amount_dc": -9870000.0
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "5cb790939c58a948": {
+   "exception": {
+    "id": "5cb790939c58a948",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "sentinel_outlier",
+    "workgroup": "Fixed assets",
+    "erp": "P20",
+    "entity": "C218",
+    "account": "119001",
+    "account_name": "Assets under construction",
+    "title": "Amount 1,459x the account's usual size, posted by a person",
+    "exposure_eur": 14769230.77,
+    "facts": {
+     "rule": "S1: amount at or above 1000x the median",
+     "amount_lc": 2400000000.0,
+     "currency_lc": "JPY",
+     "median_abs_lc": 1645000.0,
+     "multiple": 1459.0,
+     "outlier_multiple": 1000.0,
+     "posted_by": "person",
+     "posting_date": "2026-09-18",
+     "scope": "people_only",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 17.0
+    },
+    "evidence": [
+     "4900000001/2026"
+    ],
+    "first_signal": "2026-09-18",
+    "today_detection": "2026-10-05",
+    "lead_days": 17,
+    "expected_by": null,
+    "suggested_class": "Required Adjustment Item",
+    "score": 47.0,
+    "score_breakdown": {
+     "exposure": 40.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 7.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "4900000001/2026",
+     "posting_date": "2026-09-18",
+     "doc_type": "AA",
+     "user_name": "USER_013",
+     "text": "Capitalisation correction",
+     "amount_eur": 14769230.77,
+     "currency_dc": "JPY",
+     "amount_dc": 2400000000.0
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "2bfb780a3f72d9bf": {
+   "exception": {
+    "id": "2bfb780a3f72d9bf",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "typo",
+    "workgroup": "Payroll",
+    "erp": "BPP",
+    "entity": "C242",
+    "account": "34900015",
+    "account_name": "Accrued payroll",
+    "title": "You may have made a mistake: 'Auzahl' looks like 'Auszahl'",
+    "exposure_eur": -4091302.21,
+    "facts": {
+     "rule": "Rare word close to a word this account uses often",
+     "found": "Auzahl",
+     "suggestion": "Auszahl",
+     "similarity_pct": 92.3,
+     "occurrences": 3.0,
+     "dictionary_count": 9.0,
+     "posting_date": "2026-07-25",
+     "prompt": "You may have made a mistake: 'Auzahl' looks like 'Auszahl', which this account uses 9 times.",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 11.0
+    },
+    "evidence": [
+     "7900000005/2026"
+    ],
+    "first_signal": "2026-07-25",
+    "today_detection": "2026-08-05",
+    "lead_days": 11,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 42.0,
+    "score_breakdown": {
+     "exposure": 40.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 2.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "7900000005/2026",
+     "posting_date": "2026-07-25",
+     "doc_type": "GX",
+     "user_name": "BOT_UPLOAD_002",
+     "text": "Auzahl. Rente_07.2026",
+     "amount_eur": -1818356.54,
+     "currency_dc": "EUR",
+     "amount_dc": -1818356.54
+    },
+    {
+     "document": "7900000005/2026",
+     "posting_date": "2026-07-25",
+     "doc_type": "GX",
+     "user_name": "BOT_UPLOAD_002",
+     "text": "Auzahl. Rente_07.2026",
+     "amount_eur": -1363767.4,
+     "currency_dc": "EUR",
+     "amount_dc": -1363767.4
+    },
+    {
+     "document": "7900000005/2026",
+     "posting_date": "2026-07-25",
+     "doc_type": "GX",
+     "user_name": "BOT_UPLOAD_002",
+     "text": "Auzahl. Rente_07.2026",
+     "amount_eur": -909178.27,
+     "currency_dc": "EUR",
+     "amount_dc": -909178.27
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2026-06",
+     "balance": -2271359.69,
+     "expected": -4088120.4,
+     "gap": 1816760.71,
+     "batch_eur": -4088120.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -909905.29,
+     "expected": -4091302.21,
+     "gap": 3181396.92,
+     "batch_eur": -4091302.21,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -1231870.11,
+     "expected": -4102550.0,
+     "gap": 2870679.89,
+     "batch_eur": -4102550.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -2276228.19,
+     "expected": -4095000.0,
+     "gap": 1818771.81,
+     "batch_eur": -4095000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-10",
+     "balance": -1228.19,
+     "expected": 0.0,
+     "gap": -1228.19,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "ca26141f45d62ffe": {
+   "exception": {
+    "id": "ca26141f45d62ffe",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "label_mismatch",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "Payment labelled 2026-01 settles 2026-02",
+    "exposure_eur": 614052.3,
+    "facts": {
+     "rule": "Payment text period differs from the batch it settles",
+     "payment_eur": 614052.3,
+     "batch_eur": -615900.0,
+     "diff_pct": -0.3,
+     "label_period": "2026-01",
+     "settles_period": "2026-02",
+     "posting_date": "2026-03-30",
+     "prompt": "You may have made a mistake: the payment text names 2026-01, but the amount settles the 2026-02 batch.",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 6.0
+    },
+    "evidence": [
+     "0000000006/2026",
+     "0000000005/2026"
+    ],
+    "first_signal": "2026-03-30",
+    "today_detection": "2026-04-05",
+    "lead_days": 6,
+    "expected_by": null,
+    "suggested_class": "Timing item",
+    "score": 34.8,
+    "score_breakdown": {
+     "exposure": 9.8,
+     "days_past_expected": 0.0,
+     "penalty_account": 20.0,
+     "error_type": 5.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000005/2026",
+     "posting_date": "2026-02-27",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202602",
+     "amount_eur": -246360.0,
+     "currency_dc": "EUR",
+     "amount_dc": -246360.0
+    },
+    {
+     "document": "0000000005/2026",
+     "posting_date": "2026-02-27",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202602",
+     "amount_eur": -184770.0,
+     "currency_dc": "EUR",
+     "amount_dc": -184770.0
+    },
+    {
+     "document": "0000000005/2026",
+     "posting_date": "2026-02-27",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202602",
+     "amount_eur": -123180.0,
+     "currency_dc": "EUR",
+     "amount_dc": -123180.0
+    },
+    {
+     "document": "0000000005/2026",
+     "posting_date": "2026-02-27",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202602",
+     "amount_eur": -61590.0,
+     "currency_dc": "EUR",
+     "amount_dc": -61590.0
+    },
+    {
+     "document": "0000000006/2026",
+     "posting_date": "2026-03-30",
+     "doc_type": "P1",
+     "user_name": "BOT_RPA_003",
+     "text": "URSSAF/ASSEDIC SITE03 - Jan'2026",
+     "amount_eur": 350887.03,
+     "currency_dc": "EUR",
+     "amount_dc": 350887.03
+    },
+    {
+     "document": "0000000006/2026",
+     "posting_date": "2026-03-30",
+     "doc_type": "P1",
+     "user_name": "BOT_RPA_003",
+     "text": "URSSAF/ASSEDIC SITE03 - Jan'2026",
+     "amount_eur": 263165.27,
+     "currency_dc": "EUR",
+     "amount_dc": 263165.27
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "3267f451b8da112e": {
+   "exception": {
+    "id": "3267f451b8da112e",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "typo",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "You may have made a mistake: 'URSAAF' looks like 'URSSAF'",
+    "exposure_eur": 626515.4,
+    "facts": {
+     "rule": "Rare word close to a word this account uses often",
+     "found": "URSAAF",
+     "suggestion": "URSSAF",
+     "similarity_pct": 83.3,
+     "occurrences": 2.0,
+     "dictionary_count": 32.0,
+     "posting_date": "2026-05-01",
+     "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which this account uses 32 times.",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 35.0
+    },
+    "evidence": [
+     "0000000008/2026"
+    ],
+    "first_signal": "2026-05-01",
+    "today_detection": "2026-06-05",
+    "lead_days": 35,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 32.0,
+    "score_breakdown": {
+     "exposure": 10.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 20.0,
+     "error_type": 2.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000008/2026",
+     "posting_date": "2026-05-01",
+     "doc_type": "P1",
+     "user_name": "BOT_RPA_003",
+     "text": "URSAAF/ASSEDIC SITE03 - Mar'2026",
+     "amount_eur": 358008.8,
+     "currency_dc": "EUR",
+     "amount_dc": 358008.8
+    },
+    {
+     "document": "0000000008/2026",
+     "posting_date": "2026-05-01",
+     "doc_type": "P1",
+     "user_name": "BOT_RPA_003",
+     "text": "URSAAF/ASSEDIC SITE03 - Mar'2026",
+     "amount_eur": 268506.6,
+     "currency_dc": "EUR",
+     "amount_dc": 268506.6
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "b47b6674d9d026bc": {
+   "exception": {
+    "id": "b47b6674d9d026bc",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "miner_cluster",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "Same manual correction repeated in 3 months",
+    "exposure_eur": 4530.5,
+    "facts": {
+     "rule": "Manual correction with the same shape in 3+ months",
+     "pattern": "manual adj <name> social charges",
+     "doc_type": "SA",
+     "months": 3.0,
+     "first_month": "2023-03",
+     "last_month": "2023-05",
+     "lines": 3.0,
+     "documents": 3.0,
+     "people": 1.0,
+     "total_abs_eur": 4530.5,
+     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
+     "today_detection_basis": "not detected by today's process"
+    },
+    "evidence": [
+     "0000000001/2023",
+     "0000000002/2023",
+     "0000000003/2023"
+    ],
+    "first_signal": "2023-05-10",
+    "today_detection": null,
+    "lead_days": null,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 28.1,
+    "score_breakdown": {
+     "exposure": 0.1,
+     "days_past_expected": 0.0,
+     "penalty_account": 20.0,
+     "error_type": 4.0,
+     "repeats": 4.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000001/2023",
+     "posting_date": "2023-03-10",
+     "doc_type": "SA",
+     "user_name": "USER_031",
+     "text": "Manual adj NAME100 social charges",
+     "amount_eur": 1250.0,
+     "currency_dc": "EUR",
+     "amount_dc": 1250.0
+    },
+    {
+     "document": "0000000002/2023",
+     "posting_date": "2023-04-10",
+     "doc_type": "SA",
+     "user_name": "USER_031",
+     "text": "Manual adj NAME101 social charges",
+     "amount_eur": 880.5,
+     "currency_dc": "EUR",
+     "amount_dc": 880.5
+    },
+    {
+     "document": "0000000003/2023",
+     "posting_date": "2023-05-10",
+     "doc_type": "SA",
+     "user_name": "USER_031",
+     "text": "Manual adj NAME102 social charges",
+     "amount_eur": 2400.0,
+     "currency_dc": "EUR",
+     "amount_dc": 2400.0
+    }
+   ],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "0c7228820c2b5ca8": {
+   "exception": {
+    "id": "0c7228820c2b5ca8",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "pulse_missing_batch",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "No batch posted for 2025-08",
+    "exposure_eur": 0.0,
+    "facts": {
+     "rule": "Month without a batch",
+     "missing_period": "2025-08",
+     "typical_batch_eur": 618389.0,
+     "lookback_months": 24.0,
+     "today_detection_basis": "not detected by today's process"
+    },
+    "evidence": [],
+    "first_signal": "2025-08-31",
+    "today_detection": null,
+    "lead_days": null,
+    "expected_by": null,
+    "suggested_class": "Timing item",
+    "score": 26.0,
+    "score_breakdown": {
+     "exposure": 0.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 20.0,
+     "error_type": 6.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [],
+   "timeline": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "decisions": []
+  },
+  "964330a843f480e5": {
+   "exception": {
+    "id": "964330a843f480e5",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "miner_cluster",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "179003",
+    "account_name": "Employee receivables",
+    "title": "Same manual correction repeated in 3 months",
+    "exposure_eur": 679839.48,
+    "facts": {
+     "rule": "Manual correction with the same shape in 3+ months",
+     "pattern": "advance <name>",
+     "doc_type": "SA",
+     "months": 3.0,
+     "first_month": "2023-06",
+     "last_month": "2023-08",
+     "lines": 3.0,
+     "documents": 3.0,
+     "people": 1.0,
+     "total_abs_eur": 679839.48,
+     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
+     "today_detection_basis": "not detected by today's process"
+    },
+    "evidence": [
+     "0000000004/2023",
+     "0000000005/2023",
+     "0000000006/2023"
+    ],
+    "first_signal": "2023-08-12",
+    "today_detection": null,
+    "lead_days": null,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 18.9,
+    "score_breakdown": {
+     "exposure": 10.9,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 4.0,
+     "repeats": 4.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000004/2023",
+     "posting_date": "2023-06-12",
+     "doc_type": "SA",
+     "user_name": "USER_031",
+     "text": "Advance NAME300",
+     "amount_eur": 310000.0,
+     "currency_dc": "EUR",
+     "amount_dc": 310000.0
+    },
+    {
+     "document": "0000000005/2023",
+     "posting_date": "2023-07-12",
+     "doc_type": "SA",
+     "user_name": "USER_031",
+     "text": "Advance NAME300",
+     "amount_eur": 245500.0,
+     "currency_dc": "EUR",
+     "amount_dc": 245500.0
+    },
+    {
+     "document": "0000000006/2023",
+     "posting_date": "2023-08-12",
+     "doc_type": "SA",
+     "user_name": "USER_031",
+     "text": "Advance NAME300",
+     "amount_eur": 124339.48,
+     "currency_dc": "EUR",
+     "amount_dc": 124339.48
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "2d23e84fc0e1083b": {
+   "exception": {
+    "id": "2d23e84fc0e1083b",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "miner_cluster",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279002",
+    "account_name": "Payroll deductions",
+    "title": "Same manual correction repeated in 4 months",
+    "exposure_eur": 0.0,
+    "facts": {
+     "rule": "Manual correction with the same shape in 3+ months",
+     "pattern": "manual correction <name> reclass to #",
+     "doc_type": "SA",
+     "months": 4.0,
+     "first_month": "2026-05",
+     "last_month": "2026-08",
+     "lines": 8.0,
+     "documents": 4.0,
+     "people": 1.0,
+     "total_abs_eur": 24852.0,
+     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
+     "today_detection_basis": "not detected by today's process"
+    },
+    "evidence": [
+     "0000000034/2026",
+     "0000000035/2026",
+     "0000000036/2026",
+     "0000000037/2026"
+    ],
+    "first_signal": "2026-07-20",
+    "today_detection": null,
+    "lead_days": null,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 10.0,
+    "score_breakdown": {
+     "exposure": 0.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 4.0,
+     "repeats": 6.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000034/2026",
+     "posting_date": "2026-05-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME205 reclass to 279006",
+     "amount_eur": 3105.0,
+     "currency_dc": "EUR",
+     "amount_dc": 3105.0
+    },
+    {
+     "document": "0000000034/2026",
+     "posting_date": "2026-05-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME205 reclass to 279006",
+     "amount_eur": -3105.0,
+     "currency_dc": "EUR",
+     "amount_dc": -3105.0
+    },
+    {
+     "document": "0000000035/2026",
+     "posting_date": "2026-06-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME206 reclass to 279006",
+     "amount_eur": 3106.0,
+     "currency_dc": "EUR",
+     "amount_dc": 3106.0
+    },
+    {
+     "document": "0000000035/2026",
+     "posting_date": "2026-06-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME206 reclass to 279006",
+     "amount_eur": -3106.0,
+     "currency_dc": "EUR",
+     "amount_dc": -3106.0
+    },
+    {
+     "document": "0000000036/2026",
+     "posting_date": "2026-07-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME207 reclass to 279006",
+     "amount_eur": 3107.0,
+     "currency_dc": "EUR",
+     "amount_dc": 3107.0
+    },
+    {
+     "document": "0000000036/2026",
+     "posting_date": "2026-07-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME207 reclass to 279006",
+     "amount_eur": -3107.0,
+     "currency_dc": "EUR",
+     "amount_dc": -3107.0
+    },
+    {
+     "document": "0000000037/2026",
+     "posting_date": "2026-08-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME208 reclass to 279006",
+     "amount_eur": 3108.0,
+     "currency_dc": "EUR",
+     "amount_dc": 3108.0
+    },
+    {
+     "document": "0000000037/2026",
+     "posting_date": "2026-08-20",
+     "doc_type": "SA",
+     "user_name": "USER_045",
+     "text": "Manual correction NAME208 reclass to 279006",
+     "amount_eur": -3108.0,
+     "currency_dc": "EUR",
+     "amount_dc": -3108.0
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "642c728b835e7a01": {
+   "exception": {
+    "id": "642c728b835e7a01",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "miner_cluster",
+    "workgroup": "Payroll",
+    "erp": "BPP",
+    "entity": "C222",
+    "account": "34900002",
+    "account_name": "Accrued payroll",
+    "title": "Same manual correction repeated in 3 months",
+    "exposure_eur": -27000.0,
+    "facts": {
+     "rule": "Manual correction with the same shape in 3+ months",
+     "pattern": "payroll accrual au",
+     "doc_type": "IR",
+     "months": 3.0,
+     "first_month": "2025-01",
+     "last_month": "2025-03",
+     "lines": 3.0,
+     "documents": 3.0,
+     "people": 1.0,
+     "total_abs_eur": 27000.0,
+     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
+     "today_detection_basis": "not detected by today's process"
+    },
+    "evidence": [
+     "7900000001/2025",
+     "7900000002/2025",
+     "7900000003/2025"
+    ],
+    "first_signal": "2025-03-20",
+    "today_detection": null,
+    "lead_days": null,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 8.4,
+    "score_breakdown": {
+     "exposure": 0.4,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 4.0,
+     "repeats": 4.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "7900000001/2025",
+     "posting_date": "2025-01-20",
+     "doc_type": "IR",
+     "user_name": "USER_150",
+     "text": "Payroll accrual AU",
+     "amount_eur": -9000.0,
+     "currency_dc": "AUD",
+     "amount_dc": -14667.3
+    },
+    {
+     "document": "7900000002/2025",
+     "posting_date": "2025-02-20",
+     "doc_type": "IR",
+     "user_name": "USER_150",
+     "text": "Payroll accrual AU",
+     "amount_eur": -9000.0,
+     "currency_dc": "AUD",
+     "amount_dc": -14667.3
+    },
+    {
+     "document": "7900000003/2025",
+     "posting_date": "2025-03-20",
+     "doc_type": "IR",
+     "user_name": "USER_150",
+     "text": "Payroll accrual AU",
+     "amount_eur": -9000.0,
+     "currency_dc": "AUD",
+     "amount_dc": -14667.3
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "5c38a8c1eb2a8a04": {
+   "exception": {
+    "id": "5c38a8c1eb2a8a04",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "sentinel_currency_code",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C141",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "GHS amount equals the EUR amount: not converted?",
+    "exposure_eur": -18450.0,
+    "facts": {
+     "rule": "S3: document and local currency differ but the amounts are equal",
+     "currency_dc": "GHS",
+     "currency_lc": "EUR",
+     "amount_dc": -18450.0,
+     "amount_lc": -18450.0,
+     "posting_date": "2026-10-02",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 34.0
+    },
+    "evidence": [
+     "0000000039/2026"
+    ],
+    "first_signal": "2026-10-02",
+    "today_detection": "2026-11-05",
+    "lead_days": 34,
+    "expected_by": null,
+    "suggested_class": "Required Adjustment Item",
+    "score": 8.3,
+    "score_breakdown": {
+     "exposure": 0.3,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 8.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000039/2026",
+     "posting_date": "2026-10-02",
+     "doc_type": "SA",
+     "user_name": "USER_088",
+     "text": "SSNIT contribution Sep",
+     "amount_eur": -18450.0,
+     "currency_dc": "GHS",
+     "amount_dc": -18450.0
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "6d90360746fcc33b": {
+   "exception": {
+    "id": "6d90360746fcc33b",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "sentinel_currency_code",
+    "workgroup": "Fixed assets",
+    "erp": "P20",
+    "entity": "C218",
+    "account": "119001",
+    "account_name": "Assets under construction",
+    "title": "USD amount equals the JPY amount: not converted?",
+    "exposure_eur": 541.54,
+    "facts": {
+     "rule": "S3: document and local currency differ but the amounts are equal",
+     "currency_dc": "USD",
+     "currency_lc": "JPY",
+     "amount_dc": 88000.0,
+     "amount_lc": 88000.0,
+     "posting_date": "2026-09-21",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 14.0
+    },
+    "evidence": [
+     "4900000002/2026"
+    ],
+    "first_signal": "2026-09-21",
+    "today_detection": "2026-10-05",
+    "lead_days": 14,
+    "expected_by": null,
+    "suggested_class": "Required Adjustment Item",
+    "score": 8.0,
+    "score_breakdown": {
+     "exposure": 0.0,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 8.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "4900000002/2026",
+     "posting_date": "2026-09-21",
+     "doc_type": "AA",
+     "user_name": "USER_013",
+     "text": "Import duty",
+     "amount_eur": 541.54,
+     "currency_dc": "USD",
+     "amount_dc": 88000.0
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "6155aa0337180b63": {
+   "exception": {
+    "id": "6155aa0337180b63",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "sentinel_two_currencies",
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C132",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "One document posted in EUR and RWF",
+    "exposure_eur": 4200.0,
+    "facts": {
+     "rule": "S2: one document carries more than one document currency",
+     "currencies": "EUR, RWF",
+     "lines": 2.0,
+     "posting_date": "2026-09-14",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 21.0
+    },
+    "evidence": [
+     "0000000038/2026"
+    ],
+    "first_signal": "2026-09-14",
+    "today_detection": "2026-10-05",
+    "lead_days": 21,
+    "expected_by": null,
+    "suggested_class": "Required Adjustment Item",
+    "score": 7.1,
+    "score_breakdown": {
+     "exposure": 0.1,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 7.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "0000000038/2026",
+     "posting_date": "2026-09-14",
+     "doc_type": "SA",
+     "user_name": "USER_077",
+     "text": "Social charges RW",
+     "amount_eur": -4200.0,
+     "currency_dc": "RWF",
+     "amount_dc": -6300000.0
+    },
+    {
+     "document": "0000000038/2026",
+     "posting_date": "2026-09-14",
+     "doc_type": "SA",
+     "user_name": "USER_077",
+     "text": "Social charges RW",
+     "amount_eur": 4200.0,
+     "currency_dc": "EUR",
+     "amount_dc": 4200.0
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  },
+  "2853e8b1894ed623": {
+   "exception": {
+    "id": "2853e8b1894ed623",
+    "run_id": "run_20261118T001910_5483bc",
+    "type": "typo",
+    "workgroup": "Fixed assets",
+    "erp": "BPP",
+    "entity": "C250",
+    "account": "1190010",
+    "account_name": "Assets under construction",
+    "title": "You may have made a mistake: 'trnasit' looks like 'transit'",
+    "exposure_eur": 14000.0,
+    "facts": {
+     "rule": "Rare word close to a word this account uses often",
+     "found": "trnasit",
+     "suggestion": "transit",
+     "similarity_pct": 85.7,
+     "occurrences": 1.0,
+     "dictionary_count": 16.0,
+     "posting_date": "2019-05-02",
+     "prompt": "You may have made a mistake: 'trnasit' looks like 'transit', which this account uses 16 times.",
+     "today_detection_basis": "month-end close review",
+     "lead_days": 34.0
+    },
+    "evidence": [
+     "4900000001/2019"
+    ],
+    "first_signal": "2019-05-02",
+    "today_detection": "2019-06-05",
+    "lead_days": 34,
+    "expected_by": null,
+    "suggested_class": null,
+    "score": 2.2,
+    "score_breakdown": {
+     "exposure": 0.2,
+     "days_past_expected": 0.0,
+     "penalty_account": 0.0,
+     "error_type": 2.0,
+     "repeats": 0.0
+    },
+    "ai_comment": null,
+    "verifier": "not_run",
+    "status": "new",
+    "decision_reason": null,
+    "decided_class": null,
+    "edited_comment": null
+   },
+   "evidence_lines": [
+    {
+     "document": "4900000001/2019",
+     "posting_date": "2019-05-02",
+     "doc_type": "AA",
+     "user_name": "USER_013",
+     "text": "Asset in trnasit",
+     "amount_eur": 14000.0,
+     "currency_dc": "EUR",
+     "amount_dc": 14000.0
+    }
+   ],
+   "timeline": null,
+   "decisions": []
+  }
+ }
+}

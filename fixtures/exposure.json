@@ -1,0 +1,86 @@
+{
+ "synthetic": true,
+ "generated_at": "2026-11-18",
+ "data": {
+  "run_id": "run_20261118T001910_5483bc",
+  "materiality_eur": 500000.0,
+  "old_rule_lines": 72,
+  "old_rule_overdue_abs": 11358855.29,
+  "net_eur": -3596688.75,
+  "groups_above": 3,
+  "groups": [
+   {
+    "erp": "BPP",
+    "entity": "C242",
+    "account": "34900001",
+    "account_name": "Accrued salaries",
+    "lines": 5,
+    "overdue_abs": 2060000.0,
+    "net_eur": -2060000.0,
+    "paired_lines": 0,
+    "above_materiality": true,
+    "exception_id": null
+   },
+   {
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "lines": 45,
+    "overdue_abs": 8258015.79,
+    "net_eur": -2029528.21,
+    "paired_lines": 0,
+    "above_materiality": true,
+    "exception_id": "b80b0b905e1fe118"
+   },
+   {
+    "erp": "P20",
+    "entity": "C192",
+    "account": "179003",
+    "account_name": "Employee receivables",
+    "lines": 3,
+    "overdue_abs": 679839.48,
+    "net_eur": 679839.48,
+    "paired_lines": 0,
+    "above_materiality": true,
+    "exception_id": "964330a843f480e5"
+   },
+   {
+    "erp": "P20",
+    "entity": "C172",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "lines": 4,
+    "overdue_abs": 160000.02,
+    "net_eur": -160000.02,
+    "paired_lines": 0,
+    "above_materiality": false,
+    "exception_id": null
+   },
+   {
+    "erp": "BPP",
+    "entity": "C222",
+    "account": "34900002",
+    "account_name": "Accrued payroll",
+    "lines": 3,
+    "overdue_abs": 27000.0,
+    "net_eur": -27000.0,
+    "paired_lines": 0,
+    "above_materiality": false,
+    "exception_id": "642c728b835e7a01"
+   },
+   {
+    "erp": "P20",
+    "entity": "C192",
+    "account": "279014",
+    "account_name": "Payroll clearing",
+    "lines": 12,
+    "overdue_abs": 174000.0,
+    "net_eur": 0.0,
+    "paired_lines": 12,
+    "above_materiality": false,
+    "exception_id": null
+   }
+  ]
+ }
+}

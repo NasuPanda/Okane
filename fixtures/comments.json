@@ -1,0 +1,168 @@
+{
+ "synthetic": true,
+ "generated_at": "2026-11-18",
+ "data": {
+  "b80b0b905e1fe118": {
+   "exception_id": "b80b0b905e1fe118",
+   "comment": "Template comment (no AI model was used): The month-end balance for 2026-10 is -1,937,895 EUR against an expected 0 EUR, a gap of -1,937,895 EUR. The gap has been at or above materiality since 2025-06; the lowest was -705,292 EUR in 2025-06. Check the unmatched batches listed as evidence.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "c52c3931a9d01b05": {
+   "exception_id": "c52c3931a9d01b05",
+   "comment": "Template comment (no AI model was used): The 2026-08 batch of -2,531,446 EUR is 4.1x the usual size (median 615,900 EUR). Confirm it is a genuine one-off.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "5b2756df8b78173c": {
+   "exception_id": "5b2756df8b78173c",
+   "comment": "Template comment (no AI model was used): The 2025-05 batch of -702,311 EUR has no matching payment. It was expected by 2025-07-21. Confirm whether it was paid under another reference or is still owed.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "7bbbe9271b0a2e1d": {
+   "exception_id": "7bbbe9271b0a2e1d",
+   "comment": "Template comment (no AI model was used): The 2025-06 batch of -688,940 EUR has no matching payment. It was expected by 2025-08-20. Confirm whether it was paid under another reference or is still owed.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "532032f4fe383650": {
+   "exception_id": "532032f4fe383650",
+   "comment": "Template comment (no AI model was used): Amount 4,874x the account's usual size, posted by a person. Rule: S1: amount at or above 1000x the median. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "5cb790939c58a948": {
+   "exception_id": "5cb790939c58a948",
+   "comment": "Template comment (no AI model was used): Amount 1,459x the account's usual size, posted by a person. Rule: S1: amount at or above 1000x the median. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "2bfb780a3f72d9bf": {
+   "exception_id": "2bfb780a3f72d9bf",
+   "comment": "Template comment (no AI model was used): You may have made a mistake: 'Auzahl' looks like 'Auszahl', which this account uses 9 times.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "ca26141f45d62ffe": {
+   "exception_id": "ca26141f45d62ffe",
+   "comment": "Template comment (no AI model was used): The payment of 614,052 EUR is labelled 2026-01 but settles the 2026-02 batch. Correct the payment text if the label is wrong.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "3267f451b8da112e": {
+   "exception_id": "3267f451b8da112e",
+   "comment": "Template comment (no AI model was used): You may have made a mistake: 'URSAAF' looks like 'URSSAF', which this account uses 32 times.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "b47b6674d9d026bc": {
+   "exception_id": "b47b6674d9d026bc",
+   "comment": "Template comment (no AI model was used): Same manual correction repeated in 3 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "0c7228820c2b5ca8": {
+   "exception_id": "0c7228820c2b5ca8",
+   "comment": "Template comment (no AI model was used): No batch was posted for 2025-08; a typical batch is 618,389 EUR. Confirm whether the accrual was booked elsewhere.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "964330a843f480e5": {
+   "exception_id": "964330a843f480e5",
+   "comment": "Template comment (no AI model was used): Same manual correction repeated in 3 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "2d23e84fc0e1083b": {
+   "exception_id": "2d23e84fc0e1083b",
+   "comment": "Template comment (no AI model was used): Same manual correction repeated in 4 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "642c728b835e7a01": {
+   "exception_id": "642c728b835e7a01",
+   "comment": "Template comment (no AI model was used): Same manual correction repeated in 3 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "5c38a8c1eb2a8a04": {
+   "exception_id": "5c38a8c1eb2a8a04",
+   "comment": "Template comment (no AI model was used): GHS amount equals the EUR amount: not converted?. Rule: S3: document and local currency differ but the amounts are equal. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "6d90360746fcc33b": {
+   "exception_id": "6d90360746fcc33b",
+   "comment": "Template comment (no AI model was used): USD amount equals the JPY amount: not converted?. Rule: S3: document and local currency differ but the amounts are equal. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "6155aa0337180b63": {
+   "exception_id": "6155aa0337180b63",
+   "comment": "Template comment (no AI model was used): One document posted in EUR and RWF. Rule: S2: one document carries more than one document currency. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
+  "2853e8b1894ed623": {
+   "exception_id": "2853e8b1894ed623",
+   "comment": "Template comment (no AI model was used): You may have made a mistake: 'trnasit' looks like 'transit', which this account uses 16 times.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  }
+ }
+}

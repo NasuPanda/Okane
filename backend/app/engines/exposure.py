@@ -81,9 +81,11 @@ def score_components(
     """Each component on a 0..1 scale (see docs/ASSUMPTIONS.md, risk score)."""
     cap = max(rules.exposure_cap_multiple * rules.materiality_eur, 1.0)
     exposure = min(abs(record.exposure_eur) / cap, 1.0)
+    # A gap has no expected-by date; it counts from the month-end it first crossed materiality.
+    due = record.first_signal if record.type == "pulse_gap" else record.expected_by
     days_past = 0.0
-    if record.expected_by is not None and as_of > record.expected_by:
-        days_past = min((as_of - record.expected_by).days / max(rules.days_past_expected_cap, 1), 1)
+    if due is not None and as_of > due:
+        days_past = min((as_of - due).days / max(rules.days_past_expected_cap, 1), 1)
     key = f"{record.erp}/{record.entity}/{record.account}"
     penalty = 1.0 if key in rules.penalty_accounts else 0.0
     error_type = float(rules.error_type_severity.get(record.type, 0.0))
@@ -100,7 +102,8 @@ def score_components(
 def repeat_counts(records: list[ExceptionRecord]) -> dict[str, int]:
     """How often the same kind of finding occurs on the same account in this run.
 
-    Miner clusters count their own repeated months instead.
+    Miner clusters count their repeated months and gaps their consecutive month-ends above
+    materiality instead.
     """
     counts: dict[tuple[str, str, str, str], int] = {}
     for r in records:
@@ -110,6 +113,8 @@ def repeat_counts(records: list[ExceptionRecord]) -> dict[str, int]:
     for r in records:
         if r.type == "miner_cluster":
             out[r.id] = int(float(r.facts.get("months", 1)))
+        elif r.type == "pulse_gap":
+            out[r.id] = int(float(r.facts.get("months_above_materiality", 1)))
         else:
             out[r.id] = counts[(r.type, r.erp, r.entity, r.account)]
     return out

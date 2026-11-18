@@ -231,3 +231,13 @@ def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
     assert {("Auzahl", "Auszahl"), ("URSAAF", "URSSAF"), ("trnasit", "transit")} <= typos
     planted = [r for r in run_miner(synthetic_lines, rules) if r.account == "279002"]
     assert len(planted) == 1 and planted[0].facts["months"] == 4
+
+
+def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
+    """Demo step 4 opens the top exception: the C192 social security gap."""
+    from app.services.pipeline import run_engines
+
+    output = run_engines(real_lines, Rules(), AS_OF)
+    top = output.records[0]
+    assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
+    assert output.counts["exposure_groups_above"] == 4

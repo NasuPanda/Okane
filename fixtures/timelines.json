@@ -1,0 +1,983 @@
+{
+ "synthetic": true,
+ "generated_at": "2026-11-18",
+ "data": {
+  "P20/C192/279006": {
+   "erp": "P20",
+   "entity": "C192",
+   "account": "279006",
+   "label": "C192 social security",
+   "points": [
+    {
+     "month": "2023-03",
+     "balance": 1250.0,
+     "expected": 0.0,
+     "gap": 1250.0,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-04",
+     "balance": 2130.5,
+     "expected": 0.0,
+     "gap": 2130.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2023-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-01",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-02",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-03",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-04",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-05",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-06",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-07",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-08",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-09",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-10",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-11",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2024-12",
+     "balance": 4530.5,
+     "expected": 0.0,
+     "gap": 4530.5,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-01",
+     "balance": -605869.5,
+     "expected": -610400.0,
+     "gap": 4530.5,
+     "batch_eur": -610400.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-02",
+     "balance": -595551.1,
+     "expected": -598250.4,
+     "gap": 2699.3,
+     "batch_eur": -598250.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-03",
+     "balance": -639215.55,
+     "expected": -640120.1,
+     "gap": 904.55,
+     "batch_eur": -640120.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-04",
+     "balance": -656315.81,
+     "expected": -655300.0,
+     "gap": -1015.81,
+     "batch_eur": -655300.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-05",
+     "balance": -705292.26,
+     "expected": -702310.55,
+     "gap": -2981.71,
+     "batch_eur": -702310.55,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-06",
+     "balance": -1394232.46,
+     "expected": -688940.2,
+     "gap": -705292.26,
+     "batch_eur": -688940.2,
+     "batch_matched": false
+    },
+    {
+     "month": "2025-07",
+     "balance": -2009232.46,
+     "expected": -615000.0,
+     "gap": -1394232.46,
+     "batch_eur": -615000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-08",
+     "balance": -2009232.46,
+     "expected": 0.0,
+     "gap": -2009232.46,
+     "batch_eur": null,
+     "batch_matched": null
+    },
+    {
+     "month": "2025-09",
+     "balance": -2029528.21,
+     "expected": -633450.75,
+     "gap": -1396077.46,
+     "batch_eur": -633450.75,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-10",
+     "balance": -2620408.21,
+     "expected": -590880.0,
+     "gap": -2029528.21,
+     "batch_eur": -590880.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-11",
+     "balance": -2601158.11,
+     "expected": -612300.3,
+     "gap": -1988857.81,
+     "batch_eur": -612300.3,
+     "batch_matched": true
+    },
+    {
+     "month": "2025-12",
+     "balance": -2657750.75,
+     "expected": -645700.0,
+     "gap": -2012050.75,
+     "batch_eur": -645700.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-01",
+     "balance": -2004746.55,
+     "expected": -601222.1,
+     "gap": -1403524.45,
+     "batch_eur": -601222.1,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-02",
+     "balance": -2620646.55,
+     "expected": -615900.0,
+     "gap": -2004746.55,
+     "batch_eur": -615900.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-03",
+     "balance": -2035576.42,
+     "expected": -628400.6,
+     "gap": -1407175.82,
+     "batch_eur": -628400.6,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-04",
+     "balance": -2677586.42,
+     "expected": -642010.0,
+     "gap": -2035576.42,
+     "batch_eur": -642010.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-05",
+     "balance": -2661621.27,
+     "expected": -610550.25,
+     "gap": -2051071.02,
+     "batch_eur": -610550.25,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-06",
+     "balance": -2620137.3,
+     "expected": -598600.0,
+     "gap": -2021537.3,
+     "batch_eur": -598600.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -2632296.7,
+     "expected": -620878.0,
+     "gap": -2011418.7,
+     "batch_eur": -620878.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -4566938.37,
+     "expected": -2531445.87,
+     "gap": -2035492.5,
+     "batch_eur": -2531445.87,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -4461746.36,
+     "expected": -513823.36,
+     "gap": -3947923.0,
+     "batch_eur": -513823.36,
+     "batch_matched": false
+    },
+    {
+     "month": "2026-10",
+     "balance": -1937894.83,
+     "expected": 0.0,
+     "gap": -1937894.83,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "batches": [
+    {
+     "period": "2025-01",
+     "accrual_date": "2025-01-30",
+     "period_end": "2025-01-31",
+     "batch_eur": -610400.0,
+     "lines": 4,
+     "evidence": [
+      "0000000001/2025"
+     ],
+     "matched": true,
+     "payment_eur": 608568.8,
+     "payment_dates": [
+      "2025-02-28"
+     ],
+     "payment_evidence": [
+      "0000000002/2025"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Jan'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 28
+    },
+    {
+     "period": "2025-02",
+     "accrual_date": "2025-02-27",
+     "period_end": "2025-02-28",
+     "batch_eur": -598250.4,
+     "lines": 4,
+     "evidence": [
+      "0000000003/2025"
+     ],
+     "matched": true,
+     "payment_eur": 596455.65,
+     "payment_dates": [
+      "2025-03-29"
+     ],
+     "payment_evidence": [
+      "0000000004/2025"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Feb'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 29
+    },
+    {
+     "period": "2025-03",
+     "accrual_date": "2025-03-30",
+     "period_end": "2025-03-31",
+     "batch_eur": -640120.1,
+     "lines": 4,
+     "evidence": [
+      "0000000005/2025"
+     ],
+     "matched": true,
+     "payment_eur": 638199.74,
+     "payment_dates": [
+      "2025-04-30"
+     ],
+     "payment_evidence": [
+      "0000000006/2025"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Mar'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 30
+    },
+    {
+     "period": "2025-04",
+     "accrual_date": "2025-04-29",
+     "period_end": "2025-04-30",
+     "batch_eur": -655300.0,
+     "lines": 4,
+     "evidence": [
+      "0000000007/2025"
+     ],
+     "matched": true,
+     "payment_eur": 653334.1,
+     "payment_dates": [
+      "2025-05-31"
+     ],
+     "payment_evidence": [
+      "0000000008/2025"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Apr'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 31
+    },
+    {
+     "period": "2025-05",
+     "accrual_date": "2025-05-30",
+     "period_end": "2025-05-31",
+     "batch_eur": -702310.55,
+     "lines": 4,
+     "evidence": [
+      "0000000009/2025"
+     ],
+     "matched": false,
+     "payment_eur": null,
+     "payment_dates": [],
+     "payment_evidence": [],
+     "payment_labels": [],
+     "diff_pct": null,
+     "lag_days": null
+    },
+    {
+     "period": "2025-06",
+     "accrual_date": "2025-06-29",
+     "period_end": "2025-06-30",
+     "batch_eur": -688940.2,
+     "lines": 4,
+     "evidence": [
+      "0000000010/2025"
+     ],
+     "matched": false,
+     "payment_eur": null,
+     "payment_dates": [],
+     "payment_evidence": [],
+     "payment_labels": [],
+     "diff_pct": null,
+     "lag_days": null
+    },
+    {
+     "period": "2025-07",
+     "accrual_date": "2025-07-30",
+     "period_end": "2025-07-31",
+     "batch_eur": -615000.0,
+     "lines": 4,
+     "evidence": [
+      "0000000011/2025"
+     ],
+     "matched": true,
+     "payment_eur": 613155.0,
+     "payment_dates": [
+      "2025-09-03"
+     ],
+     "payment_evidence": [
+      "0000000012/2025"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - July'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 34
+    },
+    {
+     "period": "2025-09",
+     "accrual_date": "2025-09-29",
+     "period_end": "2025-09-30",
+     "batch_eur": -633450.75,
+     "lines": 4,
+     "evidence": [
+      "0000000013/2025"
+     ],
+     "matched": true,
+     "payment_eur": 631550.4,
+     "payment_dates": [
+      "2025-11-04"
+     ],
+     "payment_evidence": [
+      "0000000014/2025"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Sep'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 35
+    },
+    {
+     "period": "2025-10",
+     "accrual_date": "2025-10-30",
+     "period_end": "2025-10-31",
+     "batch_eur": -590880.0,
+     "lines": 4,
+     "evidence": [
+      "0000000015/2025"
+     ],
+     "matched": true,
+     "payment_eur": 589107.36,
+     "payment_dates": [
+      "2025-12-06"
+     ],
+     "payment_evidence": [
+      "0000000016/2025"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Oct'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 36
+    },
+    {
+     "period": "2025-11",
+     "accrual_date": "2025-11-29",
+     "period_end": "2025-11-30",
+     "batch_eur": -612300.3,
+     "lines": 4,
+     "evidence": [
+      "0000000017/2025"
+     ],
+     "matched": true,
+     "payment_eur": 610463.4,
+     "payment_dates": [
+      "2026-01-06"
+     ],
+     "payment_evidence": [
+      "0000000001/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Nov'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 37
+    },
+    {
+     "period": "2025-12",
+     "accrual_date": "2025-12-30",
+     "period_end": "2025-12-31",
+     "batch_eur": -645700.0,
+     "lines": 4,
+     "evidence": [
+      "0000000018/2025"
+     ],
+     "matched": true,
+     "payment_eur": 643762.9,
+     "payment_dates": [
+      "2026-01-28"
+     ],
+     "payment_evidence": [
+      "0000000002/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Dec'2025"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 28
+    },
+    {
+     "period": "2026-01",
+     "accrual_date": "2026-01-30",
+     "period_end": "2026-01-31",
+     "batch_eur": -601222.1,
+     "lines": 4,
+     "evidence": [
+      "0000000003/2026"
+     ],
+     "matched": true,
+     "payment_eur": 599418.43,
+     "payment_dates": [
+      "2026-03-01"
+     ],
+     "payment_evidence": [
+      "0000000004/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Jan'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 29
+    },
+    {
+     "period": "2026-02",
+     "accrual_date": "2026-02-27",
+     "period_end": "2026-02-28",
+     "batch_eur": -615900.0,
+     "lines": 4,
+     "evidence": [
+      "0000000005/2026"
+     ],
+     "matched": true,
+     "payment_eur": 614052.3,
+     "payment_dates": [
+      "2026-03-30"
+     ],
+     "payment_evidence": [
+      "0000000006/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Jan'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 30
+    },
+    {
+     "period": "2026-03",
+     "accrual_date": "2026-03-30",
+     "period_end": "2026-03-31",
+     "batch_eur": -628400.6,
+     "lines": 4,
+     "evidence": [
+      "0000000007/2026"
+     ],
+     "matched": true,
+     "payment_eur": 626515.4,
+     "payment_dates": [
+      "2026-05-01"
+     ],
+     "payment_evidence": [
+      "0000000008/2026"
+     ],
+     "payment_labels": [
+      "URSAAF/ASSEDIC SITE03 - Mar'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 31
+    },
+    {
+     "period": "2026-04",
+     "accrual_date": "2026-04-29",
+     "period_end": "2026-04-30",
+     "batch_eur": -642010.0,
+     "lines": 4,
+     "evidence": [
+      "0000000009/2026"
+     ],
+     "matched": true,
+     "payment_eur": 640083.97,
+     "payment_dates": [
+      "2026-06-01"
+     ],
+     "payment_evidence": [
+      "0000000010/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Apr'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 32
+    },
+    {
+     "period": "2026-05",
+     "accrual_date": "2026-05-30",
+     "period_end": "2026-05-31",
+     "batch_eur": -610550.25,
+     "lines": 4,
+     "evidence": [
+      "0000000011/2026"
+     ],
+     "matched": true,
+     "payment_eur": 608718.6,
+     "payment_dates": [
+      "2026-07-03"
+     ],
+     "payment_evidence": [
+      "0000000012/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - May'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 33
+    },
+    {
+     "period": "2026-06",
+     "accrual_date": "2026-06-29",
+     "period_end": "2026-06-30",
+     "batch_eur": -598600.0,
+     "lines": 4,
+     "evidence": [
+      "0000000013/2026"
+     ],
+     "matched": true,
+     "payment_eur": 596804.2,
+     "payment_dates": [
+      "2026-08-03"
+     ],
+     "payment_evidence": [
+      "0000000014/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - June'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 34
+    },
+    {
+     "period": "2026-07",
+     "accrual_date": "2026-07-30",
+     "period_end": "2026-07-31",
+     "batch_eur": -620878.0,
+     "lines": 4,
+     "evidence": [
+      "0000000015/2026"
+     ],
+     "matched": true,
+     "payment_eur": 619015.37,
+     "payment_dates": [
+      "2026-09-04"
+     ],
+     "payment_evidence": [
+      "0000000016/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - July'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 35
+    },
+    {
+     "period": "2026-08",
+     "accrual_date": "2026-08-30",
+     "period_end": "2026-08-31",
+     "batch_eur": -2531445.87,
+     "lines": 4,
+     "evidence": [
+      "0000000017/2026"
+     ],
+     "matched": true,
+     "payment_eur": 2523851.53,
+     "payment_dates": [
+      "2026-10-06"
+     ],
+     "payment_evidence": [
+      "0000000018/2026"
+     ],
+     "payment_labels": [
+      "URSSAF/ASSEDIC SITE03 - Aug'2026"
+     ],
+     "diff_pct": -0.3,
+     "lag_days": 36
+    },
+    {
+     "period": "2026-09",
+     "accrual_date": "2026-09-29",
+     "period_end": "2026-09-30",
+     "batch_eur": -513823.36,
+     "lines": 4,
+     "evidence": [
+      "0000000019/2026"
+     ],
+     "matched": false,
+     "payment_eur": null,
+     "payment_dates": [],
+     "payment_evidence": [],
+     "payment_labels": [],
+     "diff_pct": null,
+     "lag_days": null
+    }
+   ],
+   "lag_median": 32.0,
+   "lag_p90": 36.0
+  },
+  "BPP/C242/34900015": {
+   "erp": "BPP",
+   "entity": "C242",
+   "account": "34900015",
+   "label": "C242 accrued payroll",
+   "points": [
+    {
+     "month": "2026-06",
+     "balance": -2271359.69,
+     "expected": -4088120.4,
+     "gap": 1816760.71,
+     "batch_eur": -4088120.4,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-07",
+     "balance": -909905.29,
+     "expected": -4091302.21,
+     "gap": 3181396.92,
+     "batch_eur": -4091302.21,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-08",
+     "balance": -1231870.11,
+     "expected": -4102550.0,
+     "gap": 2870679.89,
+     "batch_eur": -4102550.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-09",
+     "balance": -2276228.19,
+     "expected": -4095000.0,
+     "gap": 1818771.81,
+     "batch_eur": -4095000.0,
+     "batch_matched": true
+    },
+    {
+     "month": "2026-10",
+     "balance": -1228.19,
+     "expected": 0.0,
+     "gap": -1228.19,
+     "batch_eur": null,
+     "batch_matched": null
+    }
+   ],
+   "batches": [
+    {
+     "period": "2026-06",
+     "accrual_date": "2026-06-25",
+     "period_end": "2026-06-30",
+     "batch_eur": -4088120.4,
+     "lines": 3,
+     "evidence": [
+      "7900000001/2026"
+     ],
+     "matched": true,
+     "payment_eur": 4087711.59,
+     "payment_dates": [
+      "2026-06-28",
+      "2026-07-01",
+      "2026-07-04"
+     ],
+     "payment_evidence": [
+      "7900000002/2026",
+      "7900000003/2026",
+      "7900000004/2026"
+     ],
+     "payment_labels": [
+      "Bank statement pension payout",
+      "Bank statement pension payout",
+      "Bank statement pension payout"
+     ],
+     "diff_pct": -0.01,
+     "lag_days": 9
+    },
+    {
+     "period": "2026-07",
+     "accrual_date": "2026-07-25",
+     "period_end": "2026-07-31",
+     "batch_eur": -4091302.21,
+     "lines": 3,
+     "evidence": [
+      "7900000005/2026"
+     ],
+     "matched": true,
+     "payment_eur": 4090893.08,
+     "payment_dates": [
+      "2026-07-28",
+      "2026-07-31",
+      "2026-08-03"
+     ],
+     "payment_evidence": [
+      "7900000006/2026",
+      "7900000007/2026",
+      "7900000008/2026"
+     ],
+     "payment_labels": [
+      "Bank statement pension payout",
+      "Bank statement pension payout",
+      "Bank statement pension payout"
+     ],
+     "diff_pct": -0.01,
+     "lag_days": 9
+    },
+    {
+     "period": "2026-08",
+     "accrual_date": "2026-08-25",
+     "period_end": "2026-08-31",
+     "batch_eur": -4102550.0,
+     "lines": 3,
+     "evidence": [
+      "7900000009/2026"
+     ],
+     "matched": true,
+     "payment_eur": 4102139.75,
+     "payment_dates": [
+      "2026-08-28",
+      "2026-08-31",
+      "2026-09-03",
+      "2026-09-06"
+     ],
+     "payment_evidence": [
+      "7900000010/2026",
+      "7900000011/2026",
+      "7900000012/2026",
+      "7900000013/2026"
+     ],
+     "payment_labels": [
+      "Bank statement pension payout",
+      "Bank statement pension payout",
+      "Bank statement pension payout",
+      "Bank statement pension payout"
+     ],
+     "diff_pct": -0.01,
+     "lag_days": 12
+    },
+    {
+     "period": "2026-09",
+     "accrual_date": "2026-09-25",
+     "period_end": "2026-09-30",
+     "batch_eur": -4095000.0,
+     "lines": 3,
+     "evidence": [
+      "7900000014/2026"
+     ],
+     "matched": true,
+     "payment_eur": 4095000.0,
+     "payment_dates": [
+      "2026-09-28",
+      "2026-10-01",
+      "2026-10-04"
+     ],
+     "payment_evidence": [
+      "7900000015/2026",
+      "7900000016/2026",
+      "7900000017/2026"
+     ],
+     "payment_labels": [
+      "Bank statement pension payout",
+      "Bank statement pension payout",
+      "Bank statement pension payout"
+     ],
+     "diff_pct": 0.0,
+     "lag_days": 9
+    }
+   ],
+   "lag_median": 9.0,
+   "lag_p90": 11.100000000000001
+  }
+ }
+}
