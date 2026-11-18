@@ -47,3 +47,4 @@ frontend/dist/
 build/
 dist/
 *.tsbuildinfo
+.vite/
