@@ -14,7 +14,7 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
 - C242 BPP 34900015 (payment profile 2): monthly GX batches "Auszahl. Rente_MM.YYYY" from
   BOT_UPLOAD_002, settled by 3-4 bank (TX) lines within 14 days; one text misspelt "Auzahl.".
 - Exact offsetting pairs on C192 279014 and in Fixed assets.
-- Sentinel: a person-posted outlier (USER_120) and a bot-posted outlier; a document in two
+- Sentinel: a person-posted outlier (USER_901) and a bot-posted outlier; a document in two
   currencies; an unconverted amount (currency code mix-up) in Payroll and Fixed assets.
 - Miner: the same manual correction by USER_045 in four consecutive months.
 - Pension-type account with "Actual ageing ( No Overdue )" (exempt from the 365-day rule).
@@ -214,7 +214,7 @@ def build_payroll_p20(docs: DocCounter) -> PayrollSheet:
                 f"Deduction batch {i}")  # fmt: skip
     # S1: a person-posted outlier (>1000x the account median) and a bot-posted one.
     p20.add("C192", "279002", "Payroll deductions", docs.next(2026), 1, "SA", date(2026, 10, 5),
-            -9_870_000.0, "USER_120", "Reclass deductions NAME122")  # fmt: skip
+            -9_870_000.0, "USER_901", "Reclass deductions NAME122")  # fmt: skip
     p20.add("C192", "279002", "Payroll deductions", docs.next(2026), 1, "P0", date(2026, 10, 6),
             -2_150_000.0, "BOT_UPLOAD_001", "Deduction batch bulk")  # fmt: skip
     # Miner: the same manual correction in four consecutive months.
@@ -313,14 +313,14 @@ def build_fixed_assets() -> tuple[pd.DataFrame, pd.DataFrame]:
                             "Asset in transit"))  # fmt: skip
         bpp_rows.append(row("C250", "1190010", posted + timedelta(days=40), -amount, "EUR",
                             "BOT_RPA_010", "Asset in transit", reversal="X"))  # fmt: skip
-    bpp_rows.append(row("C250", "1190010", date(2019, 5, 2), 14_000.0, "EUR", "USER_013",
+    bpp_rows.append(row("C250", "1190010", date(2019, 5, 2), 14_000.0, "EUR", "USER_902",
                         "Asset in trnasit"))  # fmt: skip
     for i in range(10):
         p20_rows.append(row("C218", "119001", date(2025, 1 + i, 5), 1_600_000.0 + 10_000 * i,
                             "JPY", "BOT_RPA_011", "Machine capitalisation"))  # fmt: skip
-    p20_rows.append(row("C218", "119001", date(2026, 9, 18), 2_400_000_000.0, "JPY", "USER_013",
+    p20_rows.append(row("C218", "119001", date(2026, 9, 18), 2_400_000_000.0, "JPY", "USER_902",
                         "Capitalisation correction"))  # fmt: skip
-    p20_rows.append(row("C218", "119001", date(2026, 9, 21), 88_000.0, "JPY", "USER_013",
+    p20_rows.append(row("C218", "119001", date(2026, 9, 21), 88_000.0, "JPY", "USER_902",
                         "Import duty", curr="USD", amount_dc=88_000.0))  # fmt: skip
     for i in range(4):
         p20_rows.append(row("C219", "119001", date(2025, 3 + i, 9), 42_000.0 + i, "PLN",

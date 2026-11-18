@@ -225,7 +225,7 @@ def test_match_batches_does_not_reuse_payments() -> None:
 # ----- sentinel -----------------------------------------------------------------------------
 def _sentinel_lines() -> pd.DataFrame:
     rows = [{"amount_dc": -10.0, "account": "X"} for _ in range(9)]
-    rows.append({"amount_dc": -50_000.0, "account": "X", "user_name": "USER_120",
+    rows.append({"amount_dc": -50_000.0, "account": "X", "user_name": "USER_901",
                  "document_no": "0000000099"})  # fmt: skip
     rows.append({"amount_dc": -60_000.0, "account": "X", "user_name": "BOT_UPLOAD_001",
                  "document_no": "0000000098"})  # fmt: skip

@@ -7,7 +7,8 @@ Two halves:
 - ``test_synthetic_*``: the same rules on the synthetic workbooks, whose planted cases are
   documented in ``scripts/generate_sample_data.py``. They always run, so CI is meaningful.
 
-Only aggregates are asserted; no row-level real data is printed or stored.
+Real tests assert aggregates plus the row-level values the brief itself quotes (allowed by
+docs/ASSUMPTIONS.md A35); nothing row-level is printed and no real row is stored.
 """
 
 from __future__ import annotations
@@ -156,6 +157,7 @@ def test_real_sentinel_s1(real_lines: pd.DataFrame) -> None:
     assert len(p20) == 174
     assert int((~p20["user_name"].map(is_person)).sum()) == 165
     people = outlier_hits(real_lines, rules, "people_only")
+    # Brief section 8 (S1 expected top hit) and open item 1; ASSUMPTIONS A2, A35.
     top = people.sort_values("multiple", ascending=False).iloc[0]
     assert (top["erp"], top["entity"], top["account"], top["document_no"], top["year"]) == (
         "BPP",

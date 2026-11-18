@@ -36,7 +36,9 @@ undecided items live in `docs/ASSUMPTIONS.md`. If this file and the brief disagr
    score, amount, date, class or risk level.
 2. Read-only: nothing is ever written to an ERP or back to a source workbook.
 3. Real financial data never enters Git. Never print, log or commit row-level data
-   (aggregates in tests are fine). Committed fixtures come from the synthetic generator only.
+   (aggregates in tests are fine; so are the row-level values the brief quotes, in the brief,
+   `docs/ASSUMPTIONS.md` and real golden tests only, see A35). Committed fixtures come from the
+   synthetic generator only and use invented user ids.
 4. Amounts are scaled in the source; label figures "scaled" in the UI.
 5. Document numbers are strings (leading zeros matter). Document numbers repeat across fiscal
    years, so a document is identified by (CoCd, Year, DocumentNo).

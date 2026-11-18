@@ -23,8 +23,15 @@ If you changed a pydantic model or an endpoint: `make types` and commit the rege
 
 - Never commit a spreadsheet, a DuckDB file, `.env`, anything under `data/` except `.gitkeep`,
   or anything under `docs/reference/`. CI blocks these, but do not rely on it.
-- Never paste real amounts, document numbers, user ids or names into code, tests, fixtures,
-  issues, PRs or commit messages. Real-data tests assert aggregates only and skip in CI.
+- Real row-level values (amounts, document numbers, user ids) may appear in Git only where
+  the brief quotes them as an Expected value or an open-item candidate, and only in
+  `docs/BRIEF.md`, `docs/ASSUMPTIONS.md` and the `test_real_*` golden tests. Cite the brief
+  section or ASSUMPTIONS item next to each one (decision A35).
+- Never put real values in fixtures, the generator, engine or UI code, prompts, logs, issues,
+  PRs or commit messages, and never commit a full row, a name or a `NAME###` value. Synthetic
+  data uses invented user ids, not ones the brief quotes. Entity and account codes (C192,
+  279006) are structural and allowed everywhere.
+- Real-data tests skip in CI and never print row-level data.
 - `fixtures/` is generated from synthetic data by `make fixtures`; never hand-edit it with real
   values.
 

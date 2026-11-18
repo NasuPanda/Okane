@@ -2,7 +2,8 @@
 
 Every behaviour the brief does not specify, every place where the brief and the data disagree,
 and every TODO lives here. Code that implements one of these carries an `# ASSUMPTION:` comment.
-Real-data figures below are aggregates only (counts and totals), never row-level data.
+Real-data figures below are aggregates (counts and totals), plus the few row-level values the
+brief itself quotes (A35).
 
 Owner lines read **Owner: team** until someone takes the item; replace with a name when you do.
 Status: **Decide** (the team must choose), **Confirm** (check our reading), **Info** (recorded
@@ -29,6 +30,7 @@ so nobody re-investigates).
 | A15 | 21 missing-payment alerts on real data | Decide | Kept, one per unmatched batch |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
+| A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
 
 ## Data and ingestion
 
@@ -232,3 +234,14 @@ history, including a since-removed private scratch file. Required status checks 
 GitHub refuses branch protection and rulesets on a private repo on the Free plan. Until the
 team upgrades (Pro or Team) or makes the repo public, merges go through pull requests by habit
 and the `main-is-red` CI job opens an issue when a push to `main` fails. Owner: team.
+
+**A35. Where real identifiers may live in Git.** *Decide (decided 18 Nov 2026, #6).* The brief
+turns every Expected value into a golden-test assertion, and some of them are row-level
+(document numbers, user ids, single amounts). Chosen: they may stay in this private repo, but
+only values the brief quotes, and only in `docs/BRIEF.md`, this file and the `test_real_*`
+golden tests, each with a citation. Fixtures, the generator, engine and UI code, prompts, logs,
+issues, PRs and commits carry none; synthetic data uses invented user ids (`USER_9##`). Entity
+and account codes are structural and allowed everywhere. Rejected: moving row-level values to
+a git-ignored file, because the authoritative brief and Git history already hold them.
+Governance line: "Real workbooks never enter Git; the repo holds only synthetic fixtures and the
+handful of reference figures the brief itself quotes." Owner: team.
