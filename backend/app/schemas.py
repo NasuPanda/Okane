@@ -166,6 +166,15 @@ class Rules(BaseModel):
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
     # ADDITION / ASSUMPTION: today's close review happens this many days after month end.
     close_review_days: int = 5
+    # ADDITION (#16, docs/ASSUMPTIONS.md A8): today's close review falls on this working day
+    # after month end. Working days are Monday to Friday minus close_review_holidays.
+    close_review_working_day: int = 5
+    close_review_holidays: list[date] = Field(default_factory=list)
+    # ADDITION (#16, A8): "weekly" counts lead days from the weekly run on or after the first
+    # signal (Okane runs weekly); "daily" counts from the first signal itself.
+    lead_time_view: Literal["weekly", "daily"] = "weekly"
+    # ADDITION (#16, A8): weekday of the weekly run, 0 = Monday (the Monday 06:00 job).
+    weekly_run_weekday: int = Field(default=0, ge=0, le=6)
     # ADDITION (#10, docs/ASSUMPTIONS.md A4): Sentinel S2 ignores amounts below this, in the
     # document currency (the figure as typed).
     sentinel_s2_min_amount: float = 1_000
