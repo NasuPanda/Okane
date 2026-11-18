@@ -124,6 +124,19 @@ def test_snapshot_round_trip(tmp_path: Path, rates: dict[str, float]) -> None:
     db.close()
 
 
+# ----- synthetic workbooks (always run) -----------------------------------------------------
+def test_synthetic_workbooks_ingest(synthetic) -> None:  # type: ignore[no-untyped-def]
+    counts = synthetic.row_counts
+    assert set(counts) == {"Payroll/P20", "Payroll/BPP", "Fixed assets/P20", "Fixed assets/BPP"}
+    lines = synthetic.lines
+    fa = lines[lines["workbook"] == "Fixed assets"]
+    assert set(fa["currency_lc"]) >= {"JPY", "PLN", "EUR"}
+    jpy = fa[fa["currency_lc"] == "JPY"].iloc[0]
+    assert jpy["amount_eur"] == pytest.approx(round(jpy["amount_lc"] / 162.5, 2))
+    assert fa["reversal"].notna().any()
+    assert lines["document_no"].str.len().eq(10).all()
+
+
 # ----- real workbooks (skipped when data/inbox is empty) ------------------------------------
 def test_real_payroll_row_counts(real_payroll) -> None:  # type: ignore[no-untyped-def]
     assert real_payroll.row_counts == {"Payroll/P20": 8298, "Payroll/BPP": 5669}
