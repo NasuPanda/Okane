@@ -222,6 +222,7 @@ def match_batches(
     # ASSUMPTION: profiles with prefer_fewest_units rank (units, difference, lag) instead of
     # the brief's (difference, lag). On the real C192 data the literal rule gives a p90 lag of
     # 59 instead of the brief's 37; the C242 Expected values need the literal rule.
+    # Confirmed in #4 (docs/ASSUMPTIONS.md A12), over a single lag-first rule.
     used: set[str] = set()
     results: list[Match] = []
     for batch in batches:
@@ -480,7 +481,7 @@ def missing_batch_alerts(result: ProfileResult, rules: Rules) -> list[ExceptionR
     """pulse_missing_batch for a month without a batch inside the look-back window."""
     # ASSUMPTION: the brief says "when a month has no batch". Open-items extracts drop batches
     # that were fully cleared, so older months are only checked within
-    # Rules.missing_batch_lookback_months of the latest batch.
+    # Rules.missing_batch_lookback_months of the latest batch. Confirmed in #4 (A14).
     if not result.matches:
         return []
     months = {m.batch.month() for m in result.matches}
