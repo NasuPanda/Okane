@@ -1,0 +1,21 @@
+# Never send confidential or local material to the Docker build context.
+data/
+docs/reference/
+docs/NOTE.md
+**/*.xlsx
+**/*.xls
+**/*.xlsm
+**/*.duckdb
+**/*.duckdb.wal
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local tooling and build output
+.git/
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+frontend/dist/
