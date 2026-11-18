@@ -23,9 +23,9 @@ so nobody re-investigates).
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
 | A10 | AI prompt contract and model | Decide | `{"comment": str}`, qwen2.5 7B instruct, temperature 0 |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
-| A12 | Pulse match preference differs by profile | Confirm | Needed to reproduce the brief's numbers |
-| A13 | 27 Sep 2024 label mismatch settles July, not August | Confirm | Brief text vs brief statistics conflict |
-| A14 | Missing-batch look-back | Confirm | 24 months |
+| A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
+| A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
+| A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
 | A15 | 21 missing-payment alerts on real data | Decide | Kept, one per unmatched batch |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
@@ -69,28 +69,36 @@ Owner: team.
 
 ## Pulse
 
-**A12. Match preference per profile.** *Confirm.* The brief: "keep the one with the smallest
-difference within tolerance, then the shortest lag". Taken literally, C192 gives a 90th
-percentile lag of 59 days (brief: 37). Preferring the fewest payment units first reproduces
-every C192 value (21 matched, median 30, p90 37, Sep 2026 expected by 21 Nov 2026). But C242
-August 2025 must be settled by 4 lines (brief), which needs the literal rule. So each payment
-profile carries `prefer_fewest_units` (C192 true, C242 false). Confirm this is acceptable or
-give the intended single rule. Owner: team.
+**A12. Match preference per profile.** *Info (confirmed 18 Nov 2026, #4).* The brief: "keep the
+one with the smallest difference within tolerance, then the shortest lag". Taken literally, C192
+gives a 90th percentile lag of 59 days (brief: 37). Preferring the fewest payment units first
+reproduces every C192 value (21 matched, median 30, p90 37, Sep 2026 expected by 21 Nov 2026).
+But C242 August 2025 must be settled by 4 lines (brief), which needs the literal rule. So each
+payment profile carries `prefer_fewest_units` (C192 true, C242 false). Tested alternative: one
+rule for both profiles, shortest lag first and then smallest difference, also reproduces every
+Expected value, but on 4 C192 batches it picks a two-payment combination over a single payment
+and raises the C192 label-mismatch prompts from 5 to 8. The per-profile switch stays because it
+raises fewer false prompts. Owner: team.
 
 **A22. Tolerance floor.** *Info.* A batch matches within `max(profile tolerance % x batch,
 Rules.tolerance_eur)`, following the `Rules` comment in the brief. With 500K+ batches the
 percentage always dominates. Owner: team.
 
-**A13. The 27 Sep 2024 payment.** *Confirm.* The brief says the payment labelled Sep'2024
-"settles August (-0.30%)". Greedy date-order matching (the rule that yields the brief's own
-lag statistics) assigns it to the July 2024 batch (+0.09%), because July is matched first and
-the payment is inside July's window. A label mismatch fires either way. On real data the rule
-yields 6 label mismatches (5 on C192, 1 on C242); the brief cites two examples. Owner: team.
+**A13. The 27 Sep 2024 payment.** *Info (confirmed 18 Nov 2026, #4).* The brief says the
+payment labelled Sep'2024 "settles August (-0.30%)". Greedy date-order matching (the rule that
+yields the brief's own lag statistics) assigns it to the July 2024 batch (+0.09%), because July
+is matched first and the payment is inside July's window. Measured against the August batch the
+payment is exactly -0.30%, so the brief compared it with August, a batch date-order matching
+leaves unmatched; no matching order tried for A12 gives it to August. July is kept, and a label
+mismatch fires either way. On real data the rule yields 6 label mismatches (5 on C192, 1 on
+C242); the brief cites two examples. Owner: team.
 
-**A14. Missing batch look-back.** *Confirm.* "When a month has no batch" would flag many 2023
-months in C192, because fully cleared batches drop out of an open-items extract. Months are
-checked only within `Rules.missing_batch_lookback_months` (24) of the latest batch. This yields
-exactly August 2025 for C192, as expected; C242 also shows October 2025. Owner: team.
+**A14. Missing batch look-back.** *Info (confirmed 18 Nov 2026, #4).* "When a month has no
+batch" would flag 2023 months in C192, because fully cleared batches drop out of an open-items
+extract. Months are checked only within `Rules.missing_batch_lookback_months` (24) of the latest
+batch. This yields exactly August 2025 for C192, as expected; C242 also shows October 2025. A
+36-month look-back gives the same result; with no look-back C192 adds four months in 2023.
+Owner: team.
 
 **A15. Missing payments on real data.** *Decide.* The rule yields 21 alerts (C192: 18 across
 2023 to 2026; C242: 3). Older C192 batches are probably settled by payment patterns outside the

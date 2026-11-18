@@ -89,6 +89,7 @@ class PaymentProfile(BaseModel):
     # ASSUMPTION: match preference. True = fewest payment units, then smallest difference,
     # then shortest lag (reproduces the C192 Expected values); False = the brief's literal
     # "smallest difference, then shortest lag" (reproduces the C242 Expected values).
+    # Confirmed in #4 (docs/ASSUMPTIONS.md A12).
     prefer_fewest_units: bool = False
 
     @property
@@ -158,6 +159,7 @@ class Rules(BaseModel):
     spike_multiple: float = 3.0
     spike_lookback_months: int = 12
     # ADDITION / ASSUMPTION: only months inside this look-back are checked for a missing batch.
+    # Confirmed in #4 (docs/ASSUMPTIONS.md A14).
     missing_batch_lookback_months: int = 24
     # ADDITION / OPEN DECISION (brief open item 2): which lines Sentinel S1 may flag.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"

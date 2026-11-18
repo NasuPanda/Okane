@@ -126,7 +126,8 @@ def test_real_c192_alerts(real_pulse: PulseResult) -> None:
     assert jan.facts["diff_pct"] == pytest.approx(-0.29)
     assert jan.facts["payment_eur"] == pytest.approx(653_106.90)
     # ASSUMPTION (docs/ASSUMPTIONS.md): the brief says this payment settles August (-0.30%);
-    # greedy date-order matching assigns it to July. The mismatch fires either way.
+    # greedy date-order matching assigns it to July. The mismatch fires either way. The -0.30%
+    # is the payment against the August batch, which stays unmatched. Confirmed in #4 (A13).
     assert (date(2024, 9, 27), "2024-09") in labels
     sep = [
         r
