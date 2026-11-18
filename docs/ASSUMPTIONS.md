@@ -139,7 +139,8 @@ hits, 42 of them Payroll) and `all` stay selectable on the Rules page. Golden te
 
 **A2. Demo step 5 example.** *Decide (brief open item 1).* With `people_only` the top hit is
 Payroll BPP C242 48900002 document 7910008634 (2019, USER_120, about 57,769x the account
-median). With our lead-time rule (A8) it is flagged 19 days before that month's close review.
+median). With the lead-time rule (A8, decided in #16) it is caught 16 days before that
+month's close review (weekly view; 21 days counted from the posting date).
 The alternative candidate (Fixed assets P20 C218 119001 document 7750001797) needs the Fixed
 assets workbook. Owner: team.
 

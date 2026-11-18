@@ -432,14 +432,55 @@ def test_miner_ids_are_stable_and_ranked_by_score() -> None:
 
 
 # ----- lead time and score ------------------------------------------------------------------
+def test_nth_working_day_after_month_end() -> None:
+    """A8: the close review is the 5th Monday-to-Friday day after month end, minus holidays."""
+    from app.engines.leadtime import nth_working_day_after
+
+    # 31 Jan 2026 is a Saturday: Mon 2 Feb is day 1, Fri 6 Feb day 5.
+    assert nth_working_day_after(date(2026, 1, 31), 5) == date(2026, 2, 6)
+    # 30 Sep 2026 is a Wednesday: Thu 1, Fri 2, Mon 5, Tue 6, Wed 7 Oct.
+    assert nth_working_day_after(date(2026, 9, 30), 5) == date(2026, 10, 7)
+    assert nth_working_day_after(date(2026, 9, 30), 1) == date(2026, 10, 1)
+    # A holiday on Mon 2 Feb pushes the 5th working day to Mon 9 Feb.
+    assert nth_working_day_after(date(2026, 1, 31), 5, {date(2026, 2, 2)}) == date(2026, 2, 9)
+
+
+def test_next_run_on_or_after() -> None:
+    from app.engines.leadtime import next_run_on_or_after
+
+    assert next_run_on_or_after(date(2026, 10, 5), 0) == date(2026, 10, 5), "a Monday is the run"
+    assert next_run_on_or_after(date(2026, 9, 18), 0) == date(2026, 9, 21), "Friday -> Monday"
+    assert next_run_on_or_after(date(2026, 11, 22), 0) == date(2026, 11, 23), "Sunday -> Monday"
+    assert next_run_on_or_after(date(2026, 9, 18), 2) == date(2026, 9, 23), "Wednesday runs"
+
+
+def test_badge_text() -> None:
+    from app.engines.leadtime import badge_text
+
+    assert badge_text(7, "close_review", 365) == "Caught 7 days before the close review"
+    assert badge_text(1, "close_review", 365) == "Caught 1 day before the close review"
+    assert badge_text(310, "ageing", 365) == "Caught 310 days before the 365-day ageing rule"
+    assert badge_text(-2, "close_review", 365) == "Seen 2 days after the close review"
+    assert badge_text(None, "never", None) == "Today's process would miss this"
+
+
 def test_lead_time_by_basis() -> None:
     lines = _sentinel_lines()
-    rules = Rules(close_review_days=5)
+    rules = Rules()
     record = run_sentinel(lines, rules)[0]
+    assert record.first_signal == date(2026, 1, 31)  # posted on Saturday 31 Jan
     timed = apply_lead_time([record], lines, rules)[0]
-    assert timed.today_detection == date(2026, 2, 5)  # 31 Jan month end + 5 days
-    assert timed.lead_days == 5
+    assert timed.today_detection == date(2026, 2, 6)  # 5th working day after 31 Jan
+    assert timed.facts["okane_run_date"] == "2026-02-02"  # the Monday run
+    assert timed.lead_days == 4, "weekly view: Monday 2 Feb to Friday 6 Feb"
+    assert timed.facts["lead_days_daily"] == 6
+    assert timed.facts["lead_days_weekly"] == 4
+    assert timed.facts["lead_badge"] == "Caught 4 days before the close review"
     assert timed.facts["today_detection_basis"] == "month-end close review"
+    daily = apply_lead_time([record], lines, rules.model_copy(update={"lead_time_view": "daily"}))
+    assert daily[0].lead_days == 6
+    holiday = rules.model_copy(update={"close_review_holidays": [date(2026, 2, 6)]})
+    assert apply_lead_time([record], lines, holiday)[0].today_detection == date(2026, 2, 9)
 
     rules_small = Rules(materiality_eur=100, payment_profiles=[_profile()])
     pulse = run_pulse(_pulse_lines(), rules_small, AS_OF).records

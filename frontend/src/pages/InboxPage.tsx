@@ -157,7 +157,7 @@ export function InboxPage() {
           label="Spotted earlier by"
           value={k?.median_days_earlier ?? "–"}
           unit="days"
-          note="typically, before today's report would"
+          note="median, counted from the weekly Monday run"
           icon={Sparkles}
           color="var(--pulse)"
           soft="var(--pulse-soft)"

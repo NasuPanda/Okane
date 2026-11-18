@@ -164,10 +164,10 @@ class Rules(BaseModel):
     # ADDITION (brief open item 2): which lines Sentinel S1 may flag. Decided in #9
     # (docs/ASSUMPTIONS.md A1): person-posted lines only.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
-    # ADDITION / ASSUMPTION: today's close review happens this many days after month end.
-    close_review_days: int = 5
     # ADDITION (#16, docs/ASSUMPTIONS.md A8): today's close review falls on this working day
-    # after month end. Working days are Monday to Friday minus close_review_holidays.
+    # after month end. Working days are Monday to Friday minus close_review_holidays. (This
+    # replaces close_review_days, month end + 5 calendar days; saved rules that still carry
+    # that field load fine, it is ignored.)
     close_review_working_day: int = 5
     close_review_holidays: list[date] = Field(default_factory=list)
     # ADDITION (#16, A8): "weekly" counts lead days from the weekly run on or after the first

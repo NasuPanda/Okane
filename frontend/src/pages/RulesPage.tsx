@@ -36,7 +36,9 @@ const FIELD_LABEL: Record<string, string> = {
   outlier_multiple: "Unusually large means",
   sentinel_s1_scope: "Large amounts checked for",
   sentinel_s2_min_amount: "Same amount, two currencies: smallest amount",
-  close_review_days: "Month-end review day",
+  close_review_working_day: "Close review: working day after month end",
+  close_review_holidays: "Close review: holidays",
+  lead_time_view: "Days earlier: counted from",
   miner_min_score: "Repeated postings: smallest repeat strength",
   miner_min_repeats: "Repeated postings: fewest months",
   miner_by_user: "Repeated postings: same person only",
@@ -181,11 +183,55 @@ export function RulesPage() {
                 onChange={(v) => set("grace_days", v)}
               />
               <NumberField
-                label="Month-end review day"
-                hint="Days after month end when today's review happens; used for 'caught earlier'"
-                value={draft.close_review_days ?? 0}
-                onChange={(v) => set("close_review_days", v)}
+                label="Close review: working day after month end"
+                hint="Today's close review falls on this working day (Mon-Fri); used for 'days earlier'"
+                value={draft.close_review_working_day ?? 5}
+                onChange={(v) => set("close_review_working_day", v)}
               />
+              <label className="grid grid-cols-[1fr_220px] items-center gap-4 border-b border-dashed py-3">
+                <span>
+                  <span className="block text-sm">Close review: holidays</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Dates that are not working days, e.g. 2026-12-24, 2026-12-25
+                  </span>
+                </span>
+                <Input
+                  key={(draft.close_review_holidays ?? []).join(",")}
+                  defaultValue={(draft.close_review_holidays ?? []).join(", ")}
+                  onBlur={(e) =>
+                    set(
+                      "close_review_holidays",
+                      e.target.value
+                        .split(/[,\s]+/)
+                        .map((d) => d.trim())
+                        .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)),
+                    )
+                  }
+                  placeholder="none"
+                  className="num"
+                />
+              </label>
+              <div className="space-y-2 py-3">
+                <div className="text-sm">Count "days earlier" from</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    ["weekly", "The weekly Monday run", "Honest for a weekly run"],
+                    ["daily", "The first sign itself", "As if Okane ran every day"],
+                  ] as const).map(([value, label, hint]) => (
+                    <button
+                      key={value}
+                      onClick={() => set("lead_time_view", value)}
+                      className={cn(
+                        "rounded-xl border p-3 text-left transition",
+                        (draft.lead_time_view ?? "weekly") === value ? "border-foreground bg-secondary" : "hover:bg-secondary/60",
+                      )}
+                    >
+                      <div className="text-sm font-medium">{label}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </Card>
 
             <Card className="space-y-4 p-6">

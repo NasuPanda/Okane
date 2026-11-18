@@ -24,7 +24,10 @@ const WEIGHT_COLOR: Record<string, string> = {
   repeats: "var(--miner)",
 };
 
-const HIDDEN_FACTS = new Set(["prompt", "rule", "hint", "today_detection_basis", "lead_days"]);
+const HIDDEN_FACTS = new Set([
+  "prompt", "rule", "hint", "today_detection_basis", "lead_days", "lead_days_daily",
+  "lead_days_weekly", "okane_run_date", "lead_view", "lead_badge",
+]);
 
 function factValue(key: string, value: number | string): string {
   if (typeof value === "string") return /^\d{4}-\d{2}-\d{2}$/.test(value) ? day(value) : value;
