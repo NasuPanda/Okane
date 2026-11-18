@@ -28,6 +28,7 @@ so nobody re-investigates).
 | A14 | Missing-batch look-back | Confirm | 24 months |
 | A15 | 21 missing-payment alerts on real data | Decide | Kept, one per unmatched batch |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
+| A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
 
 ## Data and ingestion
 
@@ -212,3 +213,14 @@ new rules without re-reading the workbooks. Owner: team.
 
 **A16. Screens.** *Confirm.* Built to the UI reference supplied with the task: Inbox, Exposure,
 Sentinel, Rules, plus the exception drawer. Owner: team.
+
+## Repository
+
+**A34. Landing version-1 on main; required checks.** *Decide.* `version-1` and the scaffold
+`main` had unrelated histories. Chosen: merge `main` into `version-1` with
+`--allow-unrelated-histories -s ours` (the build's tree is kept unchanged) and land it by pull
+request, rather than force-pushing over `main`. Consequence: the scaffold commits stay in
+history, including a since-removed private scratch file. Required status checks cannot be set:
+GitHub refuses branch protection and rulesets on a private repo on the Free plan. Until the
+team upgrades (Pro or Team) or makes the repo public, merges go through pull requests by habit
+and the `main-is-red` CI job opens an issue when a push to `main` fails. Owner: team.

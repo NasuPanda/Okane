@@ -61,3 +61,26 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+
+  # ASSUMPTION (A34): required status checks need GitHub Pro/Team on a private repo, so main
+  # cannot block a red merge. This job only reports: it opens one "main is red" issue.
+  main-is-red:
+    needs: [forbidden-files, backend, frontend]
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="CI is failing on main"
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Still failing: $RUN_URL (commit ${GITHUB_SHA::7})"
+          else
+            gh issue create --title "$title" --body "CI failed on main at ${GITHUB_SHA::7}: $RUN_URL"
+          fi
