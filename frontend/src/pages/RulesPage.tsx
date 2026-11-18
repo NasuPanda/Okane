@@ -210,7 +210,6 @@ export function RulesPage() {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">Still an open team decision (see docs/ASSUMPTIONS.md, A1).</p>
               </div>
             </Card>
 

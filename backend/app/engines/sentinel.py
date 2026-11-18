@@ -3,7 +3,7 @@
 - S1 outlier (specified): |amount_lc| at or above ``outlier_multiple`` x the median |amount_lc|
   of the same ERP, entity and account, skipping lines with amount_dc = 0 (FX valuations).
   As written it fires on routine bot payroll batches, so ``Rules.sentinel_s1_scope`` restricts
-  it (open item 2): ``people_only`` (default), ``exempt_bot_upload`` or ``all``.
+  it (open item 2): ``people_only`` (default, decided in #9), ``exempt_bot_upload`` or ``all``.
 - S2 two currencies (ASSUMPTION): one document whose lines carry more than one document
   currency, or one company code whose lines carry more than one local currency.
 - S3 currency code (ASSUMPTION): a document currency that is not an ISO 4217 code, or an amount
