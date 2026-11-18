@@ -19,7 +19,7 @@ so nobody re-investigates).
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
 | A6 | Typo prompts: fields, thresholds, dictionary | Decide | Per-account dictionary, similarity 80, rarity 2.5x |
-| A7 | Recurring-Correction Miner and the CC06 definition | Decide | Person-posted text fingerprint in 3+ months |
+| A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Ageing rule / close review + 5 days / never |
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
 | A10 | AI prompt contract and model | Decide | `{"comment": str}`, qwen2.5 7B instruct, temperature 0 |
@@ -177,12 +177,29 @@ label: a line whose text names a different period than most lines of its documen
 22 prompts (15 spelling, including "Auzahl" for "Auszahl" and "URSAAF" for "URSSAF"; 7 period
 labels). Owner: team.
 
-**A7. Recurring-Correction Miner (CC06).** *Decide.* The CC06 definition is unknown. A manual
-correction is a person-posted (USER_###) line; its fingerprint is ERP, entity, account,
-document type and text with names and digits removed; a fingerprint in at least
-`miner_min_repeats` (3) distinct posting months is a cluster. Real data: 42 clusters, too many
-for one demo card; the card shows the highest-scored one. Confirm the CC06 meaning and whether
-clusters should require a matching bot posting they correct. Owner: team.
+**A7. Recurring-Correction Miner.** *Decided (#14, 19 Nov 2026; the original rule per A37,
+pending mentor question 5).* The CC06 cluster was in the removed Intercompany workbook, so
+the name "CC06" is dropped.
+- Lines: person-posted (USER_###) lines that have a header text; bot postings and lines
+  without a header text are ignored.
+- Fingerprint: ERP, user, account, document type and the header text, lower-cased, with name
+  placeholders replaced, "corr" spelled out as "correction" and digits masked. The entity is
+  not part of the fingerprint, so one pattern can span entities.
+- Score: distinct entities x distinct posting months. A cluster reaches the Inbox when its
+  score is at least `Rules.miner_min_score` (12) and it appears in at least
+  `Rules.miner_min_repeats` (3) distinct months.
+- Demo card: the top cluster by score (ties: more months, then more lines), chosen by rule,
+  not by a fixed identifier.
+- Card wording: "Repeated manual posting: N months", labelled a hypothesis ("This may be a
+  correction made by hand every month. Check whether the automated posting or mapping can
+  do it."). On real Payroll none of the top clusters' header texts contain a correction word,
+  so the card does not call them corrections.
+- Real Payroll (aggregates): 165 fingerprints, 33 in 3+ months, 6 at score 12+ (17 at 6+, 4 at
+  20+). Each top cluster sits in one entity, so its score equals its months. Fixed assets
+  could not be measured locally (the workbook is not in `data/inbox/`).
+- Rejected: the earlier rule (entity, account, document type and line text, 3+ months; 42
+  Payroll and about 38 Fixed assets clusters, no score) and the original without the user.
+Owner: team.
 
 ## Lead time and score
 
