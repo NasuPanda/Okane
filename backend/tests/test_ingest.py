@@ -145,3 +145,46 @@ def test_real_payroll_row_counts(real_payroll) -> None:  # type: ignore[no-untyp
 
 def test_real_find_workbooks_sees_payroll(real_payroll_path: Path) -> None:
     assert real_payroll_path in find_workbooks(real_payroll_path.parent)
+
+
+def test_real_find_workbooks_sees_both(
+    real_payroll_path: Path, real_fixed_assets_path: Path
+) -> None:
+    found = find_workbooks(real_payroll_path.parent)
+    assert {real_payroll_path, real_fixed_assets_path} <= set(found)
+
+
+def test_real_fixed_assets_row_counts(real_fixed_assets, real_payroll) -> None:  # type: ignore[no-untyped-def]
+    """Brief section 6: four data sheets, 24,165 rows in total."""
+    assert real_fixed_assets.row_counts == {"Fixed assets/BPP": 5976, "Fixed assets/P20": 4222}
+    assert real_fixed_assets.warnings == []
+    total = sum(real_fixed_assets.row_counts.values()) + sum(real_payroll.row_counts.values())
+    assert total == 24_165
+
+
+def test_real_fixed_assets_column_mapping(real_fixed_assets) -> None:  # type: ignore[no-untyped-def]
+    """Brief section 6 mapping table, Fixed-asset column."""
+    lines = real_fixed_assets.lines
+    assert set(lines["workbook"]) == {"Fixed assets"}
+    bpp, p20 = lines[lines["erp"] == "BPP"], lines[lines["erp"] == "P20"]
+    assert set(bpp["currency_lc"]) == {"EUR"}
+    assert set(p20["currency_lc"]) == {"JPY", "PLN"}
+    assert bpp["account"].nunique() == 1 and p20["account"].nunique() == 1
+    assert lines["allowed_age"].isna().all() and lines["overdue_abs"].isna().all()
+    assert bpp["reversal"].notna().any(), "Reversal is mapped on Fixed assets BPP"
+    assert p20["reversal"].isna().all(), "Fixed assets P20 has no Reversal column"
+    for col in ("age_days", "posting_date", "doc_date", "item", "doc_type", "document_no"):
+        assert lines[col].notna().all(), col
+    assert lines["document_no"].map(type).eq(str).all()
+
+
+def test_real_fixed_assets_eur_conversion(  # type: ignore[no-untyped-def]
+    real_fixed_assets, rates: dict[str, float]
+) -> None:
+    """Fixed-asset sheets carry no EUR amount: amount_eur = amount_lc / rate(currency_lc)."""
+    lines = real_fixed_assets.lines
+    assert (lines["eur_rate"] == lines["currency_lc"].map(rates)).all()
+    computed = (lines["amount_lc"] / lines["eur_rate"]).round(2)
+    assert (lines["amount_eur"] - computed).abs().max() == pytest.approx(0)
+    bpp = lines[lines["erp"] == "BPP"]
+    assert (bpp["amount_eur"] == bpp["amount_lc"].round(2)).all()

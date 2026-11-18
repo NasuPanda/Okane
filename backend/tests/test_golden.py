@@ -3,7 +3,7 @@
 Two halves:
 
 - ``test_real_*``: the brief's "Expected" values on the real workbooks (section 8). They skip
-  automatically when ``data/inbox/`` has no Payroll workbook (always the case in CI).
+  automatically when ``data/inbox/`` lacks the workbook they need (always the case in CI).
 - ``test_synthetic_*``: the same rules on the synthetic workbooks, whose planted cases are
   documented in ``scripts/generate_sample_data.py``. They always run, so CI is meaningful.
 
@@ -168,6 +168,36 @@ def test_real_sentinel_s1(real_lines: pd.DataFrame) -> None:
     )
     assert top["user_name"] == "USER_120"
     assert round(top["multiple"]) == 57_769
+
+
+def test_real_sentinel_s1_with_fixed_assets(real_all_lines: pd.DataFrame) -> None:
+    """Brief section 8: on Payroll plus Fixed assets, S1 returns 185 hits, 12 by people."""
+    every = outlier_hits(real_all_lines, Rules(), "all")
+    assert len(every) == 185
+    assert int(every["user_name"].map(is_person).sum()) == 12
+    fixed = every[every["workbook"] == "Fixed assets"]
+    assert len(fixed) == 2
+    assert int(fixed["user_name"].map(is_person).sum()) == 1
+    assert len(outlier_hits(real_all_lines, Rules(), "people_only")) == 12
+
+
+def test_real_fixed_assets_scope(real_all_lines: pd.DataFrame, real_lines: pd.DataFrame) -> None:
+    """A3: Fixed assets feed Sentinel, typo prompts and the Miner, never netting or Pulse."""
+    from app.services.pipeline import run_engines
+
+    both, payroll = payroll_netting(real_all_lines, 500_000), payroll_netting(real_lines, 500_000)
+    assert both.old_rule_lines == payroll.old_rule_lines == 5_475
+    assert both.old_rule_overdue_abs == pytest.approx(payroll.old_rule_overdue_abs)
+    assert both.net_eur == pytest.approx(payroll.net_eur)
+    assert both.groups_above() == 4
+
+    output = run_engines(real_all_lines, Rules(), AS_OF)
+    top = output.records[0]
+    assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
+    fixed_types = {r.type for r in output.records if r.workgroup == "Fixed assets"}
+    assert fixed_types, "Fixed assets lines reach at least one engine"
+    allowed = {"typo", "miner_cluster"}
+    assert all(t.startswith("sentinel_") or t in allowed for t in fixed_types), fixed_types
 
 
 def test_real_typos_find_known_misspellings(real_lines: pd.DataFrame) -> None:
