@@ -204,10 +204,12 @@ account is in `Rules.penalty_accounts` (default C192 279006, social security); e
 cluster counts its months, a gap its months above materiality). With these, the C192 gap ranks
 first on real data (89.4), as the demo needs. Owner: team.
 
-**A27. Suggested class.** *Confirm.* Code (never the model) suggests: gap, outliers, S2, S3 =
-Required Adjustment Item; missing payment = Timing item if at most 30 days late, otherwise
-Required Adjustment Item; missing batch, label mismatch = Timing item; spike, typo, Miner = none.
-Owner: team.
+**A27. Suggested class.** *Info (confirmed 18 Nov 2026, #5).* Code (never the model) suggests:
+gap, outliers, S2, S3 = Required Adjustment Item; missing payment = Timing item if at most 30
+days late, otherwise Required Adjustment Item; missing batch, label mismatch = Timing item;
+spike, typo, Miner = none. The person always decides the class. Checked against the engines:
+the code matches this list. Follow-up #51: the 30-day cut-off is a literal in `pulse.py` and
+moves into `Rules` (no behaviour change at the default). Owner: team.
 
 ## AI layer
 
@@ -230,11 +232,12 @@ verifier anyway. Owner: team.
 
 ## API and governance
 
-**A30. Schema additions.** *Confirm.* Additive only: `ExceptionRecord.decided_class` and
-`ExceptionRecord.edited_comment` (the person's class and edited comment, kept apart from the AI
-draft); `Rules` gains `payment_profiles`, `sentinel_s1_scope`, `sentinel_s2_min_amount`, spike,
-look-back, close-review, typo, Miner and score-scaling parameters, so no threshold lives in an
-engine. Owner: team.
+**A30. Schema additions.** *Info (confirmed 18 Nov 2026, #5).* Additive only:
+`ExceptionRecord.decided_class` and `ExceptionRecord.edited_comment` (the person's class and
+edited comment, kept apart from the AI draft); `Rules` gains `payment_profiles`,
+`sentinel_s1_scope`, `sentinel_s2_min_amount`, spike, look-back, close-review, typo, Miner and
+score-scaling parameters, so no threshold lives in an engine. Checked against `schemas.py`: the
+code matches; every addition is marked `# ADDITION`. Owner: team.
 
 **A31. Decisions.** *Info.* "Accept" in the UI sets status `explained`, "Dismiss" `dismissed`,
 "Escalate" `escalated`; each needs a reason (HTTP 422 otherwise). Every decision is appended to
