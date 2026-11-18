@@ -362,19 +362,21 @@ Each account has a payment profile, which is part of the Rules:
 
 ## 9. Not yet specified
 
-The source of this brief stopped inside the Sentinel section. The items below are required by the scope but have no spec yet. Implement the simplest reasonable version, mark it `# ASSUMPTION:` in code, and record it in `docs/ASSUMPTIONS.md` for the team to confirm.
+The source of this brief stopped inside the Sentinel section. The team's original, longer brief specifies the items below; it is private (`docs/reference/`) and is never copied into the repo.
 
-| Item                              | What we know                                                                                                | What is missing                                                   |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Sentinel S2, S3                   | Listed as P0; types sentinel_two_currencies and sentinel_currency_code exist in the Exception record        | Exact rules and expected hits                                     |
-| Sentinel S5                       | P1; type sentinel_reversal (a reversal document that does not mirror its original)                          | Exact rule                                                        |
-| Typo prompts                      | Spelling or period-label errors produce a "you may have made a mistake" prompt; rapidfuzz for fuzzy matches | Which fields, thresholds, the dictionary                          |
-| Recurring-Correction Miner (CC06) | Finds the root cause behind repeated manual fixes; one card in the demo                                     | Fingerprint of a correction, clustering rule, the CC06 definition |
-| Lead time                         | Per exception: first signal date, today's detection date, lead days; badge "N days before the close review" | Definition of "today's detection date" per exception type         |
-| Risk score                        | Weights in Rules (exposure 40, days past expected 20, penalty account 20, error type 10, repeats 10)        | How each component is scaled to 0 to 100                          |
-| AI layer                          | Ollama, JSON output validated by pydantic, masking, cache, verifier                                         | The prompt contract and output schema                             |
-| Screens                           | Inbox, Exposure, Sentinel, Rules; detail drawer with gap chart, AI comment, lead-time badge                 | The UI reference (to be supplied)                                 |
-| Mentor questions                  | To be written                                                                                               | Check that none depend on Intercompany or WHT                     |
+Decided in #3 (18 Nov 2026): the original's rules, minus Intercompany, are the default recommendation for each item below. The team still decides each item in its issue, and the agreed rule is written in our own words in `docs/ASSUMPTIONS.md` (the "Agreed rule" column). Until an item is decided, the code follows that assumption, marked `# ASSUMPTION:` in code.
+
+| Item                              | What we know                                                                                                | Decided in               | Agreed rule |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------ | ----------- |
+| Sentinel S2, S3                   | Listed as P0; types sentinel_two_currencies and sentinel_currency_code exist in the Exception record        | #10 (decided); build #11 | A4, A5      |
+| Sentinel S5                       | P1; type sentinel_reversal (a reversal document that does not mirror its original)                          | #33                      | A26         |
+| Typo prompts                      | Spelling or period-label errors produce a "you may have made a mistake" prompt; rapidfuzz for fuzzy matches | #12; build #13           | A6          |
+| Recurring-Correction Miner (CC06) | Finds the root cause behind repeated manual fixes; one card in the demo                                     | #14; build #15           | A7          |
+| Lead time                         | Per exception: first signal date, today's detection date, lead days; badge "N days before the close review" | #16; build #17           | A8          |
+| Risk score                        | Weights in Rules (exposure 40, days past expected 20, penalty account 20, error type 10, repeats 10)        | #18; build #19           | A9          |
+| AI layer                          | Ollama, JSON output validated by pydantic, masking, cache, verifier                                         | #28; build #29           | A10, A28    |
+| Screens                           | Inbox, Exposure, Sentinel, Rules; detail drawer with gap chart, AI comment, lead-time badge                 | Built to UI reference    | A16         |
+| Mentor questions                  | Nine questions drafted; none depends on Intercompany or WHT                                                  | #2                       | A36         |
 
 ## 10. Changes in the Intercompany revision, and open items
 

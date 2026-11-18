@@ -69,6 +69,10 @@ undecided items live in `docs/ASSUMPTIONS.md`. If this file and the brief disagr
 - `docs/reference/` is private (kick-off deck with mentor contact details, terminology guide,
   UI reference, personal notes). Read for context only. **Never copy its contents into
   committed files, prompts, fixtures or comments; never write mentor names or contact details.**
+- The team's original, longer brief may sit in `docs/reference/`. Decided in #3: its rules,
+  minus Intercompany, are the default recommendation for the items in `docs/BRIEF.md`
+  section 9, but its text is never copied. Each agreed rule is restated in our own words in
+  `docs/ASSUMPTIONS.md` (A37), and BRIEF.md section 9 indexes them.
 - `docs/NOTE.md` is a personal scratch file: do not create, read or write it.
 
 ## Working conventions

@@ -32,6 +32,7 @@ so nobody re-investigates).
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
 | A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
+| A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
 
 ## Data and ingestion
 
@@ -270,6 +271,19 @@ and account codes are structural and allowed everywhere. Rejected: moving row-le
 a git-ignored file, because the authoritative brief and Git history already hold them.
 Governance line: "Real workbooks never enter Git; the repo holds only synthetic fixtures and the
 handful of reference figures the brief itself quotes." Owner: team.
+
+**A37. Original rules as the default; where agreed rules live.** *Decide (decided 18 Nov 2026,
+#3).* The committed brief stopped inside the Sentinel section; the team's original, longer brief
+(private, in `docs/reference/`) specifies the missing items. Chosen: (a) the original's rules,
+minus Intercompany, are the default recommendation for #10 to #18, #28 and #33. Each issue still
+records the team's decision, and our placeholders (A4 to A10, A26) are the fallback until then.
+#9 and #10 were already decided and are unchanged. Any new risk-score scaling must keep the C192
+gap first (demo step 4). (b) The original's text is not restored into the committed brief,
+because `CLAUDE.md` forbids copying `docs/reference/` content into committed files. Each agreed
+rule is written in our own words in this file under its A# item, with no contact details and no
+Intercompany material, and `docs/BRIEF.md` section 9 is an index from item to issue to A#.
+Rejected: restoring the original's sections into BRIEF.md, which would need the private-content
+rule loosened and could carry text never meant for the repo. Owner: team.
 
 ## Mentor questions
 
