@@ -14,7 +14,7 @@ from app.schemas import ExceptionRecord
 
 PROMPT_VERSION = "v1"
 NAME_PLACEHOLDER = re.compile(r"\bNAME\d+\b", re.IGNORECASE)
-TEMPLATE_LABEL = "Template comment (no AI model was used):"
+TEMPLATE_LABEL = "Standard note (no AI was used):"
 
 SYSTEM_PROMPT = """You draft short reconciliation comments for accountants at a finance team.
 Write two or three plain sentences explaining the finding and what to check next.

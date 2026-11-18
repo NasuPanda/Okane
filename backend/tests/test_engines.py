@@ -509,7 +509,7 @@ def test_client_falls_back_to_labelled_template(tmp_path, synthetic_lines) -> No
     settings = Settings(ai_enabled=True)
     result = draft_comment(record, db, settings, http=down)
     assert (result.source, result.verifier) == ("template", "not_run")
-    assert result.comment.startswith("Template comment")
+    assert result.comment.startswith("Standard note")
     assert not ollama_available(settings, http=down)
     assert db.cache_get(f"{record.id}:x") is None
 

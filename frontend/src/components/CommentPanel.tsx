@@ -46,18 +46,18 @@ function VerifierBadge({ comment }: { comment: Comment }) {
   if (comment.verifier === "passed") {
     return (
       <Badge variant="signal">
-        <ShieldCheck /> All {comment.checked_figures.length} figures match the computed facts
+        <ShieldCheck /> All {comment.checked_figures.length} numbers double-checked ✓
       </Badge>
     );
   }
   if (comment.verifier === "failed") {
     return (
       <Badge variant="danger">
-        <ShieldAlert /> {comment.failed_figures.length} figure(s) not in the facts: do not use
+        <ShieldAlert /> {comment.failed_figures.length} number(s) don't match our figures, please don't use this one
       </Badge>
     );
   }
-  return <Badge variant="muted">Template text · figures copied from the facts, check not run</Badge>;
+  return <Badge variant="muted">Standard wording · numbers copied straight from the facts</Badge>;
 }
 
 export function CommentPanel({ record }: { record: ExceptionRecord }) {
@@ -78,43 +78,43 @@ export function CommentPanel({ record }: { record: ExceptionRecord }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="eyebrow flex items-center gap-1.5">
-          <Sparkles className="size-3.5" /> Draft comment
+          <Sparkles className="size-3.5 text-sentinel" /> Draft note
         </span>
         <Button size="sm" variant="outline" onClick={() => draft.mutate(!!comment)} disabled={draft.isPending}>
           {draft.isPending ? <Loader2 className="animate-spin" /> : comment ? <RefreshCw /> : <Sparkles />}
-          {comment ? "Redraft" : "Draft comment"}
+          {comment ? "Try again" : "Write a draft for me"}
         </Button>
       </div>
       {comment ? (
-        <div className="space-y-3 rounded-xl bg-secondary p-4">
+        <div className="rise space-y-3 rounded-xl border-l-4 border-sentinel bg-secondary p-4">
           <p className="text-[15px] leading-relaxed">
             <Highlighted comment={comment} />
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <VerifierBadge comment={comment} />
             <span className="text-[11px] text-muted-foreground">
-              {comment.source === "model" ? "Written by the local language model" : "No language model was used"}
+              {comment.source === "model" ? "Drafted by the local AI assistant" : "No AI was used for this one"}
               {comment.cached && " · cached"}
             </span>
           </div>
         </div>
       ) : (
         <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-          The model only words the comment. Every figure it writes is checked against the facts below; it never
-          sets an amount, a date, a rank or a class.
+          Want a head start? The assistant drafts a short note for you. It only picks the words: every number it
+          writes is checked against Okane's own figures, and it never decides an amount, a date, a priority or a class.
         </p>
       )}
       <div className="space-y-2">
         <Textarea
           value={edited}
           onChange={(e) => setEdited(e.target.value)}
-          placeholder="Your comment for the reconciliation file (kept separate from the draft)"
+          placeholder="Your own note for the reconciliation file (kept separate from the draft)"
           className="min-h-16"
         />
         <div className="flex justify-end gap-2">
           {comment && (
             <Button size="sm" variant="ghost" onClick={() => setEdited(comment.comment)}>
-              Use draft
+              Copy the draft
             </Button>
           )}
           <Button
@@ -123,7 +123,7 @@ export function CommentPanel({ record }: { record: ExceptionRecord }) {
             disabled={decide.isPending || edited === (record.edited_comment ?? "")}
             onClick={() => decide.mutate({ edited_comment: edited })}
           >
-            Save comment
+            Save note
           </Button>
         </div>
       </div>

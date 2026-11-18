@@ -180,7 +180,7 @@ def test_comment_without_model_is_labelled_template(ran: TestClient) -> None:
     comment = ran.post(f"/api/exceptions/{gap['id']}/comment").json()
     assert comment["source"] == "template"
     assert comment["verifier"] == "not_run"
-    assert comment["comment"].startswith("Template comment")
+    assert comment["comment"].startswith("Standard note")
     stored = ran.get(f"/api/exceptions/{gap['id']}").json()["exception"]
     assert stored["ai_comment"] == comment["comment"]
 

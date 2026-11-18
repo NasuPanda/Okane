@@ -15,19 +15,27 @@ import { cn, eur, shortEur, stamp } from "@/lib/utils";
 
 type Scope = NonNullable<Rules["sentinel_s1_scope"]>;
 const SCOPES: { value: Scope; label: string; hint: string }[] = [
-  { value: "people_only", label: "People only", hint: "Lines posted by USER accounts" },
-  { value: "exempt_bot_upload", label: "Skip upload robots", hint: "Everything except BOT_UPLOAD batches" },
-  { value: "all", label: "All postings", hint: "Includes routine robot payroll batches" },
+  { value: "people_only", label: "People only", hint: "Entries typed in by a colleague" },
+  { value: "exempt_bot_upload", label: "People + some robots", hint: "Skips the routine monthly upload robot" },
+  { value: "all", label: "Everyone", hint: "Includes routine robot batches (noisier)" },
 ];
 
+const WEIGHT_COLOR: Record<string, string> = {
+  exposure: "var(--forest)",
+  days_past_expected: "var(--hot)",
+  penalty_account: "var(--sentinel)",
+  error_type: "var(--mistake)",
+  repeats: "var(--miner)",
+};
+
 const FIELD_LABEL: Record<string, string> = {
-  materiality_eur: "Materiality (EUR)",
+  materiality_eur: "Materiality limit (EUR)",
   tolerance_pct: "Tolerance (share of batch)",
   tolerance_eur: "Tolerance floor (EUR)",
   grace_days: "Grace days",
-  outlier_multiple: "Outlier multiple",
-  sentinel_s1_scope: "Outlier check scope",
-  close_review_days: "Close review (days after month end)",
+  outlier_multiple: "Unusually large means",
+  sentinel_s1_scope: "Large amounts checked for",
+  close_review_days: "Month-end review day",
 };
 
 function fieldLabel(field: string) {
@@ -98,7 +106,7 @@ export function RulesPage() {
       { rules: draft, reason },
       {
         onSuccess: () => {
-          toast.success("Rules saved and logged", { description: "Every finding is being re-ranked." });
+          toast.success("Saved and logged ✓", { description: "Re-ranking every finding with your new settings…" });
           setReason("");
         },
         onError: (e) => toast.error("Not saved", { description: e instanceof ApiError ? e.message : String(e) }),
@@ -108,7 +116,11 @@ export function RulesPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Rules" trail={["Set by the controller", "Every change is logged"]} />
+      <PageHeader
+        title="Rules"
+        trail={["Your settings", "Every change is logged"]}
+        subtitle="You decide what counts as important. Okane never guesses: every finding is ranked with the numbers on this page, and every change is written to the log with your reason."
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
         {!draft ? (
@@ -118,10 +130,10 @@ export function RulesPage() {
             <Card className="space-y-5 p-6">
               <div className="flex items-end justify-between gap-6">
                 <div className="space-y-2">
-                  <div className="eyebrow">Materiality</div>
+                  <div className="eyebrow">How big is "big"? · materiality</div>
                   <div className="num text-6xl leading-none font-light">{shortEur(draft.materiality_eur ?? 0)}</div>
                   <div className="text-xs text-muted-foreground">
-                    An account or gap below this amount is not a real exposure.
+                    Anything that nets to less than this is treated as small and folds away.
                   </div>
                 </div>
                 <Input
@@ -143,30 +155,30 @@ export function RulesPage() {
             </Card>
 
             <Card className="p-6">
-              <div className="eyebrow mb-2">Matching and timing</div>
+              <div className="eyebrow mb-2">Matching payments to accruals</div>
               <NumberField
                 label="Tolerance (share of batch)"
-                hint="A payment matches a batch within this share, e.g. 0.01 = 1%"
+                hint="How close a payment must be to its accrual, e.g. 0.01 = within 1%"
                 step={0.005}
                 value={draft.tolerance_pct ?? 0}
                 onChange={(v) => set("tolerance_pct", v)}
               />
               <NumberField
                 label="Tolerance floor (EUR)"
-                hint="Smallest difference always accepted"
+                hint="Small differences up to this amount always count as a match"
                 step={100}
                 value={draft.tolerance_eur ?? 0}
                 onChange={(v) => set("tolerance_eur", v)}
               />
               <NumberField
                 label="Grace days"
-                hint="Added to the usual payment lag before a payment counts as missing"
+                hint="Extra days we wait after the usual payment date before calling it missing"
                 value={draft.grace_days ?? 0}
                 onChange={(v) => set("grace_days", v)}
               />
               <NumberField
-                label="Close review (days after month end)"
-                hint="When today's process reviews a month; used for lead time"
+                label="Month-end review day"
+                hint="Days after month end when today's review happens; used for 'caught earlier'"
                 value={draft.close_review_days ?? 0}
                 onChange={(v) => set("close_review_days", v)}
               />
@@ -175,14 +187,14 @@ export function RulesPage() {
             <Card className="space-y-4 p-6">
               <div className="eyebrow">Posting-day checks</div>
               <NumberField
-                label="Outlier multiple"
-                hint="Flag an amount at or above this many times the account's median"
+                label="Unusually large means"
+                hint="Times bigger than the account's usual amount"
                 step={100}
                 value={draft.outlier_multiple ?? 0}
                 onChange={(v) => set("outlier_multiple", v)}
               />
               <div className="space-y-2">
-                <div className="text-sm">Outlier check covers</div>
+                <div className="text-sm">Check large amounts posted by</div>
                 <div className="grid grid-cols-3 gap-2">
                   {SCOPES.map((s) => (
                     <button
@@ -198,20 +210,32 @@ export function RulesPage() {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">Open decision for the team: see docs/ASSUMPTIONS.md (A1).</p>
+                <p className="text-xs text-muted-foreground">Still an open team decision (see docs/ASSUMPTIONS.md, A1).</p>
               </div>
             </Card>
 
             <Card className="space-y-3 p-6">
               <div className="flex items-center justify-between">
-                <div className="eyebrow">Risk weights</div>
+                <div className="eyebrow">What matters most to you · priority weights</div>
                 <span className={cn("num text-xs", weightSum === 100 ? "text-muted-foreground" : "text-warn")}>
                   total {weightSum} of 100
                 </span>
               </div>
+              <div className="flex h-2.5 gap-1">
+                {Object.entries(weights).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="rounded-full transition-all duration-500"
+                    style={{ width: `${(value / Math.max(weightSum, 1)) * 100}%`, background: WEIGHT_COLOR[key] }}
+                  />
+                ))}
+              </div>
               {Object.entries(weights).map(([key, value]) => (
                 <div key={key} className="grid grid-cols-[180px_1fr_72px] items-center gap-4">
-                  <span className="text-sm">{WEIGHT_LABEL[key] ?? key}</span>
+                  <span className="flex items-center gap-2 text-sm">
+                    <span className="size-2.5 rounded-full" style={{ background: WEIGHT_COLOR[key] ?? "var(--chart-3)" }} />
+                    {WEIGHT_LABEL[key] ?? key}
+                  </span>
                   <Slider
                     min={0}
                     max={60}
@@ -224,7 +248,12 @@ export function RulesPage() {
               ))}
             </Card>
 
-            <Card className="sticky bottom-28 space-y-3 border p-5 shadow-lg">
+            <Card
+              className={cn(
+                "space-y-3 border p-5 transition-shadow",
+                changes > 0 && "sticky bottom-28 z-10 border-signal shadow-xl",
+              )}
+            >
               <div className="flex items-center justify-between">
                 <div className="text-sm">
                   {changes ? (
@@ -232,7 +261,7 @@ export function RulesPage() {
                       <span className="num font-medium">{changes}</span> unsaved change{changes === 1 ? "" : "s"}
                     </>
                   ) : (
-                    <span className="text-muted-foreground">No changes</span>
+                    <span className="text-muted-foreground">Nothing changed yet</span>
                   )}
                 </div>
                 {changes > 0 && (
@@ -244,7 +273,7 @@ export function RulesPage() {
               <Textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Reason for the change (required, kept in the change log)"
+                placeholder="Why are you changing this? (required, saved in the log)"
                 className="min-h-14"
               />
               <div className="flex justify-end">
@@ -258,7 +287,7 @@ export function RulesPage() {
 
         <Card className="h-fit space-y-4 p-6">
           <div className="eyebrow flex items-center gap-1.5">
-            <History className="size-3.5" /> Change log
+            <History className="size-3.5" /> Who changed what
           </div>
           {log.data?.length ? (
             <ol className="space-y-4">
@@ -268,7 +297,10 @@ export function RulesPage() {
                 const show = (v: unknown) => (typeof v === "number" && v >= 1000 ? eur(v) : String(v));
                 return (
                   <li key={entry.seq} className="space-y-1 border-b border-dashed pb-4 last:border-0">
-                    <div className="text-sm font-medium">{fieldLabel(entry.field)}</div>
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <span className="size-2 rounded-full bg-signal" />
+                      {fieldLabel(entry.field)}
+                    </div>
                     <div className="num text-sm">
                       <span className="text-muted-foreground line-through">{show(before)}</span>
                       <span className="mx-2 text-muted-foreground">→</span>
@@ -283,7 +315,7 @@ export function RulesPage() {
               })}
             </ol>
           ) : (
-            <p className="text-sm text-muted-foreground">No change yet. The defaults come from the build brief.</p>
+            <p className="text-sm text-muted-foreground">Nothing changed yet. You're using the starting values from the brief.</p>
           )}
         </Card>
       </div>

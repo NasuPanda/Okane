@@ -1,18 +1,33 @@
 import type { ExceptionClass, ExceptionRecord, ExceptionType, Status } from "@/api/types";
 
-/** Plain accountant language for every finding type. */
+/** Friendly names: what a person would call each finding. */
 export const TYPE_LABEL: Record<ExceptionType, string> = {
-  pulse_gap: "Liability gap",
-  pulse_missing_payment: "Missing payment",
-  pulse_spike: "Unusual batch size",
-  pulse_missing_batch: "Missing accrual batch",
-  label_mismatch: "Payment label",
-  sentinel_outlier: "Outlier amount",
-  sentinel_two_currencies: "Two currencies",
-  sentinel_currency_code: "Currency code",
-  sentinel_reversal: "Reversal mismatch",
-  typo: "Possible mistake",
-  miner_cluster: "Recurring correction",
+  pulse_gap: "Balance doesn't add up",
+  pulse_missing_payment: "Payment not found",
+  pulse_spike: "Unusually big month",
+  pulse_missing_batch: "A month is missing",
+  label_mismatch: "Wrong month on a payment",
+  sentinel_outlier: "Unusually large amount",
+  sentinel_two_currencies: "Mixed currencies",
+  sentinel_currency_code: "Currency looks off",
+  sentinel_reversal: "Reversal doesn't match",
+  typo: "Possible typo",
+  miner_cluster: "Same fix, every month",
+};
+
+/** One plain sentence per finding, with the accounting term kept in it. */
+export const TYPE_HINT: Record<ExceptionType, string> = {
+  pulse_gap: "The account holds more or less than its usual payment rhythm says it should.",
+  pulse_missing_payment: "An accrual was booked, but no payment has settled it by the date we'd expect.",
+  pulse_spike: "This month's accrual is several times bigger than a normal month.",
+  pulse_missing_batch: "No accrual batch was booked for this month at all.",
+  label_mismatch: "The payment's text names a different month than the accrual it actually pays.",
+  sentinel_outlier: "Far bigger than what this account usually sees. Worth a quick look.",
+  sentinel_two_currencies: "One document mixes currencies, which usually means a mapping slip.",
+  sentinel_currency_code: "The currency code or conversion doesn't look right.",
+  sentinel_reversal: "A reversal that doesn't mirror the entry it reverses.",
+  typo: "A word or month label that looks like a slip of the keyboard.",
+  miner_cluster: "Someone fixes the same thing by hand every month. Fix it once at the source.",
 };
 
 export type TypeGroup = "pulse" | "sentinel" | "mistakes" | "miner";
@@ -32,92 +47,102 @@ export const TYPE_GROUP: Record<ExceptionType, TypeGroup> = {
 };
 
 export const GROUP_LABEL: Record<TypeGroup, string> = {
-  pulse: "Liability Pulse",
-  sentinel: "Posting-day checks",
-  mistakes: "Mistake prompts",
-  miner: "Recurring corrections",
+  pulse: "Payments & accruals",
+  sentinel: "Posting checks",
+  mistakes: "Possible typos",
+  miner: "Repeat fixes",
 };
 
+/** Tailwind classes per group: solid colour, soft background, text on soft background. */
+export const GROUP_TONE: Record<TypeGroup, { solid: string; soft: string; ink: string; bar: string }> = {
+  pulse: { solid: "bg-pulse", soft: "bg-pulse-soft", ink: "text-pulse", bar: "var(--pulse)" },
+  sentinel: { solid: "bg-sentinel", soft: "bg-sentinel-soft", ink: "text-sentinel", bar: "var(--sentinel)" },
+  mistakes: { solid: "bg-mistake", soft: "bg-mistake-soft", ink: "text-mistake", bar: "var(--mistake)" },
+  miner: { solid: "bg-miner", soft: "bg-miner-soft", ink: "text-miner", bar: "var(--miner)" },
+};
+
+export const toneOf = (type: ExceptionType) => GROUP_TONE[TYPE_GROUP[type]];
+
 export const STATUS_LABEL: Record<Status, string> = {
-  new: "Open",
+  new: "To review",
   explained: "Accepted",
   dismissed: "Dismissed",
   escalated: "Escalated",
 };
 
 export const CLASSES: { value: ExceptionClass; hint: string }[] = [
-  { value: "List component", hint: "Valid long-term item" },
-  { value: "Timing item", hint: "Valid, clears in a known future period" },
-  { value: "Required Adjustment Item", hint: "Wrong, needs a correcting entry in SAP" },
+  { value: "List component", hint: "It's fine and stays open long-term" },
+  { value: "Timing item", hint: "It's fine and clears in a known later month" },
+  { value: "Required Adjustment Item", hint: "It's wrong and needs a correcting entry in SAP" },
 ];
 
 export const WEIGHT_LABEL: Record<string, string> = {
-  exposure: "Exposure",
-  days_past_expected: "Days past expected",
-  penalty_account: "Penalty account",
-  error_type: "Error type",
-  repeats: "Repeats",
+  exposure: "How much money",
+  days_past_expected: "How late it is",
+  penalty_account: "Sensitive account",
+  error_type: "Kind of problem",
+  repeats: "How often it happens",
 };
 
 const FACT_LABEL: Record<string, string> = {
   rule: "Rule that fired",
   gap_eur: "Gap",
   balance_eur: "Month-end balance",
-  expected_eur: "Expected balance",
+  expected_eur: "What we'd expect",
   latest_month: "Latest month-end",
-  since_month: "Above materiality since",
-  months_above_materiality: "Month-ends above materiality",
-  lowest_gap_eur: "Lowest gap in that period",
-  lowest_gap_month: "Lowest gap month",
-  materiality_eur: "Materiality",
-  unmatched_batches: "Unmatched batches",
-  batch_eur: "Batch amount",
-  batch_period: "Batch period",
-  batch_lines: "Batch lines",
-  accrual_date: "Accrual date",
-  expected_by: "Expected by",
-  lag_p90_days: "Usual payment lag (90th percentile)",
-  grace_days: "Grace days",
-  days_past_expected: "Days past expected",
-  median_eur: "Usual batch (median)",
-  multiple: "Times the usual size",
-  posting_date: "Posting date",
-  missing_period: "Missing period",
-  typical_batch_eur: "Typical batch",
-  lookback_months: "Look-back (months)",
+  since_month: "Off since",
+  months_above_materiality: "Month-ends over the limit",
+  lowest_gap_eur: "Smallest gap in that time",
+  lowest_gap_month: "Month of the smallest gap",
+  materiality_eur: "Materiality limit",
+  unmatched_batches: "Accruals without a payment",
+  batch_eur: "Accrual amount",
+  batch_period: "Month of the accrual",
+  batch_lines: "Lines in the accrual",
+  accrual_date: "Accrual booked on",
+  expected_by: "Payment expected by",
+  lag_p90_days: "Usual payment delay (days)",
+  grace_days: "Extra grace days",
+  days_past_expected: "Days late",
+  median_eur: "A normal month",
+  multiple: "Times a normal month",
+  posting_date: "Posted on",
+  missing_period: "Missing month",
+  typical_batch_eur: "A typical accrual",
+  lookback_months: "Months checked",
   payment_eur: "Payment",
   diff_pct: "Difference (%)",
-  label_period: "Label says",
-  settles_period: "Settles batch",
-  prompt: "Prompt",
+  label_period: "Text says",
+  settles_period: "Actually pays",
+  prompt: "Heads-up",
   amount_lc: "Amount (local currency)",
   currency_lc: "Local currency",
-  median_abs_lc: "Account median (local currency)",
-  outlier_multiple: "Outlier threshold (x median)",
+  median_abs_lc: "Usual amount on this account",
+  outlier_multiple: "Flag at (times the usual)",
   posted_by: "Posted by",
-  scope: "Check scope",
+  scope: "Check covers",
   currencies: "Currencies",
   lines: "Lines",
   currency_dc: "Document currency",
   amount_dc: "Amount (document currency)",
-  found: "Found",
+  found: "Written as",
   suggestion: "Did you mean",
-  similarity_pct: "Similarity (%)",
-  occurrences: "Times used",
-  dictionary_count: "Times the usual spelling is used",
-  found_period: "Period on the line",
-  expected_period: "Period of the document",
-  pattern: "Correction text (names masked)",
+  similarity_pct: "How similar (%)",
+  occurrences: "Times written this way",
+  dictionary_count: "Times written the usual way",
+  found_period: "Month on the line",
+  expected_period: "Month of the document",
+  pattern: "The repeated fix (names hidden)",
   doc_type: "Document type",
-  months: "Months repeated",
-  first_month: "First month",
-  last_month: "Last month",
+  months: "Months in a row",
+  first_month: "First seen",
+  last_month: "Last seen",
   documents: "Documents",
   people: "People involved",
-  total_abs_eur: "Total amount corrected",
+  total_abs_eur: "Total moved by hand",
   hint: "Where to look",
-  today_detection_basis: "Today's process would flag it by",
-  lead_days: "Days earlier than today's process",
+  today_detection_basis: "Today's report would catch it via",
+  lead_days: "Days earlier than today's report",
 };
 
 export function factLabel(key: string): string {
@@ -132,4 +157,12 @@ export function isAmountFact(key: string): boolean {
 export function promptOf(record: ExceptionRecord): string | null {
   const prompt = record.facts.prompt;
   return typeof prompt === "string" ? prompt : null;
+}
+
+export function greeting(now = new Date()): string {
+  const hour = now.getHours();
+  if (hour < 5) return "Working late";
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }

@@ -2,43 +2,114 @@
 @import "tw-animate-css";
 @import "@fontsource-variable/inter";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
-/* Okane tokens. Light, quiet canvas with near-black ink; one signal colour (lime-mint) for
-   "verified" and live run state. Amounts are always tabular. */
+/* Okane tokens.
+   Base: quiet canvas and near-black ink (ref2). Colour: one hue per kind of finding, taken from
+   the greens and lime of ref1 and the violet, sky and amber category strips of ref3.
+   Every colour is redefined for dark mode below. */
 :root {
-  --radius: 0.75rem;
-  --background: #ebebed;
-  --foreground: #0b0b0c;
-  --card: #f5f5f6;
-  --card-foreground: #0b0b0c;
+  --radius: 0.85rem;
+  --background: #ececee;
+  --foreground: #0d0d0f;
+  --card: #f7f7f8;
+  --card-foreground: #0d0d0f;
   --popover: #ffffff;
-  --popover-foreground: #0b0b0c;
-  --primary: #0b0b0c;
+  --popover-foreground: #0d0d0f;
+  --primary: #0d0d0f;
   --primary-foreground: #ffffff;
   --secondary: #ffffff;
-  --secondary-foreground: #0b0b0c;
-  --muted: #e2e2e5;
-  --muted-foreground: #85858c;
-  --accent: #e4e4e7;
-  --accent-foreground: #0b0b0c;
+  --secondary-foreground: #0d0d0f;
+  --muted: #e2e2e6;
+  --muted-foreground: #7c7c86;
+  --accent: #e6e6ea;
+  --accent-foreground: #0d0d0f;
   --destructive: #e5484d;
-  --border: #dcdce0;
-  --input: #d6d6db;
-  --ring: #0b0b0c;
-  --signal: #a6f27c;
-  --signal-ink: #1f6b1f;
-  --signal-soft: #e3fbd3;
-  --warn: #c2790a;
-  --warn-soft: #fdf0d8;
+  --border: #dcdce1;
+  --input: #d4d4da;
+  --ring: #0d0d0f;
+
+  --signal: #b4ef4f; /* lime (ref1, ref3) */
+  --signal-ink: #2f6a12;
+  --signal-soft: #e9f9cf;
+  --forest: #23614f; /* deep green (ref1 bars) */
+  --forest-soft: #d8ece5;
+  --warn: #b86e00;
+  --warn-soft: #fdefd3;
   --danger-soft: #fde4e4;
+  --hot: #ff6a3d;
+  --hot-soft: #ffe4da;
+
+  /* one colour per kind of finding */
+  --pulse: #23a26d;
+  --pulse-soft: #d9f4e7;
+  --sentinel: #6e5bf5;
+  --sentinel-soft: #ebe8ff;
+  --mistake: #ef9a1a;
+  --mistake-soft: #fdefd6;
+  --miner: #1f95e0;
+  --miner-soft: #ddf0fc;
+
   --dock: #111113;
-  --dock-raised: #26262a;
-  --chart-1: #0b0b0c;
-  --chart-2: #b9b9bf;
-  --chart-3: #85858c;
-  --chart-4: #a6f27c;
+  --dock-raised: #26262b;
+  --chart-1: #0d0d0f;
+  --chart-2: #c3c3ca;
+  --chart-3: #8a8a93;
+  --chart-4: #b4ef4f;
   --chart-5: #e5484d;
+  --grain: rgba(13, 13, 15, 0.035);
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0e0e10;
+  --foreground: #f3f3f5;
+  --card: #18181b;
+  --card-foreground: #f3f3f5;
+  --popover: #1d1d21;
+  --popover-foreground: #f3f3f5;
+  --primary: #f3f3f5;
+  --primary-foreground: #0e0e10;
+  --secondary: #202024;
+  --secondary-foreground: #f3f3f5;
+  --muted: #26262b;
+  --muted-foreground: #8f8f99;
+  --accent: #2a2a30;
+  --accent-foreground: #f3f3f5;
+  --destructive: #ff6369;
+  --border: #2a2a30;
+  --input: #34343b;
+  --ring: #f3f3f5;
+
+  --signal: #c6f560;
+  --signal-ink: #c6f560;
+  --signal-soft: #26331a;
+  --forest: #4fc49a;
+  --forest-soft: #16302a;
+  --warn: #ffb547;
+  --warn-soft: #3a2a12;
+  --danger-soft: #3a1a1c;
+  --hot: #ff8a63;
+  --hot-soft: #3d2018;
+
+  --pulse: #3ad08e;
+  --pulse-soft: #15302a;
+  --sentinel: #9a8cff;
+  --sentinel-soft: #24203f;
+  --mistake: #ffb547;
+  --mistake-soft: #3a2a12;
+  --miner: #52b6ff;
+  --miner-soft: #15283a;
+
+  --dock: #1d1d21;
+  --dock-raised: #2c2c32;
+  --chart-1: #f3f3f5;
+  --chart-2: #45454d;
+  --chart-3: #8f8f99;
+  --chart-4: #c6f560;
+  --chart-5: #ff6369;
+  --grain: rgba(255, 255, 255, 0.03);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -68,9 +139,21 @@
   --color-signal: var(--signal);
   --color-signal-ink: var(--signal-ink);
   --color-signal-soft: var(--signal-soft);
+  --color-forest: var(--forest);
+  --color-forest-soft: var(--forest-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-danger-soft: var(--danger-soft);
+  --color-hot: var(--hot);
+  --color-hot-soft: var(--hot-soft);
+  --color-pulse: var(--pulse);
+  --color-pulse-soft: var(--pulse-soft);
+  --color-sentinel: var(--sentinel);
+  --color-sentinel-soft: var(--sentinel-soft);
+  --color-mistake: var(--mistake);
+  --color-mistake-soft: var(--mistake-soft);
+  --color-miner: var(--miner);
+  --color-miner-soft: var(--miner-soft);
   --color-dock: var(--dock);
   --color-dock-raised: var(--dock-raised);
   --color-chart-1: var(--chart-1);
@@ -92,6 +175,9 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
+    transition:
+      background-color 0.35s ease,
+      color 0.35s ease;
   }
 }
 
@@ -110,9 +196,69 @@
 }
 
 @utility hairline-bars {
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--chart-2) 0 1px,
-    transparent 1px 6px
-  );
+  background-image: repeating-linear-gradient(90deg, var(--chart-2) 0 1px, transparent 1px 6px);
+}
+
+/* Soft entrance for everything: fade and rise. Stagger with style={{ "--d": "80ms" }}. */
+@keyframes okane-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes okane-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes okane-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes okane-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@utility rise {
+  animation: okane-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+@utility grow {
+  transform-origin: bottom;
+  animation: okane-grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+@utility grow-x {
+  transform-origin: left;
+  animation: okane-grow-x 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+@utility float {
+  animation: okane-float 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .grow,
+  .grow-x,
+  .float {
+    animation: none !important;
+  }
 }

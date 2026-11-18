@@ -5,13 +5,13 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { eur, monthLabel, shortEur } from "@/lib/utils";
 
 const config: ChartConfig = {
-  gap: { label: "Gap", color: "var(--chart-1)" },
-  balance: { label: "Month-end balance", color: "var(--chart-3)" },
-  expected: { label: "Expected balance", color: "var(--chart-2)" },
+  gap: { label: "Gap", color: "var(--hot)" },
+  balance: { label: "Month-end balance", color: "var(--chart-1)" },
+  expected: { label: "What we'd expect", color: "var(--sentinel)" },
 };
 
 /** Month-end balance, expected balance and gap (brief section 8, gap timeline).
- *  Bars are the gap; black where it is at or above materiality, grey otherwise. */
+ *  Bars are the gap: coral where it is over the materiality limit, green where it is fine. */
 export function GapChart({ points, materiality }: { points: TimelinePoint[]; materiality: number }) {
   const data = points.slice(-30);
   return (
@@ -49,7 +49,7 @@ export function GapChart({ points, materiality }: { points: TimelinePoint[]; mat
         />
         <Bar dataKey="gap" maxBarSize={7} radius={[2, 2, 2, 2]} isAnimationActive={false}>
           {data.map((p) => (
-            <Cell key={p.month} fill={Math.abs(p.gap) >= materiality ? "var(--chart-1)" : "var(--chart-2)"} />
+            <Cell key={p.month} fill={Math.abs(p.gap) >= materiality ? "var(--hot)" : "var(--pulse)"} />
           ))}
         </Bar>
         <Line

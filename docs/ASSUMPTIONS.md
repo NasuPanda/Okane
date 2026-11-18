@@ -188,8 +188,8 @@ precision shown (1,838,461.53 may appear as 1,838,462, 1.84M or 1.8M, not 1.85M)
 may be a percent fact or a fraction fact x 100; signs are ignored; entity and account codes are
 allowed; dates must match a fact date (day precision when a day is given). Owner: team.
 
-**A29. Template fallback.** *Info.* Without Ollama, comments start with "Template comment (no
-AI model was used):" and carry `verifier = "not_run"`. Every template is tested to pass the
+**A29. Template fallback.** *Info.* Without Ollama, comments start with "Standard note (no AI
+was used):" and carry `verifier = "not_run"`. Every template is tested to pass the
 verifier anyway. Owner: team.
 
 ## API and governance
