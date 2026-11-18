@@ -72,6 +72,8 @@
   "typo_dictionary_min_count": 5,
   "typo_rarity_ratio": 2.5,
   "miner_min_repeats": 3,
+  "miner_min_score": 12,
+  "miner_by_user": true,
   "penalty_accounts": [
    "P20/C192/279006"
   ],

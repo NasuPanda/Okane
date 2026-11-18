@@ -805,6 +805,16 @@ export interface components {
              * @default 3
              */
             miner_min_repeats: number;
+            /**
+             * Miner Min Score
+             * @default 12
+             */
+            miner_min_score: number;
+            /**
+             * Miner By User
+             * @default true
+             */
+            miner_by_user: boolean;
             /** Penalty Accounts */
             penalty_accounts?: string[];
             /**

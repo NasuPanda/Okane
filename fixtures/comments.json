@@ -83,15 +83,6 @@
    "failed_figures": [],
    "cached": false
   },
-  "b47b6674d9d026bc": {
-   "exception_id": "b47b6674d9d026bc",
-   "comment": "Standard note (no AI was used): Same manual correction repeated in 3 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
-   "source": "template",
-   "verifier": "not_run",
-   "checked_figures": [],
-   "failed_figures": [],
-   "cached": false
-  },
   "0c7228820c2b5ca8": {
    "exception_id": "0c7228820c2b5ca8",
    "comment": "Standard note (no AI was used): No batch was posted for 2025-08; a typical batch is 618,389 EUR. Confirm whether the accrual was booked elsewhere.",
@@ -101,35 +92,17 @@
    "failed_figures": [],
    "cached": false
   },
-  "964330a843f480e5": {
-   "exception_id": "964330a843f480e5",
-   "comment": "Standard note (no AI was used): Same manual correction repeated in 3 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
+  "364325a3d446129c": {
+   "exception_id": "364325a3d446129c",
+   "comment": "Standard note (no AI was used): Repeated manual posting: 6 months. Rule: The same manual posting by one person scores at least 12 (entities x months) in 3+ months. Review the evidence documents.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],
    "failed_figures": [],
    "cached": false
   },
-  "2d23e84fc0e1083b": {
-   "exception_id": "2d23e84fc0e1083b",
-   "comment": "Standard note (no AI was used): Same manual correction repeated in 4 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
-   "source": "template",
-   "verifier": "not_run",
-   "checked_figures": [],
-   "failed_figures": [],
-   "cached": false
-  },
-  "642c728b835e7a01": {
-   "exception_id": "642c728b835e7a01",
-   "comment": "Standard note (no AI was used): Same manual correction repeated in 3 months. Rule: Manual correction with the same shape in 3+ months. Review the evidence documents.",
-   "source": "template",
-   "verifier": "not_run",
-   "checked_figures": [],
-   "failed_figures": [],
-   "cached": false
-  },
-  "8ddaf5b9472587a2": {
-   "exception_id": "8ddaf5b9472587a2",
+  "f5cb477294a2b6ac": {
+   "exception_id": "f5cb477294a2b6ac",
    "comment": "Standard note (no AI was used): 'GHC' is not a valid currency code. Rule: S3: the document currency is not an ISO currency code. Review the evidence documents.",
    "source": "template",
    "verifier": "not_run",

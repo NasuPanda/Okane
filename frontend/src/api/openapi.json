@@ -1967,6 +1967,16 @@
             "title": "Miner Min Repeats",
             "default": 3
           },
+          "miner_min_score": {
+            "type": "integer",
+            "title": "Miner Min Score",
+            "default": 12
+          },
+          "miner_by_user": {
+            "type": "boolean",
+            "title": "Miner By User",
+            "default": true
+          },
           "penalty_accounts": {
             "items": {
               "type": "string"
