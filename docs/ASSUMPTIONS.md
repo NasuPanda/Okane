@@ -14,7 +14,7 @@ so nobody re-investigates).
 | # | Item | Status | Default we shipped |
 |---|------|--------|--------------------|
 | A1 | Sentinel S1 scope (brief open item 2) | Decide | Decided (#9): `people_only` |
-| A2 | Demo step 5 Sentinel example (brief open item 1) | Decide | C242 48900002 document 7910008634 |
+| A2 | Demo step 5 Sentinel example (brief open item 1) | Decide | Decided (#25): the person-posted Payroll outlier; analysis date = extract date; synthetic on screen pending mentor Q8 |
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
@@ -248,12 +248,24 @@ this gives the brief's 12 hits (11 Payroll, 1 Fixed assets); the unrestricted ru
 hits, 42 of them Payroll) and `all` stay selectable on the Rules page. Golden test:
 `test_real_sentinel_s1_default_scope`. Owner: team.
 
-**A2. Demo step 5 example.** *Decide (brief open item 1).* With `people_only` the top hit is
-Payroll BPP C242 48900002 document 7910008634 (2019, USER_120, about 57,769x the account
-median). With the lead-time rule (A8, decided in #16) it is caught 16 days before that
-month's close review (weekly view; 21 days counted from the posting date).
-The alternative candidate (Fixed assets P20 C218 119001 document 7750001797) needs the Fixed
-assets workbook. Owner: team.
+**A2. Demo script: step 5 and the analysis date.** *Decided (#25, 20 Nov 2026; what is on
+screen is pending mentor question 8).*
+- Step 5 shows the person-posted Payroll outlier (an accountant grasps "one line thousands of
+  times the account's usual size, typed by hand" fastest; it needs only the Payroll workbook).
+  On the synthetic data that is C192 279002. Rejected: the Fixed assets outlier and the S2
+  same-amount-in-two-currencies case (both need the Fixed assets workbook; S2 takes longer to
+  explain).
+- Analysis date: the Payroll extract date (A38, built in #24), so on-screen counts no longer
+  move with the calendar; `OKANE_AS_OF` is not pinned.
+- On screen: the synthetic sample, the default of mentor question 8. The demo starts with last
+  week's synthetic Payroll extract loaded (`generate_previous_week`), so step 1 has an old
+  report to show and step 2 uploads this week's. The script is `docs/DEMO.md`; a test walks it.
+- Real data: with `people_only` the top hit is Payroll BPP C242 48900002 document 7910008634
+  (2019, USER_120, about 57,769x the account median). With the lead-time rule (A8, decided in
+  #16) it is caught 16 days before that month's close review (weekly view; 21 days counted from
+  the posting date). The alternative candidate (Fixed assets P20 C218 119001 document
+  7750001797) needs the Fixed assets workbook.
+Owner: team.
 
 **A4. S2 two currencies.** *Decided (#10).* S2 flags the same amount posted in different
 document currencies on the same ERP, entity, account and posting date, when the amount in
