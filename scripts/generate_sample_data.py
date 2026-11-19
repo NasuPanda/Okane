@@ -16,8 +16,8 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
 - Exact offsetting pairs on C192 279014 and in Fixed assets.
 - Sentinel: a person-posted outlier (USER_901) and a bot-posted outlier; the same amount
   posted in EUR and RWF on one day in Payroll (C132) and in EUR and PLN on one day in Fixed
-  assets (C219); a withdrawn currency code in Payroll (C141) and a
-  currency the euro replaced in Fixed assets (C218).
+  assets (C219); a withdrawn currency code in Payroll (C141) and a currency the euro replaced
+  in Fixed assets (C218).
 - Miner (A7): USER_045 posts the same header text ("Corr. ...") on 279030 in six months
   and two entities (score 6 x 2 = 12, found); USER_903 repeats another header text in five
   months and two entities (score 10, a near-miss). The older USER_045 lines on 279002 have
