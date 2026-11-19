@@ -19,8 +19,8 @@ so nobody re-investigates).
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
 | A6 | Typo prompts: fields, thresholds, dictionary | Decide | Per-account dictionary, similarity 80, rarity 2.5x |
-| A7 | Recurring-Correction Miner and the CC06 definition | Decide | Person-posted text fingerprint in 3+ months |
-| A8 | Lead time: "today's detection date" per type | Decide | Ageing rule / close review + 5 days / never |
+| A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
+| A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
 | A10 | AI prompt contract and model | Decide | `{"comment": str}`, qwen2.5 7B instruct, temperature 0 |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
@@ -31,6 +31,8 @@ so nobody re-investigates).
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
+| A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
+| A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
 
 ## Data and ingestion
 
@@ -137,7 +139,8 @@ hits, 42 of them Payroll) and `all` stay selectable on the Rules page. Golden te
 
 **A2. Demo step 5 example.** *Decide (brief open item 1).* With `people_only` the top hit is
 Payroll BPP C242 48900002 document 7910008634 (2019, USER_120, about 57,769x the account
-median). With our lead-time rule (A8) it is flagged 19 days before that month's close review.
+median). With the lead-time rule (A8, decided in #16) it is caught 16 days before that
+month's close review (weekly view; 21 days counted from the posting date).
 The alternative candidate (Fixed assets P20 C218 119001 document 7750001797) needs the Fixed
 assets workbook. Owner: team.
 
@@ -175,23 +178,63 @@ label: a line whose text names a different period than most lines of its documen
 22 prompts (15 spelling, including "Auzahl" for "Auszahl" and "URSAAF" for "URSSAF"; 7 period
 labels). Owner: team.
 
-**A7. Recurring-Correction Miner (CC06).** *Decide.* The CC06 definition is unknown. A manual
-correction is a person-posted (USER_###) line; its fingerprint is ERP, entity, account,
-document type and text with names and digits removed; a fingerprint in at least
-`miner_min_repeats` (3) distinct posting months is a cluster. Real data: 42 clusters, too many
-for one demo card; the card shows the highest-scored one. Confirm the CC06 meaning and whether
-clusters should require a matching bot posting they correct. Owner: team.
+**A7. Recurring-Correction Miner.** *Decided (#14, 19 Nov 2026; the original rule per A37,
+pending mentor question 5).* The CC06 cluster was in the removed Intercompany workbook, so
+the name "CC06" is dropped.
+- Lines: person-posted (USER_###) lines that have a header text; bot postings and lines
+  without a header text are ignored.
+- Fingerprint: ERP, user, account, document type and the header text, lower-cased, with name
+  placeholders replaced, "corr" spelled out as "correction" and digits masked. The entity is
+  not part of the fingerprint, so one pattern can span entities. Such a pattern is one record,
+  placed on the lowest entity code in it (never on the one with most lines), so its id stays
+  the same when a later extract shifts lines between entities (CLAUDE.md rule 10).
+- Score: distinct entities x distinct posting months. A cluster reaches the Inbox when its
+  score is at least `Rules.miner_min_score` (12) and it appears in at least
+  `Rules.miner_min_repeats` (3) distinct months.
+- Demo card: the top cluster by score (ties: more months, then more lines), chosen by rule,
+  not by a fixed identifier.
+- Card wording: "Repeated manual posting: N months", labelled a hypothesis ("This may be a
+  correction made by hand every month. Check whether the automated posting or mapping can
+  do it."). On real Payroll none of the top clusters' header texts contain a correction word,
+  so the card does not call them corrections.
+- Real Payroll (aggregates): 165 fingerprints, 33 in 3+ months; in the Inbox (both
+  thresholds) 6 at score 12+ (16 at 6+, 4 at 20+). Each top cluster sits in one entity, so
+  its score equals its months.
+- Real Fixed assets (aggregates, measured in the review of PR #50): 8 patterns at score 12+,
+  top score 159.
+- Rejected: the earlier rule (entity, account, document type and line text, 3+ months; 42
+  Payroll and about 38 Fixed assets clusters, no score) and the original without the user.
+Owner: team.
 
 ## Lead time and score
 
-**A8. Today's detection date.** *Decide.* Per type:
-- `pulse_missing_payment`: accrual date + the account's Ageing Allowed (Days) (when the 365-day
-  rule would first show it); exempt (pension-type) accounts: never.
-- `sentinel_*`, `typo`, `label_mismatch`, `pulse_spike`: the month-end close review, month end
-  + `Rules.close_review_days` (5). Badge: "N days before the close review".
-- `pulse_gap`, `pulse_missing_batch`, `miner_cluster`: never (today's process has no check that
-  sees them). The UI shows "today's process: not detected".
-Real data: median 19 days earlier over findings with a date; 45 findings are blind spots.
+**A8. Lead time.** *Decided (#16, 19 Nov 2026; the original rule per A37; the close review day
+is pending mentor question 2).*
+- Today's detection date, per type:
+  - `sentinel_*`, `typo`, `label_mismatch`, `pulse_spike`: the close review on the
+    `Rules.close_review_working_day` (5th) working day after the end of the posting month.
+    Working days are Monday to Friday, minus the dates in `Rules.close_review_holidays`
+    (empty by default; the close team's public holidays can be added once the mentor answers).
+  - `pulse_missing_payment`: accrual date + the account's Ageing Allowed (Days), the day the
+    ageing rule would first show it (not "posting + 365"); exempt (pension-type) accounts:
+    never.
+  - `pulse_gap`, `pulse_missing_batch`, `miner_cluster`: never (today's process has no check
+    that sees them). The badge says "Today's process would miss this".
+- First signal (set by each engine): the posting date for Sentinel and typo findings; the day
+  after the expected-by date for a missing payment (a payment can still arrive on its
+  expected-by day; the original uses the expected-by date itself, one day earlier).
+- Weekly view (`Rules.lead_time_view` = `weekly`): Okane runs weekly, so lead days count from
+  the run on or after the first signal (`Rules.weekly_run_weekday`, 0 = Monday, matching the
+  Monday 06:00 job) to today's detection date. The badge, the record's `lead_days` and the KPI
+  "median days earlier" use this figure; the daily figure (from the first signal itself) is
+  kept in the facts and shown in the badge's tooltip. `daily` switches back.
+- Badge: "Caught N days before the close review" or "Caught N days before the 365-day ageing
+  rule" (the account's own allowed age); "Seen N days after ..." when negative.
+- Real Payroll (aggregates, as of 18 Nov 2026): 62 findings with a date, 9 blind spots;
+  median 17.5 days earlier (weekly, 5th working day), against 21 daily and 19 under the
+  earlier rule (month end + 5 calendar days, daily).
+- Rejected: month end + 5 calendar days (it can fall on a weekend); a daily-only badge
+  (overstates what a Monday run delivers by up to 6 days).
 Owner: team.
 
 **A9. Risk score.** *Decide.* Weights come from Rules (40/20/20/10/10). Each component is scaled
@@ -202,10 +245,12 @@ account is in `Rules.penalty_accounts` (default C192 279006, social security); e
 cluster counts its months, a gap its months above materiality). With these, the C192 gap ranks
 first on real data (89.4), as the demo needs. Owner: team.
 
-**A27. Suggested class.** *Confirm.* Code (never the model) suggests: gap, outliers, S2, S3 =
-Required Adjustment Item; missing payment = Timing item if at most 30 days late, otherwise
-Required Adjustment Item; missing batch, label mismatch = Timing item; spike, typo, Miner = none.
-Owner: team.
+**A27. Suggested class.** *Info (confirmed 18 Nov 2026, #5).* Code (never the model) suggests:
+gap, outliers, S2, S3 = Required Adjustment Item; missing payment = Timing item if at most 30
+days late, otherwise Required Adjustment Item; missing batch, label mismatch = Timing item;
+spike, typo, Miner = none. The person always decides the class. Checked against the engines:
+the code matches this list. Follow-up #51: the 30-day cut-off is a literal in `pulse.py` and
+moves into `Rules` (no behaviour change at the default). Owner: team.
 
 ## AI layer
 
@@ -228,11 +273,12 @@ verifier anyway. Owner: team.
 
 ## API and governance
 
-**A30. Schema additions.** *Confirm.* Additive only: `ExceptionRecord.decided_class` and
-`ExceptionRecord.edited_comment` (the person's class and edited comment, kept apart from the AI
-draft); `Rules` gains `payment_profiles`, `sentinel_s1_scope`, `sentinel_s2_min_amount`, spike,
-look-back, close-review, typo, Miner and score-scaling parameters, so no threshold lives in an
-engine. Owner: team.
+**A30. Schema additions.** *Info (confirmed 18 Nov 2026, #5).* Additive only:
+`ExceptionRecord.decided_class` and `ExceptionRecord.edited_comment` (the person's class and
+edited comment, kept apart from the AI draft); `Rules` gains `payment_profiles`,
+`sentinel_s1_scope`, `sentinel_s2_min_amount`, spike, look-back, close-review, typo, Miner and
+score-scaling parameters, so no threshold lives in an engine. Checked against `schemas.py`: the
+code matches; every addition is marked `# ADDITION`. Owner: team.
 
 **A31. Decisions.** *Info.* "Accept" in the UI sets status `explained`, "Dismiss" `dismissed`,
 "Escalate" `escalated`; each needs a reason (HTTP 422 otherwise). Every decision is appended to
@@ -269,3 +315,40 @@ and account codes are structural and allowed everywhere. Rejected: moving row-le
 a git-ignored file, because the authoritative brief and Git history already hold them.
 Governance line: "Real workbooks never enter Git; the repo holds only synthetic fixtures and the
 handful of reference figures the brief itself quotes." Owner: team.
+
+**A37. Original rules as the default; where agreed rules live.** *Decide (decided 18 Nov 2026,
+#3).* The committed brief stopped inside the Sentinel section; the team's original, longer brief
+(private, in `docs/reference/`) specifies the missing items. Chosen: (a) the original's rules,
+minus Intercompany, are the default recommendation for #10 to #18, #28 and #33. Each issue still
+records the team's decision, and our placeholders (A4 to A10, A26) are the fallback until then.
+#9 and #10 were already decided and are unchanged. Any new risk-score scaling must keep the C192
+gap first (demo step 4). (b) The original's text is not restored into the committed brief,
+because `CLAUDE.md` forbids copying `docs/reference/` content into committed files. Each agreed
+rule is written in our own words in this file under its A# item, with no contact details and no
+Intercompany material, and `docs/BRIEF.md` section 9 is an index from item to issue to A#.
+Rejected: restoring the original's sections into BRIEF.md, which would need the private-content
+rule loosened and could carry text never meant for the repo. Owner: team.
+
+## Mentor questions
+
+**A36. Mentor questions.** *Decide (#2).* Several decisions wait on the mentor: the questions
+below come from issue #2 and are asked in one message, with lettered options so each can be
+answered in a few words. When an answer arrives, record it here (status, answer, date), update
+the A# item it affects, and comment on each issue it unblocks with a link to this section. If
+there is no answer by the issue's due date, apply the default and set the status to "no answer,
+default applied". Issue #2 closes when every row is answered or has its default applied. No
+names or contact details go in this file. Owner: team.
+
+Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default applied`.
+
+| Q | Question | Unblocks | Status | Default if no answer | Answer | Date |
+|---|----------|----------|--------|----------------------|--------|------|
+| 1 | Exact deadline and format for the deck, video and summary | #36, #37, #38, #39 | drafted, not yet sent | Brief section 2: deck at most 12 slides plus appendix (PDF), video at most 3 minutes (MP4), one-page summary (PDF); submit Tue 24 Nov, with Mon 23 Nov as code freeze | | |
+| 2 | Which working day after month end the close review falls on | #16 (then #17) | drafted, not yet sent | The original rule: the 5th working day after month end, Monday to Friday, no holidays listed (what the code does since #17, A8) | | |
+| 3 | Group closing rates for the run date, or ECB reference rates | #8 | drafted, not yet sent | ECB euro reference rates on each workbook's ageing date (public and reproducible), A11 | | |
+| 4 | Is the cross-ERP posting text on C192's payment lines a known route, and are some C192 batches paid quarterly? | #20 | drafted, not yet sent | Keep one alert per unmatched batch, as built (A15) | | |
+| 5 | What repeated manual corrections on payroll and fixed-asset accounts usually fix (replaces the CC06 question) | #14 (then #15, #31) | drafted, not yet sent | The original Miner rule: person-posted lines with a header text, score = distinct entities x distinct months; the card is labelled a hypothesis and not called CC06 (A7) | | |
+| 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as built (A9) | | |
+| 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |
+| 8 | May the video and deck show the real (scaled) data, or must they use the synthetic sample? | #25 (then #26, #37, #38) | drafted, not yet sent | Synthetic sample on screen; real figures only as the aggregates the brief quotes | | |
+| 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | drafted, not yet sent | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | | |

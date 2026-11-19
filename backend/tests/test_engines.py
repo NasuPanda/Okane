@@ -351,37 +351,164 @@ def test_period_label_prompt() -> None:
 
 
 # ----- miner --------------------------------------------------------------------------------
-def test_fingerprint_masks_names_and_digits() -> None:
-    assert fingerprint_text("Manual correction NAME205 reclass to 279006") == (
-        "manual correction <name> reclass to #"
-    )
+def test_fingerprint_masks_names_spells_out_corr_and_masks_digits() -> None:
+    assert fingerprint_text("Corr. NAME205 reclass to 279006") == ("correction <name> reclass to #")
+    assert fingerprint_text("CORR NAME1 05/2026") == "correction <name> #/#"
+    assert fingerprint_text("Correction run 7") == "correction run #", "only the word corr"
+    assert fingerprint_text("Accorr 1") == "accorr #"
+    assert fingerprint_text(None) == fingerprint_text("  ") == ""
+
+
+def _manual(months: list[int], entity: str = "C192", user: str = "USER_045",
+            header: str | None = "Corr. NAME{m} reclass {m}", day: int = 20,
+            first_doc: int = 0) -> list[dict[str, object]]:  # fmt: skip
+    """One person-posted line per month with a header text (A7)."""
+    return [
+        {"user_name": user, "doc_type": "SA", "entity": entity, "posting_date": date(2026, m, day),
+         "header_text": None if header is None else header.format(m=m), "text": "Reclass",
+         "document_no": f"{first_doc + i:010d}", "amount_dc": 100.0 + m}
+        for i, m in enumerate(months)
+    ]  # fmt: skip
+
+
+def test_miner_score_is_entities_times_months() -> None:
+    """A7: score = distinct entities x distinct months; Inbox at miner_min_score (12)."""
+    one_entity = _manual(list(range(1, 7)))  # 6 months x 1 entity = 6
+    assert run_miner(frame(one_entity), Rules()) == []
+    assert len(run_miner(frame(one_entity), Rules(miner_min_score=6))) == 1
+    second = _manual([5, 6], entity="C132", day=25, first_doc=100)  # 6 months x 2 = 12
+    records = run_miner(frame(one_entity + second), Rules())
+    assert len(records) == 1
+    record = records[0]
+    assert record.type == "miner_cluster"
+    assert (record.facts["months"], record.facts["entities"]) == (6, 2)
+    assert record.facts["miner_score"] == 12
+    assert record.facts["entity_list"] == "C132, C192"
+    assert record.entity == "C132", "the record sits on the lowest company code"
+    assert record.title == "Repeated manual posting: 6 months"
+    # 25 May adds the second entity (5 x 2 = 10); 20 Jun adds the sixth month (6 x 2 = 12).
+    assert record.first_signal == date(2026, 6, 20), "the line that lifted the score to 12"
+    assert record.facts["pattern"] == "correction <name> reclass #"
+    assert "NAME" not in str(record.facts["fingerprint"])
+    assert "USER" not in str(record.facts), "user ids never reach the facts (the AI layer)"
+    assert str(record.facts["hint"]).startswith("This may be a correction")
+    assert len(record.evidence) == 8
 
 
 def test_miner_needs_min_repeats_in_distinct_months() -> None:
-    rows = [
-        {"user_name": "USER_045", "doc_type": "SA", "posting_date": date(2026, m, 20),
-         "text": f"Manual correction NAME{200 + m} reclass", "document_no": f"00000000{m}"}
-        for m in (5, 6, 7)
-    ]  # fmt: skip
-    rows.append({"user_name": "BOT_RPA_001", "doc_type": "SA", "posting_date": date(2026, 8, 1),
-                 "text": "Manual correction NAME999 reclass"})  # fmt: skip
-    assert len(run_miner(frame(rows), Rules(miner_min_repeats=3))) == 1
-    assert run_miner(frame(rows), Rules(miner_min_repeats=4)) == []
-    record = run_miner(frame(rows), Rules())[0]
+    rows = _manual([5, 6, 7])
+    assert len(run_miner(frame(rows), Rules(miner_min_score=0, miner_min_repeats=3))) == 1
+    assert run_miner(frame(rows), Rules(miner_min_score=0, miner_min_repeats=4)) == []
+    record = run_miner(frame(rows), Rules(miner_min_score=0))[0]
     assert record.facts["months"] == 3
     assert record.first_signal == date(2026, 7, 20)
-    assert "NAME" not in str(record.facts["pattern"])
+
+
+def test_miner_ignores_bots_and_lines_without_header_text() -> None:
+    rules = Rules(miner_min_score=0)
+    assert run_miner(frame(_manual([1, 2, 3, 4], user="BOT_RPA_001")), rules) == []
+    assert run_miner(frame(_manual([1, 2, 3, 4], header=None)), rules) == []
+    assert run_miner(frame(_manual([1, 2, 3, 4], header="   ")), rules) == []
+
+
+def test_miner_by_user_switch() -> None:
+    """The original rule keeps people apart; miner_by_user=False joins them."""
+    rows = _manual([1, 2]) + _manual([3, 4], user="USER_046", first_doc=50)
+    rules = Rules(miner_min_score=0)
+    assert run_miner(frame(rows), rules) == [], "two people, two months each"
+    joined = run_miner(frame(rows), rules.model_copy(update={"miner_by_user": False}))
+    assert len(joined) == 1
+    assert (joined[0].facts["months"], joined[0].facts["people"]) == (4, 2)
+
+
+def test_miner_ids_are_stable_and_ranked_by_score() -> None:
+    rules = Rules(miner_min_score=0)
+    strong = _manual(list(range(1, 9)))
+    weak = _manual([1, 2, 3], user="USER_046", header="True-up {m}", first_doc=50)
+    records = run_miner(frame(weak + strong), rules)
+    assert [r.facts["months"] for r in records] == [8, 3], "highest score first"
+    later = run_miner(frame(strong[1:] + weak), rules)
+    assert {r.id for r in later} == {r.id for r in records}, "a cleared line keeps the id"
+
+
+def test_miner_id_survives_line_counts_shifting_between_entities() -> None:
+    """CLAUDE.md rule 10: a pattern spanning company codes keeps its id when a later extract
+    changes which code has the most lines. The record sits on the lowest code (A7)."""
+    rules = Rules(miner_min_score=0)
+    low = _manual([1, 2, 3], entity="C132", first_doc=0)
+
+    def run(c192_months: list[int]):  # type: ignore[no-untyped-def]
+        rows = low + _manual(c192_months, entity="C192", day=25, first_doc=100)
+        [record] = run_miner(frame(rows), rules)
+        return record
+
+    first = run([4, 5])  # C132 has more lines (3 against 2)
+    overtaken = run([4, 5, 6, 7])  # the higher code overtakes (4 against 3)
+    tied = run([4, 5, 6])  # a tie (3 and 3)
+    assert first.id == overtaken.id == tied.id
+    assert {first.entity, overtaken.entity, tied.entity} == {"C132"}
+    assert overtaken.facts["entity_list"] == "C132, C192"
+
+
+def test_miner_id_survives_a_tie_after_the_higher_code_led() -> None:
+    rules = Rules(miner_min_score=0)
+    low = _manual([1, 2], entity="C132", first_doc=0)
+    led = low + _manual([3, 4, 5], entity="C192", day=25, first_doc=100)  # C192 leads
+    tied = low + _manual([3, 4], entity="C192", day=25, first_doc=100)  # one C192 line cleared
+    [a], [b] = run_miner(frame(led), rules), run_miner(frame(tied), rules)
+    assert a.id == b.id and a.entity == b.entity == "C132"
 
 
 # ----- lead time and score ------------------------------------------------------------------
+def test_nth_working_day_after_month_end() -> None:
+    """A8: the close review is the 5th Monday-to-Friday day after month end, minus holidays."""
+    from app.engines.leadtime import nth_working_day_after
+
+    # 31 Jan 2026 is a Saturday: Mon 2 Feb is day 1, Fri 6 Feb day 5.
+    assert nth_working_day_after(date(2026, 1, 31), 5) == date(2026, 2, 6)
+    # 30 Sep 2026 is a Wednesday: Thu 1, Fri 2, Mon 5, Tue 6, Wed 7 Oct.
+    assert nth_working_day_after(date(2026, 9, 30), 5) == date(2026, 10, 7)
+    assert nth_working_day_after(date(2026, 9, 30), 1) == date(2026, 10, 1)
+    # A holiday on Mon 2 Feb pushes the 5th working day to Mon 9 Feb.
+    assert nth_working_day_after(date(2026, 1, 31), 5, {date(2026, 2, 2)}) == date(2026, 2, 9)
+
+
+def test_next_run_on_or_after() -> None:
+    from app.engines.leadtime import next_run_on_or_after
+
+    assert next_run_on_or_after(date(2026, 10, 5), 0) == date(2026, 10, 5), "a Monday is the run"
+    assert next_run_on_or_after(date(2026, 9, 18), 0) == date(2026, 9, 21), "Friday -> Monday"
+    assert next_run_on_or_after(date(2026, 11, 22), 0) == date(2026, 11, 23), "Sunday -> Monday"
+    assert next_run_on_or_after(date(2026, 9, 18), 2) == date(2026, 9, 23), "Wednesday runs"
+
+
+def test_badge_text() -> None:
+    from app.engines.leadtime import badge_text
+
+    assert badge_text(7, "close_review", 365) == "Caught 7 days before the close review"
+    assert badge_text(1, "close_review", 365) == "Caught 1 day before the close review"
+    assert badge_text(310, "ageing", 365) == "Caught 310 days before the 365-day ageing rule"
+    assert badge_text(-2, "close_review", 365) == "Seen 2 days after the close review"
+    assert badge_text(None, "never", None) == "Today's process would miss this"
+
+
 def test_lead_time_by_basis() -> None:
     lines = _sentinel_lines()
-    rules = Rules(close_review_days=5)
+    rules = Rules()
     record = run_sentinel(lines, rules)[0]
+    assert record.first_signal == date(2026, 1, 31)  # posted on Saturday 31 Jan
     timed = apply_lead_time([record], lines, rules)[0]
-    assert timed.today_detection == date(2026, 2, 5)  # 31 Jan month end + 5 days
-    assert timed.lead_days == 5
+    assert timed.today_detection == date(2026, 2, 6)  # 5th working day after 31 Jan
+    assert timed.facts["okane_run_date"] == "2026-02-02"  # the Monday run
+    assert timed.lead_days == 4, "weekly view: Monday 2 Feb to Friday 6 Feb"
+    assert timed.facts["lead_days_daily"] == 6
+    assert timed.facts["lead_days_weekly"] == 4
+    assert timed.facts["lead_badge"] == "Caught 4 days before the close review"
     assert timed.facts["today_detection_basis"] == "month-end close review"
+    daily = apply_lead_time([record], lines, rules.model_copy(update={"lead_time_view": "daily"}))
+    assert daily[0].lead_days == 6
+    holiday = rules.model_copy(update={"close_review_holidays": [date(2026, 2, 6)]})
+    assert apply_lead_time([record], lines, holiday)[0].today_detection == date(2026, 2, 9)
 
     rules_small = Rules(materiality_eur=100, payment_profiles=[_profile()])
     pulse = run_pulse(_pulse_lines(), rules_small, AS_OF).records

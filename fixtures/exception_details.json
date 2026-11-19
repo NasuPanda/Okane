@@ -5,7 +5,7 @@
   "b80b0b905e1fe118": {
    "exception": {
     "id": "b80b0b905e1fe118",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "pulse_gap",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -26,7 +26,8 @@
      "lowest_gap_month": "2025-06",
      "materiality_eur": 500000.0,
      "unmatched_batches": 3.0,
-     "today_detection_basis": "not detected by today's process"
+     "today_detection_basis": "not detected by today's process",
+     "lead_badge": "Today's process would miss this"
     },
     "evidence": [
      "0000000009/2025",
@@ -534,7 +535,7 @@
   "c52c3931a9d01b05": {
    "exception": {
     "id": "c52c3931a9d01b05",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "pulse_spike",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -551,14 +552,19 @@
      "multiple": 4.1,
      "posting_date": "2026-08-30",
      "today_detection_basis": "month-end close review",
-     "lead_days": 6.0
+     "lead_days": 7.0,
+     "lead_days_daily": 8.0,
+     "lead_days_weekly": 7.0,
+     "okane_run_date": "2026-08-31",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 7 days before the close review"
     },
     "evidence": [
      "0000000017/2026"
     ],
     "first_signal": "2026-08-30",
-    "today_detection": "2026-09-05",
-    "lead_days": 6,
+    "today_detection": "2026-09-07",
+    "lead_days": 7,
     "expected_by": null,
     "suggested_class": null,
     "score": 65.0,
@@ -977,7 +983,7 @@
   "5b2756df8b78173c": {
    "exception": {
     "id": "5b2756df8b78173c",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -997,14 +1003,19 @@
      "grace_days": 15.0,
      "days_past_expected": 485.0,
      "today_detection_basis": "365-day ageing rule",
-     "lead_days": 312.0
+     "lead_days": 306.0,
+     "lead_days_daily": 312.0,
+     "lead_days_weekly": 306.0,
+     "okane_run_date": "2025-07-28",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 306 days before the 365-day ageing rule"
     },
     "evidence": [
      "0000000009/2025"
     ],
     "first_signal": "2025-07-22",
     "today_detection": "2026-05-30",
-    "lead_days": 312,
+    "lead_days": 306,
     "expected_by": "2025-07-21",
     "suggested_class": "Required Adjustment Item",
     "score": 62.2,
@@ -1423,7 +1434,7 @@
   "7bbbe9271b0a2e1d": {
    "exception": {
     "id": "7bbbe9271b0a2e1d",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1443,14 +1454,19 @@
      "grace_days": 15.0,
      "days_past_expected": 455.0,
      "today_detection_basis": "365-day ageing rule",
-     "lead_days": 312.0
+     "lead_days": 308.0,
+     "lead_days_daily": 312.0,
+     "lead_days_weekly": 308.0,
+     "okane_run_date": "2025-08-25",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 308 days before the 365-day ageing rule"
     },
     "evidence": [
      "0000000010/2025"
     ],
     "first_signal": "2025-08-21",
     "today_detection": "2026-06-29",
-    "lead_days": 312,
+    "lead_days": 308,
     "expected_by": "2025-08-20",
     "suggested_class": "Required Adjustment Item",
     "score": 62.0,
@@ -1869,7 +1885,7 @@
   "532032f4fe383650": {
    "exception": {
     "id": "532032f4fe383650",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "sentinel_outlier",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1889,14 +1905,19 @@
      "posting_date": "2026-10-05",
      "scope": "people_only",
      "today_detection_basis": "month-end close review",
-     "lead_days": 31.0
+     "lead_days": 32.0,
+     "lead_days_daily": 32.0,
+     "lead_days_weekly": 32.0,
+     "okane_run_date": "2026-10-05",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 32 days before the close review"
     },
     "evidence": [
      "0000000032/2026"
     ],
     "first_signal": "2026-10-05",
-    "today_detection": "2026-11-05",
-    "lead_days": 31,
+    "today_detection": "2026-11-06",
+    "lead_days": 32,
     "expected_by": null,
     "suggested_class": "Required Adjustment Item",
     "score": 47.0,
@@ -1932,7 +1953,7 @@
   "5cb790939c58a948": {
    "exception": {
     "id": "5cb790939c58a948",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "sentinel_outlier",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -1952,14 +1973,19 @@
      "posting_date": "2026-09-18",
      "scope": "people_only",
      "today_detection_basis": "month-end close review",
-     "lead_days": 17.0
+     "lead_days": 16.0,
+     "lead_days_daily": 19.0,
+     "lead_days_weekly": 16.0,
+     "okane_run_date": "2026-09-21",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 16 days before the close review"
     },
     "evidence": [
      "4900000001/2026"
     ],
     "first_signal": "2026-09-18",
-    "today_detection": "2026-10-05",
-    "lead_days": 17,
+    "today_detection": "2026-10-07",
+    "lead_days": 16,
     "expected_by": null,
     "suggested_class": "Required Adjustment Item",
     "score": 47.0,
@@ -1995,7 +2021,7 @@
   "2bfb780a3f72d9bf": {
    "exception": {
     "id": "2bfb780a3f72d9bf",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "BPP",
@@ -2014,13 +2040,18 @@
      "posting_date": "2026-07-25",
      "prompt": "You may have made a mistake: 'Auzahl' looks like 'Auszahl', which this account uses 9 times.",
      "today_detection_basis": "month-end close review",
-     "lead_days": 11.0
+     "lead_days": 11.0,
+     "lead_days_daily": 13.0,
+     "lead_days_weekly": 11.0,
+     "okane_run_date": "2026-07-27",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 11 days before the close review"
     },
     "evidence": [
      "7900000005/2026"
     ],
     "first_signal": "2026-07-25",
-    "today_detection": "2026-08-05",
+    "today_detection": "2026-08-07",
     "lead_days": 11,
     "expected_by": null,
     "suggested_class": null,
@@ -2118,7 +2149,7 @@
   "ca26141f45d62ffe": {
    "exception": {
     "id": "ca26141f45d62ffe",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "label_mismatch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2137,15 +2168,20 @@
      "posting_date": "2026-03-30",
      "prompt": "You may have made a mistake: the payment text names 2026-01, but the amount settles the 2026-02 batch.",
      "today_detection_basis": "month-end close review",
-     "lead_days": 6.0
+     "lead_days": 8.0,
+     "lead_days_daily": 8.0,
+     "lead_days_weekly": 8.0,
+     "okane_run_date": "2026-03-30",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 8 days before the close review"
     },
     "evidence": [
      "0000000006/2026",
      "0000000005/2026"
     ],
     "first_signal": "2026-03-30",
-    "today_detection": "2026-04-05",
-    "lead_days": 6,
+    "today_detection": "2026-04-07",
+    "lead_days": 8,
     "expected_by": null,
     "suggested_class": "Timing item",
     "score": 34.8,
@@ -2584,7 +2620,7 @@
   "3267f451b8da112e": {
    "exception": {
     "id": "3267f451b8da112e",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2603,14 +2639,19 @@
      "posting_date": "2026-05-01",
      "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which this account uses 32 times.",
      "today_detection_basis": "month-end close review",
-     "lead_days": 35.0
+     "lead_days": 32.0,
+     "lead_days_daily": 35.0,
+     "lead_days_weekly": 32.0,
+     "okane_run_date": "2026-05-04",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 32 days before the close review"
     },
     "evidence": [
      "0000000008/2026"
     ],
     "first_signal": "2026-05-01",
     "today_detection": "2026-06-05",
-    "lead_days": 35,
+    "lead_days": 32,
     "expected_by": null,
     "suggested_class": null,
     "score": 32.0,
@@ -3006,449 +3047,10 @@
    ],
    "decisions": []
   },
-  "b47b6674d9d026bc": {
-   "exception": {
-    "id": "b47b6674d9d026bc",
-    "run_id": "run_20261118T173235_057094",
-    "type": "miner_cluster",
-    "workgroup": "Payroll",
-    "erp": "P20",
-    "entity": "C192",
-    "account": "279006",
-    "account_name": "Social security liabilities",
-    "title": "Same manual correction repeated in 3 months",
-    "exposure_eur": 4530.5,
-    "facts": {
-     "rule": "Manual correction with the same shape in 3+ months",
-     "pattern": "manual adj <name> social charges",
-     "doc_type": "SA",
-     "months": 3.0,
-     "first_month": "2023-03",
-     "last_month": "2023-05",
-     "lines": 3.0,
-     "documents": 3.0,
-     "people": 1.0,
-     "total_abs_eur": 4530.5,
-     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
-     "today_detection_basis": "not detected by today's process"
-    },
-    "evidence": [
-     "0000000001/2023",
-     "0000000002/2023",
-     "0000000003/2023"
-    ],
-    "first_signal": "2023-05-10",
-    "today_detection": null,
-    "lead_days": null,
-    "expected_by": null,
-    "suggested_class": null,
-    "score": 28.1,
-    "score_breakdown": {
-     "exposure": 0.1,
-     "days_past_expected": 0.0,
-     "penalty_account": 20.0,
-     "error_type": 4.0,
-     "repeats": 4.0
-    },
-    "ai_comment": null,
-    "verifier": "not_run",
-    "status": "new",
-    "decision_reason": null,
-    "decided_class": null,
-    "edited_comment": null
-   },
-   "evidence_lines": [
-    {
-     "document": "0000000001/2023",
-     "posting_date": "2023-03-10",
-     "doc_type": "SA",
-     "user_name": "USER_031",
-     "text": "Manual adj NAME100 social charges",
-     "amount_eur": 1250.0,
-     "currency_dc": "EUR",
-     "amount_dc": 1250.0
-    },
-    {
-     "document": "0000000002/2023",
-     "posting_date": "2023-04-10",
-     "doc_type": "SA",
-     "user_name": "USER_031",
-     "text": "Manual adj NAME101 social charges",
-     "amount_eur": 880.5,
-     "currency_dc": "EUR",
-     "amount_dc": 880.5
-    },
-    {
-     "document": "0000000003/2023",
-     "posting_date": "2023-05-10",
-     "doc_type": "SA",
-     "user_name": "USER_031",
-     "text": "Manual adj NAME102 social charges",
-     "amount_eur": 2400.0,
-     "currency_dc": "EUR",
-     "amount_dc": 2400.0
-    }
-   ],
-   "timeline": [
-    {
-     "month": "2023-03",
-     "balance": 1250.0,
-     "expected": 0.0,
-     "gap": 1250.0,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-04",
-     "balance": 2130.5,
-     "expected": 0.0,
-     "gap": 2130.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-05",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-06",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-07",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-08",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-09",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-10",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-11",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-12",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-01",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-02",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-03",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-04",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-05",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-06",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-07",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-08",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-09",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-10",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-11",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-12",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2025-01",
-     "balance": -605869.5,
-     "expected": -610400.0,
-     "gap": 4530.5,
-     "batch_eur": -610400.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-02",
-     "balance": -595551.1,
-     "expected": -598250.4,
-     "gap": 2699.3,
-     "batch_eur": -598250.4,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-03",
-     "balance": -639215.55,
-     "expected": -640120.1,
-     "gap": 904.55,
-     "batch_eur": -640120.1,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-04",
-     "balance": -656315.81,
-     "expected": -655300.0,
-     "gap": -1015.81,
-     "batch_eur": -655300.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-05",
-     "balance": -705292.26,
-     "expected": -702310.55,
-     "gap": -2981.71,
-     "batch_eur": -702310.55,
-     "batch_matched": false
-    },
-    {
-     "month": "2025-06",
-     "balance": -1394232.46,
-     "expected": -688940.2,
-     "gap": -705292.26,
-     "batch_eur": -688940.2,
-     "batch_matched": false
-    },
-    {
-     "month": "2025-07",
-     "balance": -2009232.46,
-     "expected": -615000.0,
-     "gap": -1394232.46,
-     "batch_eur": -615000.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-08",
-     "balance": -2009232.46,
-     "expected": 0.0,
-     "gap": -2009232.46,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2025-09",
-     "balance": -2029528.21,
-     "expected": -633450.75,
-     "gap": -1396077.46,
-     "batch_eur": -633450.75,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-10",
-     "balance": -2620408.21,
-     "expected": -590880.0,
-     "gap": -2029528.21,
-     "batch_eur": -590880.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-11",
-     "balance": -2601158.11,
-     "expected": -612300.3,
-     "gap": -1988857.81,
-     "batch_eur": -612300.3,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-12",
-     "balance": -2657750.75,
-     "expected": -645700.0,
-     "gap": -2012050.75,
-     "batch_eur": -645700.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-01",
-     "balance": -2004746.55,
-     "expected": -601222.1,
-     "gap": -1403524.45,
-     "batch_eur": -601222.1,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-02",
-     "balance": -2620646.55,
-     "expected": -615900.0,
-     "gap": -2004746.55,
-     "batch_eur": -615900.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-03",
-     "balance": -2035576.42,
-     "expected": -628400.6,
-     "gap": -1407175.82,
-     "batch_eur": -628400.6,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-04",
-     "balance": -2677586.42,
-     "expected": -642010.0,
-     "gap": -2035576.42,
-     "batch_eur": -642010.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-05",
-     "balance": -2661621.27,
-     "expected": -610550.25,
-     "gap": -2051071.02,
-     "batch_eur": -610550.25,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-06",
-     "balance": -2620137.3,
-     "expected": -598600.0,
-     "gap": -2021537.3,
-     "batch_eur": -598600.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-07",
-     "balance": -2632296.7,
-     "expected": -620878.0,
-     "gap": -2011418.7,
-     "batch_eur": -620878.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-08",
-     "balance": -4566938.37,
-     "expected": -2531445.87,
-     "gap": -2035492.5,
-     "batch_eur": -2531445.87,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-09",
-     "balance": -4461746.36,
-     "expected": -513823.36,
-     "gap": -3947923.0,
-     "batch_eur": -513823.36,
-     "batch_matched": false
-    },
-    {
-     "month": "2026-10",
-     "balance": -1937894.83,
-     "expected": 0.0,
-     "gap": -1937894.83,
-     "batch_eur": null,
-     "batch_matched": null
-    }
-   ],
-   "decisions": []
-  },
   "0c7228820c2b5ca8": {
    "exception": {
     "id": "0c7228820c2b5ca8",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "pulse_missing_batch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3462,7 +3064,8 @@
      "missing_period": "2025-08",
      "typical_batch_eur": 618389.0,
      "lookback_months": 24.0,
-     "today_detection_basis": "not detected by today's process"
+     "today_detection_basis": "not detected by today's process",
+     "lead_badge": "Today's process would miss this"
     },
     "evidence": [],
     "first_signal": "2025-08-31",
@@ -3842,136 +3445,59 @@
    ],
    "decisions": []
   },
-  "964330a843f480e5": {
+  "d00346a86e3ca1d6": {
    "exception": {
-    "id": "964330a843f480e5",
-    "run_id": "run_20261118T173235_057094",
+    "id": "d00346a86e3ca1d6",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "miner_cluster",
     "workgroup": "Payroll",
     "erp": "P20",
-    "entity": "C192",
-    "account": "179003",
-    "account_name": "Employee receivables",
-    "title": "Same manual correction repeated in 3 months",
-    "exposure_eur": 679839.48,
+    "entity": "C132",
+    "account": "279030",
+    "account_name": "Payroll corrections",
+    "title": "Repeated manual posting: 6 months",
+    "exposure_eur": 18368.0,
     "facts": {
-     "rule": "Manual correction with the same shape in 3+ months",
-     "pattern": "advance <name>",
+     "rule": "The same manual posting by one person scores at least 12 (entities x months) in 3+ months",
+     "fingerprint": "P20 / account 279030 / document type SA / one person / header text \"correction <name> reclass to # #/#\"",
+     "pattern": "correction <name> reclass to # #/#",
      "doc_type": "SA",
-     "months": 3.0,
-     "first_month": "2023-06",
-     "last_month": "2023-08",
-     "lines": 3.0,
-     "documents": 3.0,
-     "people": 1.0,
-     "total_abs_eur": 679839.48,
-     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
-     "today_detection_basis": "not detected by today's process"
-    },
-    "evidence": [
-     "0000000004/2023",
-     "0000000005/2023",
-     "0000000006/2023"
-    ],
-    "first_signal": "2023-08-12",
-    "today_detection": null,
-    "lead_days": null,
-    "expected_by": null,
-    "suggested_class": null,
-    "score": 18.9,
-    "score_breakdown": {
-     "exposure": 10.9,
-     "days_past_expected": 0.0,
-     "penalty_account": 0.0,
-     "error_type": 4.0,
-     "repeats": 4.0
-    },
-    "ai_comment": null,
-    "verifier": "not_run",
-    "status": "new",
-    "decision_reason": null,
-    "decided_class": null,
-    "edited_comment": null
-   },
-   "evidence_lines": [
-    {
-     "document": "0000000004/2023",
-     "posting_date": "2023-06-12",
-     "doc_type": "SA",
-     "user_name": "USER_031",
-     "text": "Advance NAME300",
-     "amount_eur": 310000.0,
-     "currency_dc": "EUR",
-     "amount_dc": 310000.0
-    },
-    {
-     "document": "0000000005/2023",
-     "posting_date": "2023-07-12",
-     "doc_type": "SA",
-     "user_name": "USER_031",
-     "text": "Advance NAME300",
-     "amount_eur": 245500.0,
-     "currency_dc": "EUR",
-     "amount_dc": 245500.0
-    },
-    {
-     "document": "0000000006/2023",
-     "posting_date": "2023-08-12",
-     "doc_type": "SA",
-     "user_name": "USER_031",
-     "text": "Advance NAME300",
-     "amount_eur": 124339.48,
-     "currency_dc": "EUR",
-     "amount_dc": 124339.48
-    }
-   ],
-   "timeline": null,
-   "decisions": []
-  },
-  "2d23e84fc0e1083b": {
-   "exception": {
-    "id": "2d23e84fc0e1083b",
-    "run_id": "run_20261118T173235_057094",
-    "type": "miner_cluster",
-    "workgroup": "Payroll",
-    "erp": "P20",
-    "entity": "C192",
-    "account": "279002",
-    "account_name": "Payroll deductions",
-    "title": "Same manual correction repeated in 4 months",
-    "exposure_eur": 0.0,
-    "facts": {
-     "rule": "Manual correction with the same shape in 3+ months",
-     "pattern": "manual correction <name> reclass to #",
-     "doc_type": "SA",
-     "months": 4.0,
+     "months": 6.0,
+     "entities": 2.0,
+     "entity_list": "C132, C192",
+     "miner_score": 12.0,
      "first_month": "2026-05",
-     "last_month": "2026-08",
+     "last_month": "2026-10",
      "lines": 8.0,
-     "documents": 4.0,
+     "documents": 8.0,
      "people": 1.0,
-     "total_abs_eur": 24852.0,
-     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
-     "today_detection_basis": "not detected by today's process"
+     "total_abs_eur": 18368.0,
+     "hint": "This may be a correction made by hand every month. Check whether the automated posting or mapping can do it.",
+     "today_detection_basis": "not detected by today's process",
+     "lead_badge": "Today's process would miss this"
     },
     "evidence": [
-     "0000000034/2026",
-     "0000000035/2026",
-     "0000000036/2026",
-     "0000000037/2026"
+     "0000000038/2026",
+     "0000000039/2026",
+     "0000000040/2026",
+     "0000000041/2026",
+     "0000000042/2026",
+     "0000000043/2026",
+     "0000000044/2026",
+     "0000000045/2026"
     ],
-    "first_signal": "2026-07-20",
+    "first_signal": "2026-10-21",
     "today_detection": null,
     "lead_days": null,
     "expected_by": null,
     "suggested_class": null,
-    "score": 10.0,
+    "score": 14.3,
     "score_breakdown": {
-     "exposure": 0.0,
+     "exposure": 0.3,
      "days_past_expected": 0.0,
      "penalty_account": 0.0,
      "error_type": 4.0,
-     "repeats": 6.0
+     "repeats": 10.0
     },
     "ai_comment": null,
     "verifier": "not_run",
@@ -3982,179 +3508,33 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000034/2026",
-     "posting_date": "2026-05-20",
+     "document": "0000000043/2026",
+     "posting_date": "2026-09-21",
      "doc_type": "SA",
      "user_name": "USER_045",
-     "text": "Manual correction NAME205 reclass to 279006",
-     "amount_eur": 3105.0,
+     "text": "Reclass to social security",
+     "amount_eur": 2333.0,
      "currency_dc": "EUR",
-     "amount_dc": 3105.0
+     "amount_dc": 2333.0
     },
     {
-     "document": "0000000034/2026",
-     "posting_date": "2026-05-20",
+     "document": "0000000045/2026",
+     "posting_date": "2026-10-21",
      "doc_type": "SA",
      "user_name": "USER_045",
-     "text": "Manual correction NAME205 reclass to 279006",
-     "amount_eur": -3105.0,
+     "text": "Reclass to social security",
+     "amount_eur": 2370.0,
      "currency_dc": "EUR",
-     "amount_dc": -3105.0
-    },
-    {
-     "document": "0000000035/2026",
-     "posting_date": "2026-06-20",
-     "doc_type": "SA",
-     "user_name": "USER_045",
-     "text": "Manual correction NAME206 reclass to 279006",
-     "amount_eur": 3106.0,
-     "currency_dc": "EUR",
-     "amount_dc": 3106.0
-    },
-    {
-     "document": "0000000035/2026",
-     "posting_date": "2026-06-20",
-     "doc_type": "SA",
-     "user_name": "USER_045",
-     "text": "Manual correction NAME206 reclass to 279006",
-     "amount_eur": -3106.0,
-     "currency_dc": "EUR",
-     "amount_dc": -3106.0
-    },
-    {
-     "document": "0000000036/2026",
-     "posting_date": "2026-07-20",
-     "doc_type": "SA",
-     "user_name": "USER_045",
-     "text": "Manual correction NAME207 reclass to 279006",
-     "amount_eur": 3107.0,
-     "currency_dc": "EUR",
-     "amount_dc": 3107.0
-    },
-    {
-     "document": "0000000036/2026",
-     "posting_date": "2026-07-20",
-     "doc_type": "SA",
-     "user_name": "USER_045",
-     "text": "Manual correction NAME207 reclass to 279006",
-     "amount_eur": -3107.0,
-     "currency_dc": "EUR",
-     "amount_dc": -3107.0
-    },
-    {
-     "document": "0000000037/2026",
-     "posting_date": "2026-08-20",
-     "doc_type": "SA",
-     "user_name": "USER_045",
-     "text": "Manual correction NAME208 reclass to 279006",
-     "amount_eur": 3108.0,
-     "currency_dc": "EUR",
-     "amount_dc": 3108.0
-    },
-    {
-     "document": "0000000037/2026",
-     "posting_date": "2026-08-20",
-     "doc_type": "SA",
-     "user_name": "USER_045",
-     "text": "Manual correction NAME208 reclass to 279006",
-     "amount_eur": -3108.0,
-     "currency_dc": "EUR",
-     "amount_dc": -3108.0
+     "amount_dc": 2370.0
     }
    ],
    "timeline": null,
    "decisions": []
   },
-  "642c728b835e7a01": {
+  "f5cb477294a2b6ac": {
    "exception": {
-    "id": "642c728b835e7a01",
-    "run_id": "run_20261118T173235_057094",
-    "type": "miner_cluster",
-    "workgroup": "Payroll",
-    "erp": "BPP",
-    "entity": "C222",
-    "account": "34900002",
-    "account_name": "Accrued payroll",
-    "title": "Same manual correction repeated in 3 months",
-    "exposure_eur": -27000.0,
-    "facts": {
-     "rule": "Manual correction with the same shape in 3+ months",
-     "pattern": "payroll accrual au",
-     "doc_type": "IR",
-     "months": 3.0,
-     "first_month": "2025-01",
-     "last_month": "2025-03",
-     "lines": 3.0,
-     "documents": 3.0,
-     "people": 1.0,
-     "total_abs_eur": 27000.0,
-     "hint": "The same fix is made by hand every month. Check the automated posting or mapping it corrects and fix it once at the source.",
-     "today_detection_basis": "not detected by today's process"
-    },
-    "evidence": [
-     "7900000001/2025",
-     "7900000002/2025",
-     "7900000003/2025"
-    ],
-    "first_signal": "2025-03-20",
-    "today_detection": null,
-    "lead_days": null,
-    "expected_by": null,
-    "suggested_class": null,
-    "score": 8.4,
-    "score_breakdown": {
-     "exposure": 0.4,
-     "days_past_expected": 0.0,
-     "penalty_account": 0.0,
-     "error_type": 4.0,
-     "repeats": 4.0
-    },
-    "ai_comment": null,
-    "verifier": "not_run",
-    "status": "new",
-    "decision_reason": null,
-    "decided_class": null,
-    "edited_comment": null
-   },
-   "evidence_lines": [
-    {
-     "document": "7900000001/2025",
-     "posting_date": "2025-01-20",
-     "doc_type": "IR",
-     "user_name": "USER_150",
-     "text": "Payroll accrual AU",
-     "amount_eur": -9000.0,
-     "currency_dc": "AUD",
-     "amount_dc": -14667.3
-    },
-    {
-     "document": "7900000002/2025",
-     "posting_date": "2025-02-20",
-     "doc_type": "IR",
-     "user_name": "USER_150",
-     "text": "Payroll accrual AU",
-     "amount_eur": -9000.0,
-     "currency_dc": "AUD",
-     "amount_dc": -14667.3
-    },
-    {
-     "document": "7900000003/2025",
-     "posting_date": "2025-03-20",
-     "doc_type": "IR",
-     "user_name": "USER_150",
-     "text": "Payroll accrual AU",
-     "amount_eur": -9000.0,
-     "currency_dc": "AUD",
-     "amount_dc": -14667.3
-    }
-   ],
-   "timeline": null,
-   "decisions": []
-  },
-  "8ddaf5b9472587a2": {
-   "exception": {
-    "id": "8ddaf5b9472587a2",
-    "run_id": "run_20261118T173235_057094",
+    "id": "f5cb477294a2b6ac",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "sentinel_currency_code",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -4172,14 +3552,19 @@
      "lines": 1.0,
      "posting_date": "2026-10-02",
      "today_detection_basis": "month-end close review",
-     "lead_days": 34.0
+     "lead_days": 32.0,
+     "lead_days_daily": 35.0,
+     "lead_days_weekly": 32.0,
+     "okane_run_date": "2026-10-05",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 32 days before the close review"
     },
     "evidence": [
-     "0000000040/2026"
+     "0000000054/2026"
     ],
     "first_signal": "2026-10-02",
-    "today_detection": "2026-11-05",
-    "lead_days": 34,
+    "today_detection": "2026-11-06",
+    "lead_days": 32,
     "expected_by": null,
     "suggested_class": "Required Adjustment Item",
     "score": 8.3,
@@ -4199,7 +3584,7 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000040/2026",
+     "document": "0000000054/2026",
      "posting_date": "2026-10-02",
      "doc_type": "SA",
      "user_name": "USER_088",
@@ -4215,7 +3600,7 @@
   "f04ae2adff34c19c": {
    "exception": {
     "id": "f04ae2adff34c19c",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "sentinel_currency_code",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -4234,14 +3619,19 @@
      "lines": 1.0,
      "posting_date": "2026-09-21",
      "today_detection_basis": "month-end close review",
-     "lead_days": 14.0
+     "lead_days": 16.0,
+     "lead_days_daily": 16.0,
+     "lead_days_weekly": 16.0,
+     "okane_run_date": "2026-09-21",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 16 days before the close review"
     },
     "evidence": [
      "4900000002/2026"
     ],
     "first_signal": "2026-09-21",
-    "today_detection": "2026-10-05",
-    "lead_days": 14,
+    "today_detection": "2026-10-07",
+    "lead_days": 16,
     "expected_by": null,
     "suggested_class": "Required Adjustment Item",
     "score": 8.0,
@@ -4277,7 +3667,7 @@
   "0c33474c40046521": {
    "exception": {
     "id": "0c33474c40046521",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "sentinel_two_currencies",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -4294,15 +3684,20 @@
      "lines": 2.0,
      "posting_date": "2026-09-14",
      "today_detection_basis": "month-end close review",
-     "lead_days": 21.0
+     "lead_days": 23.0,
+     "lead_days_daily": 23.0,
+     "lead_days_weekly": 23.0,
+     "okane_run_date": "2026-09-14",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 23 days before the close review"
     },
     "evidence": [
-     "0000000038/2026",
-     "0000000039/2026"
+     "0000000052/2026",
+     "0000000053/2026"
     ],
     "first_signal": "2026-09-14",
-    "today_detection": "2026-10-05",
-    "lead_days": 21,
+    "today_detection": "2026-10-07",
+    "lead_days": 23,
     "expected_by": null,
     "suggested_class": "Required Adjustment Item",
     "score": 7.1,
@@ -4322,7 +3717,7 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000038/2026",
+     "document": "0000000052/2026",
      "posting_date": "2026-09-14",
      "doc_type": "SA",
      "user_name": "USER_077",
@@ -4332,7 +3727,7 @@
      "amount_dc": -4200.4
     },
     {
-     "document": "0000000039/2026",
+     "document": "0000000053/2026",
      "posting_date": "2026-09-14",
      "doc_type": "SA",
      "user_name": "USER_077",
@@ -4348,7 +3743,7 @@
   "2853e8b1894ed623": {
    "exception": {
     "id": "2853e8b1894ed623",
-    "run_id": "run_20261118T173235_057094",
+    "run_id": "run_20261119T104204_75c1bc",
     "type": "typo",
     "workgroup": "Fixed assets",
     "erp": "BPP",
@@ -4367,14 +3762,19 @@
      "posting_date": "2019-05-02",
      "prompt": "You may have made a mistake: 'trnasit' looks like 'transit', which this account uses 16 times.",
      "today_detection_basis": "month-end close review",
-     "lead_days": 34.0
+     "lead_days": 32.0,
+     "lead_days_daily": 36.0,
+     "lead_days_weekly": 32.0,
+     "okane_run_date": "2019-05-06",
+     "lead_view": "weekly",
+     "lead_badge": "Caught 32 days before the close review"
     },
     "evidence": [
      "4900000001/2019"
     ],
     "first_signal": "2019-05-02",
-    "today_detection": "2019-06-05",
-    "lead_days": 34,
+    "today_detection": "2019-06-07",
+    "lead_days": 32,
     "expected_by": null,
     "suggested_class": null,
     "score": 2.2,

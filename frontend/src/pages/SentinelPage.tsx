@@ -75,19 +75,30 @@ function FeedItem({ record, index, onOpen }: { record: ExceptionRecord; index: n
   );
 }
 
+/** Decided in #14 (A7): the card shows the top pattern by its repeat strength (company codes x
+ *  months); ties go to more months, then more lines. */
+function byRepeatStrength(a: ExceptionRecord, b: ExceptionRecord): number {
+  const n = (r: ExceptionRecord, k: string) => Number(r.facts[k] ?? 0);
+  return n(b, "miner_score") - n(a, "miner_score") || n(b, "months") - n(a, "months") || n(b, "lines") - n(a, "lines");
+}
+
 function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (id: string) => void }) {
-  const top = records[0];
+  const ranked = useMemo(() => [...records].sort(byRepeatStrength), [records]);
+  const top = ranked[0];
   if (!top) return null;
   return (
     <section className="rise space-y-4 overflow-hidden rounded-2xl bg-dock p-6 text-white" style={stagger(2, 80)}>
       <div className="flex items-center justify-between">
         <span className="eyebrow flex items-center gap-1.5 !text-white/60">
-          <Repeat2 className="size-3.5 text-miner" /> Same fix, every month
+          <Repeat2 className="size-3.5 text-miner" /> Repeated manual posting
+          <span className="rounded-full border border-white/30 px-2 py-0.5 text-[10px] normal-case tracking-normal text-white/70">
+            hypothesis
+          </span>
         </span>
         <span className="rounded-full bg-miner/20 px-2 py-0.5 text-[11px] text-miner">{records.length} patterns</span>
       </div>
       <div className="text-2xl leading-snug font-light">
-        Someone fixes this by hand <span className="text-signal">{String(top.facts.months)} months</span> in a row
+        The same posting was typed by hand in <span className="text-signal">{String(top.facts.months)} months</span>
       </div>
       <div className="rounded-xl bg-dock-raised p-4 font-mono text-sm text-signal">“{String(top.facts.pattern)}”</div>
       <div className="grid grid-cols-3 gap-4 text-sm">
@@ -105,7 +116,7 @@ function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (i
         {String(top.facts.hint)}
       </p>
       <div className="flex flex-wrap gap-2">
-        {records.slice(0, 6).map((r) => (
+        {ranked.slice(0, 6).map((r) => (
           <button
             key={r.id}
             onClick={() => onOpen(r.id)}

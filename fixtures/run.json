@@ -2,8 +2,8 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261118T173235_057094",
-  "snapshot_id": "80d8ee843e3b2930",
+  "run_id": "run_20261119T104204_75c1bc",
+  "snapshot_id": "be2ba23fa22e835c",
   "trigger": "manual",
   "status": "finished",
   "source_files": [
@@ -11,21 +11,21 @@
    "Payroll_sample.xlsx"
   ],
   "file_hashes": [
-   "073da5397bd337587728ffbd6a6a25036cc9dc47f9386095c5685dfcd8b3439a",
-   "e238e1091cd2a2ab419d3b2b815f7449f30dff0bf1e6a6dd8ce990c74577f01e"
+   "7c2f402d75b77d412de0e322131e6787aa3168703e0b63561c08ae7eaf41bc06",
+   "c2b7c2cf94750bc22b5ea2f28ae7768a0780628cae4df45e9103eb5f50f08bef"
   ],
   "synthetic": false,
   "as_of": "2026-11-18",
-  "started_at": "2026-11-18T17:32:35.616288",
-  "finished_at": "2026-11-18T17:32:35.792166",
+  "started_at": "2026-11-19T10:42:04.311311",
+  "finished_at": "2026-11-19T10:42:04.603426",
   "counts": {
-   "lines": 230,
+   "lines": 244,
    "paired_lines": 42,
-   "exceptions": 18,
+   "exceptions": 15,
    "old_rule_lines": 72,
    "exposure_groups_above": 3,
    "type:label_mismatch": 1,
-   "type:miner_cluster": 4,
+   "type:miner_cluster": 1,
    "type:pulse_gap": 1,
    "type:pulse_missing_batch": 1,
    "type:pulse_missing_payment": 2,

@@ -1,19 +1,22 @@
-"""Detection lead time (brief section 1, feature 2; section 9, "Lead time").
+"""Detection lead time (brief section 1, feature 2; decided in #16, docs/ASSUMPTIONS.md A8).
 
 For every finding: ``first_signal`` (set by the engine: when Okane can first flag it),
-``today_detection`` (when today's process would flag it; None = never) and
-``lead_days = today_detection - first_signal``.
+``today_detection`` (when today's process would flag it; None = never) and ``lead_days``.
 
-ASSUMPTION (the brief does not define today's detection date per type):
+Today's detection date, per type:
 
-- Ageing-rule findings (pulse_missing_payment): today's process sees an unpaid accrual only
-  when it turns overdue under the 365-day rule, i.e. accrual date + the account's
-  Ageing Allowed (Days). Pension-type accounts ("No Overdue") are never flagged: None.
-- Posting errors (sentinel_*, typo, label_mismatch, pulse_spike): the month-end close review
-  of the posting month, i.e. month end + ``Rules.close_review_days``. The badge reads
-  "N days before the close review".
+- Ageing-rule findings (pulse_missing_payment): accrual date + the account's Ageing Allowed
+  (Days), the day the ageing rule would first show it. Pension-type accounts ("No Overdue")
+  are never flagged: None.
+- Posting errors (sentinel_*, typo, label_mismatch, pulse_spike): the close review on the
+  ``Rules.close_review_working_day`` working day after the end of the posting month. Working
+  days are Monday to Friday minus ``Rules.close_review_holidays``.
 - Blind spots (pulse_gap, pulse_missing_batch, miner_cluster): today's process has no check
   that sees them: None.
+
+Okane runs weekly, so with ``Rules.lead_time_view`` = "weekly" the lead days count from the run
+on or after the first signal (``Rules.weekly_run_weekday``); "daily" counts from the first
+signal itself. Both figures are kept in the facts. Nothing here reads the clock.
 """
 
 from __future__ import annotations
@@ -36,6 +39,43 @@ BASIS_TEXT = {
     "close_review": "month-end close review",
     "never": "not detected by today's process",
 }
+
+
+def nth_working_day_after(
+    day: date, n: int, holidays: set[date] | frozenset[date] = frozenset()
+) -> date:
+    """The n-th Monday-to-Friday day after ``day`` that is not a holiday (n >= 1)."""
+    current, counted = day, 0
+    while counted < max(n, 1):
+        current += timedelta(days=1)
+        if current.weekday() < 5 and current not in holidays:
+            counted += 1
+    return current
+
+
+def close_review_date(posted: date, rules: Rules) -> date:
+    """Today's close review of the month ``posted`` falls in (A8)."""
+    return nth_working_day_after(
+        month_end(posted), rules.close_review_working_day, set(rules.close_review_holidays)
+    )
+
+
+def next_run_on_or_after(day: date, weekday: int) -> date:
+    """The weekly run on or after ``day`` (weekday 0 = Monday)."""
+    return day + timedelta(days=(weekday - day.weekday()) % 7)
+
+
+def badge_text(lead: int | None, basis: str, allowed_age: int | None) -> str:
+    """The lead-time badge, in accountant language."""
+    if lead is None:
+        return "Today's process would miss this"
+    what = (
+        f"the {allowed_age}-day ageing rule"
+        if basis == "ageing" and allowed_age is not None
+        else "the close review"
+    )
+    days = f"{abs(lead)} day{'' if abs(lead) == 1 else 's'}"
+    return f"Caught {days} before {what}" if lead >= 0 else f"Seen {days} after {what}"
 
 
 def allowed_age_by_account(lines: pd.DataFrame) -> dict[tuple[str, str, str], int | None]:
@@ -67,23 +107,36 @@ def today_detection(
     if record.type in CLOSE_REVIEW_TYPES:
         posted = record.facts.get("posting_date")
         anchor = date.fromisoformat(posted) if isinstance(posted, str) else record.first_signal
-        return month_end(anchor) + timedelta(days=rules.close_review_days), "close_review"
+        return close_review_date(anchor, rules), "close_review"
     return None, "never"
 
 
 def apply_lead_time(
     records: list[ExceptionRecord], lines: pd.DataFrame, rules: Rules
 ) -> list[ExceptionRecord]:
-    """Fill today_detection and lead_days, and record the basis in the facts."""
+    """Fill today_detection and lead_days, and record the basis, both figures and the badge."""
     ages = allowed_age_by_account(lines)
     out = []
     for record in records:
         allowed = ages.get((record.erp, record.entity, record.account), 365)
         detected, basis = today_detection(record, rules, allowed)
-        lead = (detected - record.first_signal).days if detected is not None else None
+        run = next_run_on_or_after(record.first_signal, rules.weekly_run_weekday)
         facts = {**record.facts, "today_detection_basis": BASIS_TEXT[basis]}
-        if lead is not None:
-            facts["lead_days"] = float(lead)
+        lead = None
+        if detected is not None:
+            daily = (detected - record.first_signal).days
+            weekly = (detected - run).days
+            lead = weekly if rules.lead_time_view == "weekly" else daily
+            facts.update(
+                {
+                    "lead_days": float(lead),
+                    "lead_days_daily": float(daily),
+                    "lead_days_weekly": float(weekly),
+                    "okane_run_date": run.isoformat(),
+                    "lead_view": rules.lead_time_view,
+                }
+            )
+        facts["lead_badge"] = badge_text(lead, basis, allowed)
         out.append(
             record.model_copy(
                 update={"today_detection": detected, "lead_days": lead, "facts": facts}
