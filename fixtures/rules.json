@@ -92,6 +92,9 @@
   "exposure_cap_multiple": 5.0,
   "days_past_expected_cap": 90,
   "repeats_min_months": 3,
+  "inbox_always_types": [
+   "pulse_missing_batch"
+  ],
   "error_type_severity": {
    "pulse_gap": 1.0,
    "pulse_missing_payment": 0.9,
