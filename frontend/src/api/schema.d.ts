@@ -68,6 +68,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Extract
+         * @description Check an uploaded Payroll or Fixed assets extract, store a copy and start a run.
+         */
+        post: operations["upload_extract_api_uploads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/exceptions": {
         parameters: {
             query?: never;
@@ -546,6 +566,41 @@ export interface components {
             /** Groups */
             groups: components["schemas"]["ExposureGroup"][];
         };
+        /**
+         * ExtractSource
+         * @description ADDITION (#24, A38): one workbook a run read, with where it came from.
+         */
+        ExtractSource: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "Payroll" | "Fixed assets";
+            /** File Name */
+            file_name: string;
+            /** File Hash */
+            file_hash: string;
+            /** Extract Date */
+            extract_date?: string | null;
+            /** Route */
+            route?: ("upload" | "watcher" | "schedule" | "startup" | "manual") | null;
+            /** Received By */
+            received_by?: string | null;
+            /** Received At */
+            received_at?: string | null;
+            /**
+             * Rows
+             * @default 0
+             */
+            rows: number;
+            /**
+             * Late
+             * @default false
+             */
+            late: boolean;
+            /** Next Due */
+            next_due?: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -901,7 +956,7 @@ export interface components {
              * Trigger
              * @enum {string}
              */
-            trigger: "manual" | "watcher" | "schedule" | "startup" | "rules_change";
+            trigger: "manual" | "watcher" | "schedule" | "startup" | "rules_change" | "upload";
             /**
              * Status
              * @enum {string}
@@ -933,6 +988,8 @@ export interface components {
             warnings?: string[];
             /** Error */
             error?: string | null;
+            /** Sources */
+            sources?: components["schemas"]["ExtractSource"][];
         };
         /**
          * TimelinePoint
@@ -951,6 +1008,27 @@ export interface components {
             batch_eur: number | null;
             /** Batch Matched */
             batch_matched: boolean | null;
+        };
+        /**
+         * UploadResult
+         * @description ADDITION (#24, A38): answer to POST /api/uploads.
+         */
+        UploadResult: {
+            /**
+             * Status
+             * @constant
+             */
+            status: "accepted";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "Payroll" | "Fixed assets";
+            /** File Name */
+            file_name: string;
+            /** Message */
+            message: string;
+            run?: components["schemas"]["Run"] | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1072,6 +1150,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    upload_extract_api_uploads_post: {
+        parameters: {
+            query: {
+                filename: string;
+                uploaded_by?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

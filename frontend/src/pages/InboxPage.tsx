@@ -6,11 +6,11 @@ import {
   useReactTable,
   type SortingState,
 } from "@tanstack/react-table";
-import { ArrowDownUp, BellRing, EyeOff, Hourglass, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowDownUp, BellRing, EyeOff, FileSpreadsheet, Hourglass, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { useExceptions, useKpis, useRules } from "@/api/hooks";
-import type { ExceptionRecord, Status } from "@/api/types";
+import { useExceptions, useKpis, useLatestRun, useRules } from "@/api/hooks";
+import type { ExceptionRecord, Run, Status } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
 import {
   Card,
@@ -30,10 +30,46 @@ import {
 } from "@/components/okane";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { GROUP_LABEL, GROUP_TONE, TYPE_GROUP, greeting, weekdayName, type TypeGroup } from "@/lib/labels";
-import { cn, eur, shortEur } from "@/lib/utils";
+import { GROUP_LABEL, GROUP_TONE, ROUTE_LABEL, TYPE_GROUP, greeting, weekdayName, type TypeGroup } from "@/lib/labels";
+import { cn, day, dueDay, eur, shortEur, stamp } from "@/lib/utils";
 
 const column = createColumnHelper<ExceptionRecord>();
+
+/** Where this check's numbers come from: one line per workbook (A38). */
+function DataSources({ run }: { run: Run | null | undefined }) {
+  const sources = run?.sources ?? [];
+  if (!run || !sources.length) return null;
+  return (
+    <Card className="space-y-2 py-3.5 text-sm">
+      {sources.map((s) => (
+        <div key={s.file_hash} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
+          <FileSpreadsheet className="size-4 text-foreground" />
+          <span className="font-medium text-foreground">{s.kind}</span>
+          <span>· {s.file_name}</span>
+          <span>· extract taken {day(s.extract_date)}</span>
+          {s.route && (
+            <span>
+              · {ROUTE_LABEL[s.route] ?? "received"}
+              {s.route === "upload" && s.received_by ? ` by ${s.received_by}` : ""}, {stamp(s.received_at)}
+            </span>
+          )}
+          <span>· {s.rows.toLocaleString("en-GB")} lines</span>
+          {s.next_due && <span>· next extract due by {dueDay(s.next_due)}</span>}
+          {s.late && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-hot-soft px-2 py-0.5 text-xs font-medium text-hot">
+              <AlertTriangle className="size-3" /> No new extract this week; showing last week's
+            </span>
+          )}
+        </div>
+      ))}
+      <div className="text-xs text-muted-foreground">
+        {run.synthetic ? "Practice data (synthetic sample). " : ""}
+        Amounts are scaled EUR. "Late" and "days past expected" are counted as of {day(run.as_of)}
+        {sources.some((s) => s.kind === "Payroll" && s.extract_date === run.as_of) ? ", the day the Payroll extract was taken." : "."}
+      </div>
+    </Card>
+  );
+}
 
 const columns = [
   column.accessor("score", {
@@ -81,6 +117,7 @@ const GROUPS = Object.keys(GROUP_LABEL) as TypeGroup[];
 
 export function InboxPage() {
   const kpis = useKpis();
+  const run = useLatestRun();
   const rules = useRules();
   const all = useExceptions();
   const open = useOpenFinding();
@@ -140,6 +177,8 @@ export function InboxPage() {
           )
         }
       />
+
+      <DataSources run={run.data} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

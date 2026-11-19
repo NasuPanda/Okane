@@ -376,7 +376,7 @@ Decided in #3 (18 Nov 2026): the original's rules, minus Intercompany, are the d
 | Risk score                        | Weights in Rules (exposure 40, days past expected 20, penalty account 20, error type 10, repeats 10)        | #18; build #19           | A9          |
 | AI layer                          | Ollama, JSON output validated by pydantic, masking, cache, verifier                                         | #28; build #29           | A10, A28    |
 | Screens                           | Inbox, Exposure, Sentinel, Rules; detail drawer with gap chart, AI comment, lead-time badge                 | Built to UI reference    | A16         |
-| Extract intake, analysis date     | How the weekly extract reaches Okane, the analysis date, when an extract is late, archive of past weeks     | #23 (decided); build #24 | A38         |
+| Extract intake, analysis date     | How the weekly extract reaches Okane, the analysis date, when an extract is late, archive of past weeks     | #23 (decided); built #24 | A38         |
 | Mentor questions                  | Nine questions drafted; none depends on Intercompany or WHT                                                  | #2                       | A36         |
 
 ## 10. Changes in the Intercompany revision, and open items

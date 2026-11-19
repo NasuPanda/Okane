@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -74,6 +75,10 @@ LINE_COLUMNS = [
 NO_OVERDUE_MARKER = "no overdue"
 RATE_CHECK_RELATIVE = 1e-6
 AMOUNT_CHECK_EUR = 0.10  # source EUR amounts carry cent-level rounding
+# ASSUMPTION (A38): some accounts count ageing days one day differently (on the real Payroll
+# BPP sheet, 395 lines, nearly all pension-type, are exactly one day off), so only lines more
+# than a day away from the extract date count as disagreeing.
+EXTRACT_DATE_TOLERANCE_DAYS = 1
 
 
 class IngestError(ValueError):
@@ -303,27 +308,53 @@ def ingest(paths: list[Path], rates: dict[str, float]) -> IngestResult:
 
 
 def find_workbooks(folder: Path) -> list[Path]:
-    """Newest workbook per kind (Payroll, Fixed assets) in a folder; Excel lock files skipped."""
+    """Every workbook in a folder, newest first; Excel lock files skipped.
+
+    The kind is not guessed from the file name: the intake step reads the sheets (A38).
+    """
     if not folder.exists():
         return []
-    candidates = sorted(
+    return sorted(
         (p for p in folder.iterdir()
-         if p.suffix.lower() in WORKBOOK_SUFFIXES and not p.name.startswith("~$")),
+         if p.is_file() and p.suffix.lower() in WORKBOOK_SUFFIXES and not p.name.startswith("~$")),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )  # fmt: skip
-    newest: dict[str, Path] = {}
-    for path in candidates:
-        kind = guess_kind_from_name(path)
-        newest.setdefault(kind, path)
-    return sorted(newest.values(), key=lambda p: p.name)
 
 
-def guess_kind_from_name(path: Path) -> str:
-    """Kind used only to pick the newest file per kind; the sheet columns decide for real."""
-    name = path.name.lower()
-    if "payroll" in name:
-        return "Payroll"
-    if "fixed" in name or "asset" in name:
-        return "Fixed assets"
-    return path.name
+def workbook_kind(path: Path) -> tuple[str, dict[str, int]]:
+    """Check a workbook by its sheets and columns; return its kind and rows per sheet.
+
+    Raises ``IngestError`` with a plain message when the file is not a Payroll or Fixed assets
+    extract. ASSUMPTION (A38): an extract must carry both the P20 and the BPP sheet.
+    """
+    if path.suffix.lower() not in WORKBOOK_SUFFIXES:
+        raise IngestError(f"{path.name} is not an Excel workbook (.xlsx, .xlsm or .xls)")
+    kind, _, counts = read_workbook(path)
+    erps = {key.split("/")[1] for key in counts}
+    missing = sorted({"P20", "BPP"} - erps)
+    if missing:
+        raise IngestError(f"{kind} workbook {path.name} has no {' or '.join(missing)} sheet")
+    return kind, counts
+
+
+def extract_dates(lines: pd.DataFrame) -> dict[str, tuple[date | None, int]]:
+    """The day each workbook was extracted: posting date + ageing days, per line.
+
+    Returns ``{workbook: (date, lines that disagree)}``. ASSUMPTION (A38): the most common
+    value wins; lines within ``EXTRACT_DATE_TOLERANCE_DAYS`` of it agree; a workbook without
+    ageing days gives ``(None, 0)``.
+    """
+    out: dict[str, tuple[date | None, int]] = {}
+    for workbook, group in lines.groupby("workbook", sort=True):
+        ages = pd.to_numeric(group["age_days"], errors="coerce")
+        posted = pd.to_datetime(group["posting_date"], errors="coerce")
+        known = ages.notna() & posted.notna()
+        if not known.any():
+            out[str(workbook)] = (None, 0)
+            continue
+        taken = posted[known] + pd.to_timedelta(ages[known].astype(int), unit="D")
+        mode = taken.value_counts().index[0]
+        off = (taken - mode).dt.days.abs() > EXTRACT_DATE_TOLERANCE_DAYS
+        out[str(workbook)] = (mode.date(), int(off.sum()))
+    return out

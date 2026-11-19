@@ -309,6 +309,7 @@ def test_watcher_starts_a_run_when_a_workbook_lands(app_env: Path) -> None:
                 break
             time.sleep(0.2)
         assert run and run["trigger"] == "watcher" and run["status"] == "finished"
+        assert {s["route"] for s in run["sources"]} == {"watcher"}
 
 
 def test_scheduler_registers_monday_job(app_env: Path) -> None:
@@ -321,6 +322,98 @@ def test_scheduler_registers_monday_job(app_env: Path) -> None:
         assert (job.next_run_time.hour, job.next_run_time.minute) == (6, 0)
     finally:
         jobs.stop()
+
+
+# ----- extract intake (A38) -----------------------------------------------------------------
+def upload(client: TestClient, path: Path, name: str | None = None):  # type: ignore[no-untyped-def]
+    return client.post(
+        "/api/uploads", params={"filename": name or path.name}, content=path.read_bytes(),
+        headers={"Content-Type": "application/octet-stream"},
+    )  # fmt: skip
+
+
+def test_upload_starts_a_run(client: TestClient, synthetic_dir: Path) -> None:
+    response = upload(client, synthetic_dir / "Payroll_sample.xlsx")
+    assert response.status_code == 202, response.text
+    body = response.json()
+    assert (body["status"], body["kind"]) == ("accepted", "Payroll")
+    run = wait_for_run(client)
+    assert (run["trigger"], run["status"]) == ("upload", "finished"), run.get("error")
+    routes = {s["kind"]: s["route"] for s in run["sources"]}  # type: ignore[union-attr]
+    # the upload, plus the Fixed assets file the run's folder scan picked up
+    assert routes == {"Payroll": "upload", "Fixed assets": "manual"}
+    payroll = next(s for s in run["sources"] if s["kind"] == "Payroll")  # type: ignore[union-attr]
+    assert payroll["extract_date"] == "2026-10-23" and payroll["received_by"] == "controller"
+    assert payroll["late"] is False and payroll["next_due"]
+
+
+def test_upload_refuses_a_wrong_file_and_a_duplicate(
+    client: TestClient, synthetic_dir: Path, tmp_path: Path
+) -> None:
+    bad = tmp_path / "notes.xlsx"
+    bad.write_text("hello")
+    assert upload(client, bad).status_code == 422
+    assert upload(client, bad, "notes.csv").status_code == 422
+    assert upload(client, bad, "../evil.xlsx").status_code == 422
+    assert client.get("/api/runs/latest").json() is None  # no run for a refused file
+
+    assert upload(client, synthetic_dir / "Payroll_sample.xlsx").status_code == 202
+    first = wait_for_run(client)
+    again = upload(client, synthetic_dir / "Payroll_sample.xlsx", "Payroll_again.xlsx")
+    assert again.status_code == 409 and "already loaded" in again.json()["detail"]
+    assert client.get("/api/runs/latest").json()["run_id"] == first["run_id"]
+
+
+def test_the_newest_upload_wins_and_the_old_one_is_archived(
+    client: TestClient, synthetic_dir: Path, app_env: Path
+) -> None:
+    from tests.conftest import rewrite_workbook
+
+    assert upload(client, synthetic_dir / "Payroll_sample.xlsx").status_code == 202
+    wait_for_run(client)
+    newer = rewrite_workbook(synthetic_dir / "Payroll_sample.xlsx", app_env / "Payroll_w47.xlsx",
+                             drop_last_rows=1)  # fmt: skip
+    assert upload(client, newer).status_code == 202
+    run = wait_for_run(client)
+    assert "Payroll_w47.xlsx" in run["source_files"]  # type: ignore[operator]
+    [archived] = (app_env / "archive").iterdir()
+    assert archived.name.endswith("Payroll_sample.xlsx")
+
+
+def test_the_watched_folder_reaches_the_same_store(ran: TestClient, app_env: Path) -> None:
+    run = ran.get("/api/runs/latest").json()
+    assert {s["route"] for s in run["sources"]} == {"manual"}
+    stored = sorted(p.name for p in (app_env / "extracts").rglob("*.xlsx"))
+    assert stored == sorted(p.name for p in (app_env / "inbox").iterdir())
+    assert all((app_env / "inbox" / name).exists() for name in stored)  # folder untouched
+
+
+def test_analysis_date_is_the_payroll_extract_date(
+    app_env: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("OKANE_AS_OF")
+    get_settings.cache_clear()
+    with TestClient(create_app(get_settings())) as test_client:
+        run = test_client.post("/api/runs", params={"wait": True}).json()
+    assert run["as_of"] == "2026-10-23"
+    assert {s["kind"]: s["extract_date"] for s in run["sources"]} == {
+        "Payroll": "2026-10-23", "Fixed assets": "2026-10-02"}  # fmt: skip
+
+
+def test_a_monday_run_without_a_new_extract_is_flagged_late(
+    ran: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from datetime import datetime, timedelta
+
+    from app.services import schedule
+
+    later = datetime.now() + timedelta(days=15)
+    monday_run = schedule.last_scheduled_run(later, 0, 6, 0)
+    monkeypatch.setattr(schedule, "local_now", lambda: monday_run)
+    run = ran.post("/api/runs", params={"wait": True}).json()
+    assert run["status"] == "finished"
+    assert all(s["late"] for s in run["sources"])
+    assert any("No new Payroll extract since" in w for w in run["warnings"])
 
 
 # ----- fixtures and static serving ----------------------------------------------------------

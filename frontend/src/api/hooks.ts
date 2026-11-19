@@ -65,3 +65,7 @@ export function useSaveRules() {
 export function useStartRun() {
   return useMutation({ mutationFn: api.startRun });
 }
+
+export function useUploadExtract() {
+  return useMutation({ mutationFn: api.uploadExtract });
+}

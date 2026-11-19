@@ -504,3 +504,35 @@ def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
     top = output.records[0]
     assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
     assert output.counts["exposure_groups_above"] == 4
+
+
+# ----- extract date (A38) -------------------------------------------------------------------
+def test_real_extract_dates(real_payroll, real_fixed_assets) -> None:  # type: ignore[no-untyped-def]
+    """Brief section 6 ageing dates: Payroll 23 Oct 2026, Fixed assets 2 Oct 2026."""
+    from app.ingest import extract_dates
+
+    payroll = extract_dates(real_payroll.lines)["Payroll"]
+    fixed = extract_dates(real_fixed_assets.lines)["Fixed assets"]
+    assert payroll == (date(2026, 10, 23), 0)  # 395 BPP lines one day off are tolerated
+    assert fixed == (date(2026, 10, 2), 0)
+
+
+def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
+    """A38: a live run uses the Payroll extract date (23 Oct 2026), not the run date.
+
+    Aggregates only. Against 18 Nov: one missing-payment alert fewer (20, not 21; its
+    expected-by date falls after the extract), so 50 dated findings; the C192 gap still ranks
+    first at 89.4, 4 exposure groups stay above 500K and the median stays 25 days.
+    """
+    import statistics
+
+    from app.services.pipeline import run_engines
+
+    output = run_engines(real_lines, Rules(), date(2026, 10, 23))
+    records = output.records
+    assert sum(r.type == "pulse_missing_payment" for r in records) == 20
+    assert (records[0].type, records[0].entity, round(records[0].score, 1)) == (
+        "pulse_gap", "C192", 89.4)  # fmt: skip
+    assert output.counts["exposure_groups_above"] == 4
+    leads = [r.lead_days for r in records if r.lead_days is not None]
+    assert (len(leads), statistics.median(leads)) == (50, 25)

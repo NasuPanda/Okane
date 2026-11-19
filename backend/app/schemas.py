@@ -258,7 +258,25 @@ class Line(BaseModel):
     reversal: str | None
 
 
-RunTrigger = Literal["manual", "watcher", "schedule", "startup", "rules_change"]
+# ADDITION (#24): "upload" (A38).
+RunTrigger = Literal["manual", "watcher", "schedule", "startup", "rules_change", "upload"]
+# ADDITION (#24, A38): how an extract reached Okane's store.
+ExtractRoute = Literal["upload", "watcher", "schedule", "startup", "manual"]
+
+
+class ExtractSource(BaseModel):
+    """ADDITION (#24, A38): one workbook a run read, with where it came from."""
+
+    kind: Workgroup
+    file_name: str
+    file_hash: str
+    extract_date: date | None = None
+    route: ExtractRoute | None = None  # None for the synthetic sample folder
+    received_by: str | None = None
+    received_at: datetime | None = None
+    rows: int = 0
+    late: bool = False
+    next_due: datetime | None = None
 
 
 class Run(BaseModel):
@@ -277,6 +295,18 @@ class Run(BaseModel):
     counts: dict[str, int] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
     error: str | None = None
+    # ADDITION (#24, A38): the workbooks this run read, their extract dates and lateness.
+    sources: list[ExtractSource] = Field(default_factory=list)
+
+
+class UploadResult(BaseModel):
+    """ADDITION (#24, A38): answer to POST /api/uploads."""
+
+    status: Literal["accepted"]
+    kind: Workgroup
+    file_name: str
+    message: str
+    run: Run | None = None
 
 
 class RuleChange(BaseModel):

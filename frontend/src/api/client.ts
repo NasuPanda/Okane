@@ -18,6 +18,7 @@ import type {
   Rules,
   Run,
   RunEvent,
+  UploadResult,
 } from "./types";
 
 export const API_MODE: "live" | "fixtures" = import.meta.env.VITE_API_MODE === "fixtures" ? "fixtures" : "live";
@@ -34,6 +35,8 @@ export class ApiError extends Error {
 export interface Api {
   latestRun(): Promise<Run | null>;
   startRun(): Promise<Run>;
+  /** Send this week's extract; the backend checks it, keeps a copy and starts a run (A38). */
+  uploadExtract(file: File): Promise<UploadResult>;
   exceptions(filters?: ExceptionFilters): Promise<ExceptionRecord[]>;
   exception(id: string): Promise<ExceptionDetail>;
   decide(id: string, update: DecisionUpdate): Promise<ExceptionRecord>;
@@ -53,6 +56,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
   });
+  return parse<T>(response);
+}
+
+async function parse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let detail = response.statusText;
     try {
@@ -74,6 +81,14 @@ function query(params: Record<string, string | number | boolean | undefined>): s
 const liveApi: Api = {
   latestRun: () => request("/api/runs/latest"),
   startRun: () => request("/api/runs", { method: "POST" }),
+  uploadExtract: async (file) =>
+    parse(
+      await fetch(`/api/uploads${query({ filename: file.name })}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream" },
+        body: file,
+      }),
+    ),
   exceptions: (filters = {}) => request(`/api/exceptions${query(filters)}`),
   exception: (id) => request(`/api/exceptions/${id}`),
   decide: (id, update) => request(`/api/exceptions/${id}`, { method: "PATCH", body: JSON.stringify(update) }),
@@ -158,6 +173,17 @@ const fixtureApi: Api = {
     emit({ event: "run_started", data: run });
     setTimeout(() => emit({ event: "run_finished", data: { ...s.run, status: "finished" } }), 1400);
     return run;
+  },
+  async uploadExtract(file) {
+    if (!/\.(xlsx|xlsm|xls)$/i.test(file.name)) {
+      throw new ApiError(422, `${file.name} is not an Excel workbook (.xlsx, .xlsm or .xls).`);
+    }
+    const s = await loadStore();
+    const kind = /fixed|asset/i.test(file.name) ? ("Fixed assets" as const) : ("Payroll" as const);
+    const run = { ...s.run, status: "running" as const, trigger: "upload" as const };
+    emit({ event: "run_started", data: run });
+    setTimeout(() => emit({ event: "run_finished", data: { ...s.run, status: "finished" } }), 1400);
+    return later({ status: "accepted" as const, kind, file_name: file.name, message: `${kind} extract ${file.name} accepted. Checking it now.`, run });
   },
   async exceptions(filters = {}) {
     const s = await loadStore();

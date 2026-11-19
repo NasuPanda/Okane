@@ -31,7 +31,7 @@ def require_latest_run(state: AppState) -> Run:
     if run is None:
         raise HTTPException(
             status_code=404,
-            detail="No finished run yet. Start one with POST /api/runs or drop a workbook "
-            "in data/inbox/.",
+            detail="No finished run yet. Upload an extract, drop one in the watched folder, "
+            "or start a run with POST /api/runs.",
         )
     return run

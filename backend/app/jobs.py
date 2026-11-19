@@ -1,7 +1,10 @@
 """Folder watcher (watchdog) and weekly scheduler (APScheduler).
 
-- A workbook created in or moved into ``data/inbox`` starts a run after a short debounce, so a
-  file still being copied is not read half-written. Excel lock files (``~$...``) are ignored.
+- A workbook created in or moved into the watched folder (``OKANE_INBOX_DIR``, default
+  ``data/inbox``) starts a run after a short debounce, so a file still being copied is not read
+  half-written. Excel lock files (``~$...``) are ignored. The run's first step hands new files to
+  the intake step (A38), which copies them into Okane's store; the folder itself is never
+  changed. The Monday run scans the folder too, as a backstop for missed file events.
 - APScheduler runs the pipeline every Monday at 06:00 (configurable).
 
 Both only call ``trigger(name)``; the pipeline decides whether a run is already going.
