@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import statistics
 from collections import Counter
+from typing import get_args
 
 from fastapi import APIRouter, Depends
 
 from app.api import AppState, get_state
-from app.schemas import Kpis
+from app.schemas import InboxView, Kpis
 
 router = APIRouter(prefix="/api", tags=["kpis"])
 
@@ -21,7 +22,7 @@ def kpis(state: AppState = Depends(get_state)) -> Kpis:
         return Kpis(
             run_id=None, exceptions=0, open_exceptions=0, median_days_earlier=None,
             blind_spots=0, by_type={}, old_rule_lines=0, old_rule_overdue_abs=0.0,
-            exposure_groups_above=0,
+            exposure_groups_above=0, inbox_views={},
         )  # fmt: skip
     records = state.db.list_exceptions(run.run_id)
     leads = [r.lead_days for r in records if r.lead_days is not None]
@@ -30,6 +31,8 @@ def kpis(state: AppState = Depends(get_state)) -> Kpis:
     netting = payroll_netting(
         state.pipeline.lines(run.snapshot_id), state.db.get_rules().materiality_eur
     )
+    to_review = [r for r in records if r.status in {"new", "escalated"}]
+    views = Counter(r.inbox_view for r in to_review)
     return Kpis(
         run_id=run.run_id,
         exceptions=len(records),
@@ -40,4 +43,5 @@ def kpis(state: AppState = Depends(get_state)) -> Kpis:
         old_rule_lines=netting.old_rule_lines,
         old_rule_overdue_abs=netting.old_rule_overdue_abs,
         exposure_groups_above=netting.groups_above(),
+        inbox_views={**{v: views.get(v, 0) for v in get_args(InboxView)}, "all": len(to_review)},
     )

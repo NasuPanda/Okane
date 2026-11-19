@@ -30,6 +30,9 @@ Erp = Literal["P20", "BPP"]
 ExceptionClass = Literal["List component", "Timing item", "Required Adjustment Item"]
 Status = Literal["new", "explained", "dismissed", "escalated"]
 VerifierResult = Literal["passed", "failed", "not_run"]
+# ADDITION (#21, docs/ASSUMPTIONS.md A25): the inbox tab a finding sits on. "attention" is the
+# default view (at or above materiality, or a type in Rules.inbox_always_types).
+InboxView = Literal["attention", "prompts", "repeats", "other"]
 
 
 class ExceptionRecord(BaseModel):
@@ -62,6 +65,8 @@ class ExceptionRecord(BaseModel):
     decided_class: ExceptionClass | None = None
     # ADDITION: the preparer's edited comment, kept separate from the AI draft for audit.
     edited_comment: str | None = None
+    # ADDITION (#21, A25): the inbox tab, set by the pipeline from the run's Rules.
+    inbox_view: InboxView | None = None
 
 
 class PaymentProfile(BaseModel):
@@ -213,6 +218,9 @@ class Rules(BaseModel):
     # ADDITION (#18, A9): the repeats component is 1 when a Miner pattern on the account spans
     # at least this many months (the original rule).
     repeats_min_months: int = Field(default=3, ge=1)
+    # ADDITION (#21, A25): finding types shown in the inbox's default view whatever their amount
+    # (a missing payroll batch has no amount because it was never booked).
+    inbox_always_types: list[ExceptionType] = Field(default_factory=lambda: ["pulse_missing_batch"])
     error_type_severity: dict[str, float] = {
         "pulse_gap": 1.0,
         "pulse_missing_payment": 0.9,
@@ -472,3 +480,5 @@ class Kpis(BaseModel):
     old_rule_lines: int
     old_rule_overdue_abs: float
     exposure_groups_above: int
+    # ADDITION (#21, A25): findings still to review per inbox tab, plus "all".
+    inbox_views: dict[str, int] = Field(default_factory=dict)

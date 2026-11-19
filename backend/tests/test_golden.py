@@ -557,6 +557,24 @@ def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
     assert (lower[0].score, lower[1].score) == (90.0, 89.0)
 
 
+def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
+    """A25 (#21), aggregates only: 46 findings; the default view holds 19 at 500K (24 at 100K),
+    with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs."""
+    from collections import Counter
+
+    from app.services.pipeline import run_engines
+
+    for materiality, expected in ((500_000, 19), (100_000, 24)):
+        rules = Rules(materiality_eur=materiality)
+        records = run_engines(real_lines, rules, AS_OF).records
+        views = Counter(r.inbox_view for r in records)
+        assert views["attention"] == expected
+        assert (views["prompts"], views["repeats"]) == (17, 6)
+        first = next(r for r in records if r.inbox_view == "attention")
+        assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
+    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 46
+
+
 # ----- extract date (A38) -------------------------------------------------------------------
 def test_real_extract_dates(real_payroll, real_fixed_assets) -> None:  # type: ignore[no-untyped-def]
     """Brief section 6 ageing dates: Payroll 23 Oct 2026, Fixed assets 2 Oct 2026."""

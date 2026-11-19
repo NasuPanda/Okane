@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
 
@@ -16,6 +18,7 @@ from app.schemas import (
     ExceptionDetail,
     ExceptionRecord,
     ExceptionType,
+    InboxView,
     PulseTimeline,
     Status,
     Workgroup,
@@ -32,11 +35,18 @@ def list_exceptions(
     entity: str | None = None,
     min_exposure: float | None = None,
     status: Status | None = None,
+    view: InboxView | Literal["all"] = "all",
     state: AppState = Depends(get_state),
 ) -> list[ExceptionRecord]:
-    """Exceptions of the latest run, highest score first, with optional filters."""
+    """Exceptions of the latest run, highest score first, with optional filters.
+
+    ``view`` picks an inbox tab (A25): ``attention`` is the inbox's default view; ``all``
+    (the default here, for the other pages) returns every finding.
+    """
     run = require_latest_run(state)
     records = state.db.list_exceptions(run.run_id)
+    if view != "all":
+        records = [r for r in records if r.inbox_view == view]
     if type is not None:
         records = [r for r in records if r.type == type]
     if workgroup is not None:

@@ -17,7 +17,7 @@ from datetime import date
 import pandas as pd
 
 from app.engines.pairs import find_pairs
-from app.schemas import ExceptionRecord, ExposureGroup, Rules
+from app.schemas import ExceptionRecord, ExposureGroup, InboxView, Rules
 
 
 @dataclass
@@ -139,3 +139,21 @@ def score_records(
             )
         )
     return sorted(scored, key=lambda r: (-r.score, r.id))
+
+
+# ----- inbox views --------------------------------------------------------------------------
+# Decided (#21, docs/ASSUMPTIONS.md A25): mistake prompts and repeated manual postings have
+# their own inbox tabs; the default tab holds findings at or above materiality and the types in
+# Rules.inbox_always_types.
+PROMPT_TYPES = frozenset({"typo", "label_mismatch"})
+
+
+def inbox_view(record: ExceptionRecord, rules: Rules) -> InboxView:
+    """The inbox tab a finding sits on (A25)."""
+    if record.type in PROMPT_TYPES:
+        return "prompts"
+    if record.type == "miner_cluster":
+        return "repeats"
+    if abs(record.exposure_eur) >= rules.materiality_eur or record.type in rules.inbox_always_types:
+        return "attention"
+    return "other"

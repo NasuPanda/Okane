@@ -10,7 +10,7 @@ import { AlertTriangle, ArrowDownUp, BellRing, EyeOff, FileSpreadsheet, Hourglas
 import { useMemo, useState } from "react";
 
 import { useExceptions, useKpis, useLatestRun, useRules } from "@/api/hooks";
-import type { ExceptionRecord, Run, Status } from "@/api/types";
+import type { ExceptionRecord, InboxView, Run, Status } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
 import {
   Card,
@@ -114,6 +114,15 @@ const columns = [
 type StatusFilter = "open" | "decided" | "all";
 const OPEN: Status[] = ["new", "escalated"];
 const GROUPS = Object.keys(GROUP_LABEL) as TypeGroup[];
+// Inbox tabs (docs/ASSUMPTIONS.md A25): the default view holds findings at or above materiality
+// and missing batches; everything else is one tap away.
+type ViewFilter = InboxView | "all";
+const VIEWS: { value: ViewFilter; label: string; dot?: string }[] = [
+  { value: "attention", label: "Above materiality", dot: "var(--hot)" },
+  { value: "prompts", label: "Mistake prompts", dot: GROUP_TONE.mistakes.bar },
+  { value: "repeats", label: "Repeated postings", dot: GROUP_TONE.miner.bar },
+  { value: "all", label: "Everything" },
+];
 
 export function InboxPage() {
   const kpis = useKpis();
@@ -121,7 +130,7 @@ export function InboxPage() {
   const rules = useRules();
   const all = useExceptions();
   const open = useOpenFinding();
-  const [group, setGroup] = useState<TypeGroup | "all">("all");
+  const [view, setView] = useState<ViewFilter>("attention");
   const [workgroup, setWorkgroup] = useState<"all" | "Payroll" | "Fixed assets">("all");
   const [status, setStatus] = useState<StatusFilter>("open");
   const [sorting, setSorting] = useState<SortingState>([{ id: "score", desc: true }]);
@@ -130,11 +139,11 @@ export function InboxPage() {
     () =>
       (all.data ?? []).filter(
         (r) =>
-          (group === "all" || TYPE_GROUP[r.type] === group) &&
+          (view === "all" || r.inbox_view === view) &&
           (workgroup === "all" || r.workgroup === workgroup) &&
           (status === "all" || (status === "open" ? OPEN.includes(r.status) : !OPEN.includes(r.status))),
       ),
-    [all.data, group, workgroup, status],
+    [all.data, view, workgroup, status],
   );
   const counts = useMemo(() => {
     const out: Record<string, number> = { all: 0 };
@@ -142,10 +151,12 @@ export function InboxPage() {
       if (!OPEN.includes(r.status)) continue;
       out.all += 1;
       out[TYPE_GROUP[r.type]] = (out[TYPE_GROUP[r.type]] ?? 0) + 1;
+      if (r.inbox_view) out[r.inbox_view] = (out[r.inbox_view] ?? 0) + 1;
     }
     return out;
   }, [all.data]);
-  const urgent = (all.data ?? []).filter((r) => OPEN.includes(r.status) && r.score >= 70).length;
+  const attention = counts.attention ?? 0;
+  const limit = rules.data ? shortEur(rules.data.materiality_eur) : "materiality";
   const decided = (all.data ?? []).filter((r) => !OPEN.includes(r.status)).length;
 
   const table = useReactTable({
@@ -170,7 +181,8 @@ export function InboxPage() {
               lines "overdue". After matching what was paid, only{" "}
               <b className="num font-medium text-foreground">{k.exposure_groups_above}</b>{" "}
               {k.exposure_groups_above === 1 ? "account is" : "accounts are"} really open, and{" "}
-              <b className="num font-medium text-hot">{urgent}</b> {urgent === 1 ? "finding deserves" : "findings deserve"} a look first.
+              <b className="num font-medium text-hot">{attention}</b> {attention === 1 ? "finding" : "findings"} at or
+              above {limit} {attention === 1 ? "needs" : "need"} a look first.
             </>
           ) : (
             "Getting your findings ready…"
@@ -185,12 +197,12 @@ export function InboxPage() {
           dark
           index={0}
           label="Waiting for you"
-          value={k?.open_exceptions ?? "–"}
-          note={`out of ${k?.exceptions ?? "–"} found in the latest check`}
+          value={all.data ? attention : "–"}
+          note={`at or above ${limit}; ${counts.all} to review in all`}
           icon={BellRing}
           color="var(--signal)"
           soft="var(--dock-raised)"
-          bars={k ? (k.open_exceptions / Math.max(k.exceptions, 1)) * 48 : 0}
+          bars={(attention / Math.max(counts.all, 1)) * 48}
         />
         <StatCard
           index={1}
@@ -233,8 +245,8 @@ export function InboxPage() {
           </div>
           <SplitBar parts={GROUPS.map((g) => ({ label: GROUP_LABEL[g], value: counts[g] ?? 0, color: GROUP_TONE[g].bar }))} />
           <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
-            💡 Tip: tap a coloured pill below to see just one kind of finding. Click any row to see the evidence and
-            make your call.
+            💡 Tip: the list starts with findings at or above {limit}. Mistake prompts, repeated postings and
+            everything else are one tap away below. Click any row to see the evidence and make your call.
           </p>
         </Card>
         <Card className="flex flex-col items-center justify-center gap-2" style={stagger(5, 70)}>
@@ -247,12 +259,9 @@ export function InboxPage() {
 
       <div className="rise flex flex-wrap items-center justify-between gap-4" style={stagger(6, 70)}>
         <div className="flex flex-wrap items-center gap-2">
-          <Chip active={group === "all"} onClick={() => setGroup("all")} count={counts.all}>
-            Everything
-          </Chip>
-          {GROUPS.map((g) => (
-            <Chip key={g} active={group === g} onClick={() => setGroup(g)} count={counts[g] ?? 0} dot={GROUP_TONE[g].bar}>
-              {GROUP_LABEL[g]}
+          {VIEWS.map((v) => (
+            <Chip key={v.value} active={view === v.value} onClick={() => setView(v.value)} count={counts[v.value] ?? 0} dot={v.dot}>
+              {v.value === "attention" ? `Above ${limit}` : v.label}
             </Chip>
           ))}
         </div>

@@ -194,7 +194,8 @@ const fixtureApi: Api = {
           (!filters.workgroup || r.workgroup === filters.workgroup) &&
           (!filters.entity || r.entity === filters.entity) &&
           (filters.min_exposure === undefined || Math.abs(r.exposure_eur) >= filters.min_exposure) &&
-          (!filters.status || r.status === filters.status),
+          (!filters.status || r.status === filters.status) &&
+          (!filters.view || filters.view === "all" || r.inbox_view === filters.view),
       ),
     );
   },

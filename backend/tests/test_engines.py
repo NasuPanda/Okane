@@ -724,6 +724,22 @@ def test_score_breakdown_adds_up_and_ids_ignore_the_score() -> None:
                 assert 0 <= points <= rules.weights[name]
 
 
+def test_inbox_view_by_type_and_materiality() -> None:
+    """A25 (#21): prompts and Miner cards have their own tabs; the default view holds findings at
+    or above materiality and the types in Rules.inbox_always_types."""
+    from app.engines.exposure import inbox_view
+
+    rules = Rules(materiality_eur=500_000)
+    assert inbox_view(_finding("typo", exposure=9e6), rules) == "prompts"
+    assert inbox_view(_finding("label_mismatch", exposure=9e6), rules) == "prompts"
+    assert inbox_view(_finding("miner_cluster", exposure=9e6), rules) == "repeats"
+    assert inbox_view(_finding(exposure=-500_000), rules) == "attention", "at the limit, any sign"
+    assert inbox_view(_finding(exposure=499_999.99), rules) == "other"
+    assert inbox_view(_finding("pulse_missing_batch"), rules) == "attention"
+    assert inbox_view(_finding("pulse_missing_batch"), Rules(inbox_always_types=[])) == "other"
+    assert inbox_view(_finding(exposure=150_000), Rules(materiality_eur=100_000)) == "attention"
+
+
 def test_exception_ids_are_stable_across_runs(synthetic_lines: pd.DataFrame) -> None:
     rules = Rules()
     first = {r.id for r in run_pulse(synthetic_lines, rules, AS_OF).records}

@@ -226,14 +226,15 @@ links to the highest-scored finding on its account). The inbox now says so.
   label) and repeated manual postings have their own tabs; "Everything" shows all findings.
   Each tab shows its count of findings still to review.
 - Header: "Today's report calls 5,475 lines overdue. After matching what was paid, 4 accounts
-  are really open, and 19 findings at or above 500K need a look first." The "Waiting for you"
+  are really open, and N findings at or above 500K need a look first." The "Waiting for you"
   card counts the open findings in the default view. The Exposure page keeps counting accounts.
 - Demo: step 3 reads "4 accounts remain"; at 100K the accounts grow from 4 to 7 (step 6) and the
   default view grows with the same limit.
 - Real Payroll (aggregates, as of 18 Nov 2026): 46 findings; default view 19 at 500K (24 at
   100K), mistake prompts 17, repeated postings 6; the C192 gap is first. Synthetic: 14 findings,
-  6 in the default view. (Issue #21 counted 147 before the typo rule, the Miner and the
-  missing-payment limit.)
+  6 in the default view. A live run uses the extract date (A38, 23 Oct 2026), when one fewer
+  missing payment is due: 45 findings, 18 in the default view, so the demo header says 18.
+  (Issue #21 counted 147 before the typo rule, the Miner and the missing-payment limit.)
 - Rejected: a priority-score threshold (6 at 500K; a number accountants would need explained);
   one row per account (3 of the 7 accounts at 100K have no finding to open); no filter (46 rows).
 Owner: team.

@@ -302,7 +302,7 @@ class Rules(BaseModel):
 | GET /api/runs/latest                             | Run id, source file, start and finish times, counts                               | Header, toast      |
 | POST /api/runs                                   | Starts a run on the newest workbook                                               | Demo button        |
 | GET /api/events                                  | Server-sent events: run_started, run_finished                                     | Toast              |
-| GET /api/exceptions                              | Exceptions sorted by score; filters for type, workgroup, entity, minimum exposure | Inbox              |
+| GET /api/exceptions                              | Exceptions sorted by score; filters for type, workgroup, entity, minimum exposure, inbox view (A25) | Inbox              |
 | GET /api/exceptions/{id}                         | One exception with its evidence lines and chart series                            | Drawer             |
 | PATCH /api/exceptions/{id}                       | Updates status, decision reason or edited comment                                 | Accept and dismiss |
 | POST /api/exceptions/{id}/comment                | AI draft with the verifier result, cached                                         | Comment panel      |
