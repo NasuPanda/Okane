@@ -152,6 +152,13 @@ const FACT_LABEL: Record<string, string> = {
   lead_days: "Days earlier than today's report",
 };
 
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+/** Rules.weekly_run_weekday (0 = Monday) as a day name, for "the weekly Monday run". */
+export function weekdayName(day: number | null | undefined): string {
+  return WEEKDAYS[day ?? 0] ?? WEEKDAYS[0];
+}
+
 export function factLabel(key: string): string {
   return FACT_LABEL[key] ?? key.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 }

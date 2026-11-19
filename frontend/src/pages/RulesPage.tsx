@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
-import { WEIGHT_LABEL } from "@/lib/labels";
+import { WEIGHT_LABEL, weekdayName } from "@/lib/labels";
 import { cn, eur, shortEur, stamp } from "@/lib/utils";
 
 type Scope = NonNullable<Rules["sentinel_s1_scope"]>;
@@ -215,7 +215,7 @@ export function RulesPage() {
                 <div className="text-sm">Count "days earlier" from</div>
                 <div className="grid grid-cols-2 gap-2">
                   {([
-                    ["weekly", "The weekly Monday run", "Honest for a weekly run"],
+                    ["weekly", `The weekly ${weekdayName(draft.weekly_run_weekday)} run`, "Honest for a weekly run"],
                     ["daily", "The first sign itself", "As if Okane ran every day"],
                   ] as const).map(([value, label, hint]) => (
                     <button
