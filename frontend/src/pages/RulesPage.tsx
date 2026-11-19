@@ -33,6 +33,7 @@ const FIELD_LABEL: Record<string, string> = {
   tolerance_pct: "Tolerance (share of batch)",
   tolerance_eur: "Tolerance floor (EUR)",
   grace_days: "Grace days",
+  missing_payment_lookback_months: "Missing payments: months checked",
   outlier_multiple: "Unusually large means",
   sentinel_s1_scope: "Large amounts checked for",
   sentinel_s2_min_amount: "Same amount, two currencies: smallest amount",
@@ -228,6 +229,12 @@ export function RulesPage() {
                 hint="Extra days we wait after the usual payment date before calling it missing"
                 value={draft.grace_days ?? 0}
                 onChange={(v) => set("grace_days", v)}
+              />
+              <NumberField
+                label="Missing payments: months checked"
+                hint="Accruals whose payment was due longer ago are not raised (the gap alert still lists them)"
+                value={draft.missing_payment_lookback_months ?? 12}
+                onChange={(v) => set("missing_payment_lookback_months", v)}
               />
               <NumberField
                 label="Close review: working day after month end"
