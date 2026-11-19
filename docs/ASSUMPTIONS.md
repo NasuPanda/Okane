@@ -288,17 +288,23 @@ the allow-list, which removes Alloc and recov); period labels: 7. The previous p
 
 *Model check (#30, built 19 Nov 2026).* For each spelling prompt the local model (A10) reads the
 flagged word, the common word, how often each is written and up to three line texts of that
-account that contain the word (names masked). It answers whether the writer meant the common
-word, and suggests a spelling. The verdict is advisory: it is shown under the prompt ("The
+account that contain the word (names and numbers of 6 digits or more masked). It answers
+`{"is_typo", "suggestion"}`, both required (Ollama may skip an optional key). No reason is
+asked for: an optional one was always skipped, and a required one, written first, gave worse
+verdicts on real data (SwissLlife read as a name, recov as a typo), so it was dropped in the
+#62 review. The verdict is advisory: it is shown under the prompt ("The
 assistant reads this as a typo of ..." or "... as a real word, not a typo. You decide.") and
 never removes the prompt or changes its id, score, status or class. For a "real word" verdict
 the drawer offers "Add the word to the allow-list", which saves the Rules with a logged reason
 and re-runs (A33). A suggestion is kept only if it is a word of the run's own dictionary, at most
 `typo_max_edits` letters from the flagged word and at least `typo_common_ratio` times as common;
-otherwise the rule's suggestion stands. Period-label prompts are not checked. Without a model
-nothing is added; cached verdicts are reused. Real data (qwen2.5 7B): retirment, SwissLlife
-and URSAAF are confirmed with the rule's suggestion; with an empty allow-list Alloc and recov are
-read as real words; Adjustmnt is read as a shortened word (the prompt stays). Owner: team.
+otherwise the rule's suggestion stands. The cache holds the model's own answer, keyed by the
+prompt version, system prompt, output schema and prompt, and this suggestion rule is applied
+each time it is read, so a Rules change takes effect without asking the model again.
+Period-label prompts are not checked. Without a model nothing is added; cached verdicts are
+reused. Real data (qwen2.5 7B, 19 Nov 2026, after the review): Adjustmnt, retirment, SwissLlife
+and URSAAF are confirmed with the rule's suggestion; with an empty allow-list Alloc is read as a
+real word and recov as a typo of recon (the allow-list keeps recov out by default). Owner: team.
 
 **A7. Recurring-Correction Miner.** *Decided (#14, 19 Nov 2026; the original rule per A37,
 pending mentor question 5).* The CC06 cluster was in the removed Intercompany workbook, so

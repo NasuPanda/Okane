@@ -12,7 +12,11 @@ word, a name).
   times as common (the rule's own idea of a common word). Otherwise the rule's suggestion
   stands.
 - Without a model nothing is added, and the edit-distance result stands as before.
-- Verdicts are cached by task, model, prompt version and a hash of the prompt.
+- The model's raw answer is cached by task, model and a hash of the prompt version, system
+  prompt, output schema and prompt. The suggestion rule above is applied each time it is read,
+  so a Rules change takes effect without asking the model again.
+- Line texts are masked (names, and numbers of 6 digits or more such as references) before the
+  model sees them.
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 from collections import Counter
 
 import httpx
@@ -36,7 +41,8 @@ from app.schemas import ExceptionRecord, Rules, TypoCheck
 
 log = logging.getLogger("okane.ai")
 TASK = "typo"
-TYPO_PROMPT_VERSION = "v2"
+TYPO_PROMPT_VERSION = "v3"
+LONG_NUMBER = re.compile(r"\d{6,}")  # document numbers and references add nothing to spelling
 
 TYPO_SYSTEM_PROMPT = """You check possible spelling mistakes in the text of accounting lines.
 A simple rule flagged a word because it is rare in this data and one letter away from a word
@@ -46,20 +52,22 @@ for provision, "Reclas" for reclassification); words in another language (French
 Spanish ...); names, codes and references. A typo is a word with a letter accidentally missing,
 added, doubled or wrong, where the writer clearly meant the common word.
 Read the line texts first and ask: given these texts, did the writer mean the common word?
-- reason: one short sentence.
 - is_typo: true only if the writer clearly meant the common word.
 - suggestion: the correct spelling when is_typo is true, otherwise null.
 Answer with JSON only:
-{"reason": "...", "is_typo": true or false, "suggestion": "<word>" or null}"""
+{"is_typo": true or false, "suggestion": "<word>" or null}"""
 
 
 class TypoVerdict(BaseModel):
-    """The only shape accepted from the model for this task. ``reason`` is asked for first so
-    the model weighs the texts before answering; it is not stored or shown."""
+    """The only shape accepted from the model for this task.
 
-    reason: str = ""
+    Both keys are required: Ollama writes required keys first and may skip an optional one.
+    No reason is asked for (#62 review): an optional one was always skipped, and a required
+    one, written first, gave worse verdicts on real data with the 7B model (A6).
+    """
+
     is_typo: bool
-    suggestion: str | None = None
+    suggestion: str | None
 
 
 def spelling_prompts(records: list[ExceptionRecord]) -> list[ExceptionRecord]:
@@ -67,9 +75,14 @@ def spelling_prompts(records: list[ExceptionRecord]) -> list[ExceptionRecord]:
     return [r for r in records if r.type == "typo" and isinstance(r.facts.get("found"), str)]
 
 
+def mask_text(text: str) -> str:
+    """Names and long numbers (references, document numbers) masked."""
+    return LONG_NUMBER.sub("[number]", mask(text))
+
+
 def typo_prompt(record: ExceptionRecord, samples: list[str]) -> str:
     payload = {
-        "line_texts": [mask(s) for s in samples],
+        "line_texts": [mask_text(s) for s in samples],
         "rare_word": mask(str(record.facts["found"])),
         "rare_word_times": record.facts.get("occurrences"),
         "common_word": mask(str(record.facts.get("suggestion", ""))),
@@ -79,7 +92,12 @@ def typo_prompt(record: ExceptionRecord, samples: list[str]) -> str:
 
 
 def cache_key(prompt: str, settings: Settings) -> str:
-    raw = json.dumps({"v": TYPO_PROMPT_VERSION, "prompt": prompt}, sort_keys=True)
+    """Everything the model is given, so any change to it asks again."""
+    raw = json.dumps(
+        {"v": TYPO_PROMPT_VERSION, "system": TYPO_SYSTEM_PROMPT,
+         "schema": TypoVerdict.model_json_schema(), "prompt": prompt},
+        sort_keys=True,
+    )  # fmt: skip
     return f"{TASK}:{settings.ollama_model}:{hashlib.sha256(raw.encode()).hexdigest()[:16]}"
 
 
@@ -110,25 +128,28 @@ def check_typo(
     settings: Settings,
     http: httpx.Client | None,
 ) -> TypoCheck | None:
-    """Cached verdict, or a fresh one when ``http`` is given. Raises if the model fails."""
+    """Cached verdict, or a fresh one when ``http`` is given. Raises if the model fails.
+
+    The cache holds the model's own answer; the suggestion rule uses today's Rules and words.
+    """
     prompt = typo_prompt(record, samples)
     key = cache_key(prompt, settings)
     hit = db.cache_get(key)
     if hit is not None:
-        return TypoCheck.model_validate(hit)
-    if http is None:
+        verdict = TypoVerdict.model_validate(hit)
+    elif http is None:
         return None
-    messages = [
-        {"role": "system", "content": TYPO_SYSTEM_PROMPT},
-        {"role": "user", "content": prompt},
-    ]
-    verdict = chat(messages, TypoVerdict, settings, http)
-    result = TypoCheck(
+    else:
+        messages = [
+            {"role": "system", "content": TYPO_SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ]
+        verdict = chat(messages, TypoVerdict, settings, http)
+        db.cache_put(key, verdict.model_dump())
+    return TypoCheck(
         verdict="typo" if verdict.is_typo else "not_a_typo",
         suggestion=accepted_suggestion(verdict, record, vocabulary, rules),
     )
-    db.cache_put(key, result.model_dump())
-    return result
 
 
 def annotate_typos(
