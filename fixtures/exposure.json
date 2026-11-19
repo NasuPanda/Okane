@@ -2,7 +2,7 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261118T173235_057094",
+  "run_id": "run_20261119T084313_a80014",
   "materiality_eur": 500000.0,
   "old_rule_lines": 72,
   "old_rule_overdue_abs": 11358855.29,
@@ -55,7 +55,7 @@
     "net_eur": -160000.02,
     "paired_lines": 0,
     "above_materiality": false,
-    "exception_id": null
+    "exception_id": "f4d7086d081a2e09"
    },
    {
     "erp": "BPP",

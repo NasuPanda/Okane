@@ -56,15 +56,6 @@
    "failed_figures": [],
    "cached": false
   },
-  "2bfb780a3f72d9bf": {
-   "exception_id": "2bfb780a3f72d9bf",
-   "comment": "Standard note (no AI was used): You may have made a mistake: 'Auzahl' looks like 'Auszahl', which this account uses 9 times.",
-   "source": "template",
-   "verifier": "not_run",
-   "checked_figures": [],
-   "failed_figures": [],
-   "cached": false
-  },
   "ca26141f45d62ffe": {
    "exception_id": "ca26141f45d62ffe",
    "comment": "Standard note (no AI was used): The payment of 614,052 EUR is labelled 2026-01 but settles the 2026-02 batch. Correct the payment text if the label is wrong.",
@@ -76,7 +67,7 @@
   },
   "3267f451b8da112e": {
    "exception_id": "3267f451b8da112e",
-   "comment": "Standard note (no AI was used): You may have made a mistake: 'URSAAF' looks like 'URSSAF', which this account uses 32 times.",
+   "comment": "Standard note (no AI was used): You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 66 times.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],
@@ -155,9 +146,9 @@
    "failed_figures": [],
    "cached": false
   },
-  "2853e8b1894ed623": {
-   "exception_id": "2853e8b1894ed623",
-   "comment": "Standard note (no AI was used): You may have made a mistake: 'trnasit' looks like 'transit', which this account uses 16 times.",
+  "f4d7086d081a2e09": {
+   "exception_id": "f4d7086d081a2e09",
+   "comment": "Standard note (no AI was used): You may have made a mistake: 'Pauroll' looks like 'Payroll', which is used 92 times.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],

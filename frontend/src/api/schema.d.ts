@@ -786,20 +786,22 @@ export interface components {
              */
             sentinel_s2_min_amount: number;
             /**
-             * Typo Min Similarity
-             * @default 80
+             * Typo Max Rare Count
+             * @default 3
              */
-            typo_min_similarity: number;
+            typo_max_rare_count: number;
             /**
-             * Typo Dictionary Min Count
-             * @default 5
+             * Typo Common Ratio
+             * @default 20
              */
-            typo_dictionary_min_count: number;
+            typo_common_ratio: number;
             /**
-             * Typo Rarity Ratio
-             * @default 2.5
+             * Typo Max Edits
+             * @default 1
              */
-            typo_rarity_ratio: number;
+            typo_max_edits: number;
+            /** Typo Allow List */
+            typo_allow_list?: string[];
             /**
              * Miner Min Repeats
              * @default 3

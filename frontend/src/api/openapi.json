@@ -1947,20 +1947,27 @@
             "title": "Sentinel S2 Min Amount",
             "default": 1000
           },
-          "typo_min_similarity": {
-            "type": "number",
-            "title": "Typo Min Similarity",
-            "default": 80.0
-          },
-          "typo_dictionary_min_count": {
+          "typo_max_rare_count": {
             "type": "integer",
-            "title": "Typo Dictionary Min Count",
-            "default": 5
+            "title": "Typo Max Rare Count",
+            "default": 3
           },
-          "typo_rarity_ratio": {
+          "typo_common_ratio": {
             "type": "number",
-            "title": "Typo Rarity Ratio",
-            "default": 2.5
+            "title": "Typo Common Ratio",
+            "default": 20.0
+          },
+          "typo_max_edits": {
+            "type": "integer",
+            "title": "Typo Max Edits",
+            "default": 1
+          },
+          "typo_allow_list": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Typo Allow List"
           },
           "miner_min_repeats": {
             "type": "integer",

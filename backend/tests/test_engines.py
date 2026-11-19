@@ -29,7 +29,7 @@ from app.engines.sentinel import (
     two_currency_alerts,
 )
 from app.engines.typos import run_typos
-from app.schemas import PaymentProfile, Rules
+from app.schemas import ExceptionRecord, PaymentProfile, Rules
 
 AS_OF = date(2026, 11, 18)
 
@@ -331,14 +331,36 @@ def test_s3_currency_codes() -> None:
 
 
 # ----- typos --------------------------------------------------------------------------------
-def test_spelling_prompt_uses_account_dictionary() -> None:
-    rows = [{"text": "URSSAF/ASSEDIC SITE03 - Jan'2026"} for _ in range(6)]
+def spelling(rows: list[dict[str, object]], rules: Rules | None = None) -> list[ExceptionRecord]:
+    return [r for r in run_typos(frame(rows), rules or Rules()) if "found" in r.facts]
+
+
+def test_spelling_prompt_one_edit_from_a_word_used_20_times_as_often() -> None:
+    """A6 (#12): rare word, one letter away, the usual spelling 20x as common; Text and header."""
+    rows = [{"text": "URSSAF/ASSEDIC SITE03 - Jan'2026"} for _ in range(20)]
     rows.append({"text": "URSAAF/ASSEDIC SITE03 - Feb'2026", "document_no": "0000000077"})
-    rows += [{"text": "deductions"} for _ in range(6)] + [{"text": "deduction"}]
-    records = [r for r in run_typos(frame(rows), Rules()) if "found" in r.facts]
-    assert [(r.facts["found"], r.facts["suggestion"]) for r in records] == [("URSAAF", "URSSAF")]
-    assert records[0].evidence == ["0000000077/2026"]
-    assert str(records[0].facts["prompt"]).startswith("You may have made a mistake")
+    rows += [{"text": "Retirement fund"} for _ in range(20)]
+    rows.append({"text": "", "header_text": "Retirment fund", "document_no": "0000000078"})
+    rows += [{"text": "deductions"} for _ in range(30)] + [{"text": "deduction"}]  # plural
+    rows += [{"text": "Langfr. Rueckst."} for _ in range(30)] + [{"text": "Langrf. Rueckst."}]
+    records = spelling(rows)
+    assert sorted((r.facts["found"], r.facts["suggestion"]) for r in records) == [
+        ("Retirment", "Retirement"), ("URSAAF", "URSSAF")
+    ]  # fmt: skip
+    ursaaf = next(r for r in records if r.facts["found"] == "URSAAF")
+    assert ursaaf.evidence == ["0000000077/2026"]
+    assert ursaaf.facts["edits"] == 1 and ursaaf.facts["dictionary_count"] == 20
+    assert str(ursaaf.facts["prompt"]).startswith("You may have made a mistake")
+
+
+def test_spelling_prompt_thresholds_and_allow_list_come_from_rules() -> None:
+    rows = [{"text": "Allow payroll"} for _ in range(19)] + [{"text": "Alloc payroll"}]
+    assert spelling(rows) == [], "19 is not 20 times as common, and 'alloc' is allowed"
+    rows.append({"text": "Allow payroll"})
+    assert spelling(rows) == [], "on the allow-list"
+    records = spelling(rows, Rules(typo_allow_list=[]))
+    assert [(r.facts["found"], r.facts["suggestion"]) for r in records] == [("Alloc", "Allow")]
+    assert spelling(rows, Rules(typo_allow_list=[], typo_common_ratio=25)) == []
 
 
 def test_period_label_prompt() -> None:

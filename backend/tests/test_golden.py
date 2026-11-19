@@ -247,9 +247,19 @@ def test_real_sentinel_s3(real_all_lines: pd.DataFrame, real_lines: pd.DataFrame
     assert currency_code_alerts(real_lines) == [], "Payroll has none"
 
 
-def test_real_typos_find_known_misspellings(real_lines: pd.DataFrame) -> None:
-    found = {str(r.facts.get("found")).lower() for r in run_typos(real_lines, Rules())}
-    assert {"auzahl", "ursaaf"} <= found
+def test_real_typo_prompts(real_all_lines: pd.DataFrame) -> None:
+    """A6 (decided, #12): 4 spelling prompts and 7 period labels, all on Payroll."""
+    records = run_typos(real_all_lines, Rules())
+    spelling = [r for r in records if "found" in r.facts]
+    assert {str(r.facts["found"]).lower() for r in spelling} == {
+        "adjustmnt", "retirment", "swissllife", "ursaaf"
+    }  # fmt: skip
+    assert all(r.workgroup == "Payroll" for r in records), "Fixed assets has none"
+    periods = [r for r in records if "found_period" in r.facts]
+    assert len(periods) == 7
+    no_allow_list = run_typos(real_all_lines, Rules(typo_allow_list=[]))
+    found = {str(r.facts.get("found")).lower() for r in no_allow_list if "found" in r.facts}
+    assert found - {str(r.facts["found"]).lower() for r in spelling} == {"alloc", "recov"}
 
 
 # ----- engines on synthetic data (always run) -----------------------------------------------
@@ -316,7 +326,7 @@ def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
     typos = {
         (r.facts.get("found"), r.facts.get("suggestion")) for r in run_typos(synthetic_lines, rules)
     }
-    assert {("Auzahl", "Auszahl"), ("URSAAF", "URSSAF"), ("trnasit", "transit")} <= typos
+    assert typos == {("URSAAF", "URSSAF"), ("Pauroll", "Payroll")}, "A6: swaps are two edits"
     planted = [r for r in run_miner(synthetic_lines, rules) if r.account == "279002"]
     assert len(planted) == 1 and planted[0].facts["months"] == 4
 

@@ -129,7 +129,7 @@ const FACT_LABEL: Record<string, string> = {
   euro_since: "Replaced by the euro on",
   found: "Written as",
   suggestion: "Did you mean",
-  similarity_pct: "How similar (%)",
+  edits: "Letters different",
   occurrences: "Times written this way",
   dictionary_count: "Times written the usual way",
   found_period: "Month on the line",
