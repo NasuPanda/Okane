@@ -188,3 +188,39 @@ def verify(
     for figure in extract_figures(remainder):
         (checked if matches(figure, candidates) else failed).append(figure.text)
     return VerifierOutput("failed" if failed else "passed", checked, failed)
+
+
+# ----- wording check (#29, #45) ------------------------------------------------------------
+MAX_WORDS = 60
+SENTENCE = re.compile(r"[^.!?]+")
+CLASS_NAMES = re.compile(r"\b(list component|timing item|required adjustment)", re.IGNORECASE)
+RISK_WORDS = re.compile(
+    r"\b(risk level|(?:high|medium|low)[- ]risk|risk score|score)\b", re.IGNORECASE
+)
+DEADLINE_WORDS = re.compile(r"\b(deadline|due date|no later than)\b", re.IGNORECASE)
+CAUSE_WORDS = re.compile(
+    r"\b(because|caused by|the cause|the reason|(?:is|are|was|were) (?:likely )?due to)\b",
+    re.IGNORECASE,
+)
+HEDGE_WORDS = re.compile(r"\b(possible|possibly|may|might|could|perhaps)\b", re.IGNORECASE)
+
+
+def wording_issues(text: str) -> list[str]:
+    """What the comment says that the prompt contract forbids, in plain language.
+
+    Run on the model's own text (slots count as one word each). Figures are checked by
+    ``verify``; this covers length, causes stated as fact, classes, risk levels and deadlines.
+    """
+    issues = []
+    words = len(text.split())
+    if words > MAX_WORDS:
+        issues.append(f"Longer than {MAX_WORDS} words ({words})")
+    if any(CAUSE_WORDS.search(s) and not HEDGE_WORDS.search(s) for s in SENTENCE.findall(text)):
+        issues.append("States a cause as fact instead of 'a possible cause'")
+    if CLASS_NAMES.search(text):
+        issues.append("Names a classification; the accountant decides the class")
+    if RISK_WORDS.search(text):
+        issues.append("Gives a risk level or score")
+    if DEADLINE_WORDS.search(text):
+        issues.append("Sets a deadline or due date")
+    return issues

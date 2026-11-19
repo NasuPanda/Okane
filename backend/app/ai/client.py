@@ -1,11 +1,17 @@
-"""Ollama client and comment cache (brief sections 5 and 9, "AI layer").
+"""Ollama client and comment cache (brief sections 5 and 9, "AI layer"; A10, decided in #28/#45).
 
-- The model writes a comment for one exception from masked text and the ``facts`` dict only.
-- Output must be JSON ``{"comment": "..."}``, validated with pydantic.
-- ``verifier.verify`` checks every figure; a failed draft is retried once.
-- Model drafts are cached in DuckDB by exception id plus a hash of what the model saw.
-- If Ollama is unreachable or disabled, a clearly labelled deterministic template comment is
-  returned with ``verifier = "not_run"``; the app keeps working.
+- The model writes a comment for one exception from ``prompts.user_prompt`` only: named figures
+  it refers to as ``{name}``, masked context text, no title, no document numbers.
+- Output must be JSON ``{"comment": "..."}``: passed to Ollama as a JSON schema and validated
+  with pydantic.
+- Each draft is rendered (slots filled by code), then checked: unknown names,
+  ``verifier.verify`` on every figure and ``verifier.wording_issues``. A rejected draft is sent
+  back once with the reasons (retry with feedback; at temperature 0 a plain retry repeats it).
+- If the second draft is also rejected, the labelled template is returned with the rejected
+  draft attached, so the preparer never copies an unconfirmed figure.
+- Outcomes are cached in DuckDB by task, model, exception id and a hash of the prompt.
+- If Ollama is unreachable or disabled, the labelled template is returned with
+  ``verifier = "not_run"`` (not cached); the app keeps working.
 """
 
 from __future__ import annotations
@@ -13,18 +19,27 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from dataclasses import dataclass
 
 import httpx
 from pydantic import BaseModel, Field, ValidationError
 
-from app.ai.prompts import PROMPT_VERSION, SYSTEM_PROMPT, template_comment, user_prompt
-from app.ai.verifier import verify
+from app.ai.prompts import (
+    PROMPT_VERSION,
+    SYSTEM_PROMPT,
+    figures,
+    render,
+    template_comment,
+    user_prompt,
+)
+from app.ai.verifier import VerifierOutput, verify, wording_issues
 from app.config import Settings
 from app.database import Database
 from app.schemas import Comment, ExceptionRecord
 
 log = logging.getLogger("okane.ai")
 MAX_ATTEMPTS = 2
+TASK = "comment"
 
 
 class ModelOutput(BaseModel):
@@ -37,20 +52,26 @@ class ModelUnavailableError(RuntimeError):
     """Ollama is not reachable or returned something unusable."""
 
 
-def facts_hash(record: ExceptionRecord) -> str:
+@dataclass
+class Attempt:
+    raw: str  # the model's text, with {slots}
+    text: str  # rendered: slots filled with the exact figures
+    outcome: VerifierOutput
+    reasons: list[str]  # why it was rejected; empty when it passes
+
+
+def prompt_hash(record: ExceptionRecord) -> str:
     """Hash of everything the model sees, so a changed finding gets a fresh comment."""
-    raw = json.dumps(
-        {"v": PROMPT_VERSION, "title": record.title, "facts": record.facts}, sort_keys=True
-    )
+    raw = json.dumps({"v": PROMPT_VERSION, "prompt": user_prompt(record)}, sort_keys=True)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
-def cache_key(record: ExceptionRecord) -> str:
-    return f"{record.id}:{facts_hash(record)}"
+def cache_key(record: ExceptionRecord, settings: Settings) -> str:
+    return f"{TASK}:{settings.ollama_model}:{record.id}:{prompt_hash(record)}"
 
 
-def cached_comment(record: ExceptionRecord, db: Database) -> Comment | None:
-    payload = db.cache_get(cache_key(record))
+def cached_comment(record: ExceptionRecord, db: Database, settings: Settings) -> Comment | None:
+    payload = db.cache_get(cache_key(record, settings))
     if payload is None:
         return None
     return Comment.model_validate({**payload, "cached": True})
@@ -80,17 +101,14 @@ def ollama_available(settings: Settings, http: httpx.Client | None = None) -> bo
             client.close()
 
 
-def call_model(record: ExceptionRecord, settings: Settings, http: httpx.Client) -> str:
+def call_model(messages: list[dict[str, str]], settings: Settings, http: httpx.Client) -> str:
     """One chat call. Returns the validated comment text."""
     body = {
         "model": settings.ollama_model,
         "stream": False,
-        "format": "json",
+        "format": ModelOutput.model_json_schema(),
         "options": {"temperature": 0},
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt(record)},
-        ],
+        "messages": messages,
     }
     try:
         response = http.post(f"{settings.ollama_url}/api/chat", json=body)
@@ -101,27 +119,57 @@ def call_model(record: ExceptionRecord, settings: Settings, http: httpx.Client) 
         raise ModelUnavailableError(str(exc)) from exc
 
 
+def check(raw: str, record: ExceptionRecord, figs: dict[str, dict[str, str]]) -> Attempt:
+    """Render the draft and list every reason to reject it, in plain language."""
+    text, unknown = render(raw, figs)
+    outcome = verify(text, record.facts, [record.entity, record.account])
+    reasons = [f"Uses a figure name we don't have: {{{name}}}" for name in unknown]
+    reasons += [f"'{figure}' doesn't match any of our figures" for figure in outcome.failed]
+    reasons += wording_issues(raw)
+    return Attempt(raw, text, outcome, reasons)
+
+
+def feedback(attempt: Attempt, figs: dict[str, dict[str, str]]) -> str:
+    """The retry message: what was wrong and the names the model may use."""
+    lines = "\n".join(f"- {reason}" for reason in attempt.reasons)
+    names = ", ".join("{" + name + "}" for name in figs) or "(none)"
+    return (
+        f"Your note was not accepted:\n{lines}\n"
+        "Rewrite it following the rules. Write every figure as its name in braces, using only "
+        f"these names: {names}. Answer with JSON only."
+    )
+
+
 def model_comment(record: ExceptionRecord, settings: Settings, http: httpx.Client) -> Comment:
-    """Draft, verify, retry once if a figure fails; return the best attempt."""
-    extra = [record.entity, record.account]
-    best: Comment | None = None
+    """Draft and check; on rejection retry once with feedback; else the template + the draft."""
+    figs = figures(record)
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_prompt(record)},
+    ]
+    attempt: Attempt | None = None
     for _ in range(MAX_ATTEMPTS):
-        text = call_model(record, settings, http)
-        outcome = verify(text, record.facts, extra)
-        best = Comment(
-            exception_id=record.id,
-            comment=text,
-            source="model",
-            verifier=outcome.result,
-            checked_figures=outcome.checked,
-            failed_figures=outcome.failed,
-            cached=False,
-        )
-        if outcome.result == "passed":
-            break
-        log.warning("comment for %s failed verification; retrying", record.id)
-    assert best is not None
-    return best
+        if attempt is not None:
+            messages += [
+                {"role": "assistant", "content": json.dumps({"comment": attempt.raw})},
+                {"role": "user", "content": feedback(attempt, figs)},
+            ]
+        attempt = check(call_model(messages, settings, http), record, figs)
+        if not attempt.reasons:
+            return Comment(
+                exception_id=record.id,
+                comment=attempt.text,
+                source="model",
+                verifier="passed",
+                checked_figures=attempt.outcome.checked,
+                failed_figures=[],
+                cached=False,
+            )
+        log.warning("comment for %s rejected (%d reasons)", record.id, len(attempt.reasons))
+    assert attempt is not None
+    return template(record).model_copy(
+        update={"rejected_draft": attempt.text, "rejected_reasons": attempt.reasons}
+    )
 
 
 def draft_comment(
@@ -131,9 +179,9 @@ def draft_comment(
     refresh: bool = False,
     http: httpx.Client | None = None,
 ) -> Comment:
-    """Cached model comment, a fresh model comment, or the labelled template."""
+    """Cached outcome, a fresh model outcome, or the labelled template (model unavailable)."""
     if not refresh:
-        hit = cached_comment(record, db)
+        hit = cached_comment(record, db, settings)
         if hit is not None:
             return hit
     if not settings.ai_enabled:
@@ -147,5 +195,5 @@ def draft_comment(
     finally:
         if http is None:
             client.close()
-    db.cache_put(cache_key(record), result.model_dump(exclude={"cached"}))
+    db.cache_put(cache_key(record, settings), result.model_dump(exclude={"cached"}))
     return result

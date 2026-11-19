@@ -361,6 +361,10 @@ export interface components {
             failed_figures: string[];
             /** Cached */
             cached: boolean;
+            /** Rejected Draft */
+            rejected_draft?: string | null;
+            /** Rejected Reasons */
+            rejected_reasons?: string[];
         };
         /**
          * DecisionEntry

@@ -55,10 +55,14 @@ Engines never read files, the clock or the database; the pipeline passes the ana
 
 ## AI layer
 
-The model receives the masked title, type and `facts` (no document numbers, user ids or raw
-lines) and must answer `{"comment": "..."}`. `verifier.py` extracts every number and date and
-accepts it only if it equals a fact at the precision shown. A failing draft is retried once and
-shown with the offending figures struck through. Without Ollama a labelled template is used.
+The model receives a code-written sentence about the finding type, each number and date fact as
+a named figure already formatted by code, masked text facts and the check to suggest (no title,
+document numbers, user ids or raw lines). It answers `{"comment": "..."}` and writes figures as
+`{name}`; `prompts.render` fills in the exact values. `verifier.py` then checks every number and
+date against the facts at the precision shown, and `wording_issues` checks length, causes,
+classes, risk levels and deadlines. A rejected draft is sent back once with the reasons; if the
+second is also rejected, the labelled template is shown with the draft one click away. Without
+Ollama the labelled template is used. See A10, A28 and A29.
 
 ## API
 

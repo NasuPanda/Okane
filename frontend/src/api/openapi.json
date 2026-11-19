@@ -943,6 +943,24 @@
           "cached": {
             "type": "boolean",
             "title": "Cached"
+          },
+          "rejected_draft": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejected Draft"
+          },
+          "rejected_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rejected Reasons"
           }
         },
         "type": "object",

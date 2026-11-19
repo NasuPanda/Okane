@@ -1,4 +1,4 @@
-import { Check, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useComment, useDecide } from "@/api/hooks";
@@ -60,6 +60,36 @@ function VerifierBadge({ comment }: { comment: Comment }) {
   return <Badge variant="muted">Standard wording · numbers copied straight from the facts</Badge>;
 }
 
+/** Both AI drafts were turned down: say so, and keep the last one one click away. */
+function RejectedDraft({ comment }: { comment: Comment }) {
+  const [open, setOpen] = useState(false);
+  if (!comment.rejected_draft) return null;
+  const reasons = comment.rejected_reasons ?? [];
+  return (
+    <div className="space-y-2 border-t pt-3 text-[13px] text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span>The assistant's draft had something we couldn't confirm, so standard wording is shown.</span>
+        <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>
+          {open ? <ChevronUp /> : <ChevronDown />}
+          {open ? "Hide the assistant's draft" : "Show the assistant's draft"}
+        </Button>
+      </div>
+      {open && (
+        <div className="space-y-2 rounded-lg border border-dashed p-3">
+          <p className="leading-relaxed line-through decoration-destructive/40">{comment.rejected_draft}</p>
+          {reasons.length > 0 && (
+            <ul className="list-inside list-disc text-destructive">
+              {reasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CommentPanel({ record }: { record: ExceptionRecord }) {
   const draft = useComment(record.id);
   const decide = useDecide(record.id);
@@ -93,10 +123,15 @@ export function CommentPanel({ record }: { record: ExceptionRecord }) {
           <div className="flex flex-wrap items-center gap-2">
             <VerifierBadge comment={comment} />
             <span className="text-[11px] text-muted-foreground">
-              {comment.source === "model" ? "Drafted by the local AI assistant" : "No AI was used for this one"}
+              {comment.source === "model"
+                ? "Drafted by the local AI assistant"
+                : comment.rejected_draft
+                  ? "Standard wording (the assistant's draft was not used)"
+                  : "No AI was used for this one"}
               {comment.cached && " · cached"}
             </span>
           </div>
+          <RejectedDraft key={`${comment.exception_id}:${comment.rejected_draft ?? ""}`} comment={comment} />
         </div>
       ) : (
         <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
