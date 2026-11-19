@@ -1,9 +1,9 @@
-import { ArrowUpRight, Check, Loader2, MessageSquareWarning, ShieldQuestion } from "lucide-react";
+import { ArrowUpRight, Check, Loader2, MessageSquareWarning, ShieldQuestion, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { ApiError } from "@/api/client";
-import { useDecide, useException, useExceptions, useRules } from "@/api/hooks";
+import { useDecide, useException, useExceptions, useRules, useSaveRules } from "@/api/hooks";
 import type { ExceptionClass, ExceptionRecord, Status } from "@/api/types";
 import { CommentPanel } from "@/components/CommentPanel";
 import { GapChart } from "@/components/GapChart";
@@ -57,6 +57,50 @@ function Stat({ label, children, className }: { label: string; children: React.R
   );
 }
 
+/** The assistant's reading of a spelling prompt (#30). Advisory: the person decides. */
+function AssistantTypoCheck({ record }: { record: ExceptionRecord }) {
+  const rules = useRules();
+  const save = useSaveRules();
+  const check = record.ai_check;
+  if (!check) return null;
+  const found = String(record.facts.found ?? "");
+  if (check.verdict === "typo") {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Sparkles className="size-3 text-sentinel" />
+        The assistant also reads this as a typo{check.suggestion ? ` of '${check.suggestion}'` : ""}.
+      </div>
+    );
+  }
+  const current = rules.data;
+  const allowed = (current?.typo_allow_list ?? []).some((w) => w.toLowerCase() === found.toLowerCase());
+  const allow = () => {
+    if (!current) return;
+    save.mutate(
+      {
+        rules: { ...current, typo_allow_list: [...(current.typo_allow_list ?? []), found.toLowerCase()] },
+        reason: `'${found}' is a real word, not a typo (the assistant's reading, confirmed in the drawer)`,
+      },
+      {
+        onSuccess: () =>
+          toast.success(`'${found}' is now on the allow-list ✓`, { description: "Logged; re-checking every finding…" }),
+        onError: (e) => toast.error("Not saved", { description: e instanceof ApiError ? e.message : String(e) }),
+      },
+    );
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <Sparkles className="size-3 text-sentinel" />
+      <span>The assistant reads '{found}' as a real word, not a typo. You decide.</span>
+      <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={allow}
+        disabled={!current || allowed || save.isPending}>
+        {save.isPending ? <Loader2 className="animate-spin" /> : allowed ? <Check /> : null}
+        {allowed ? "On the allow-list" : `Add '${found}' to the allow-list`}
+      </Button>
+    </div>
+  );
+}
+
 /** Mistake prompts and label mismatches on the same account ("you may have made a mistake"). */
 function MistakePrompts({ record }: { record: ExceptionRecord }) {
   const related = useExceptions({ entity: record.entity });
@@ -77,6 +121,7 @@ function MistakePrompts({ record }: { record: ExceptionRecord }) {
               <div className="text-xs text-muted-foreground">
                 {r.evidence.slice(0, 3).join(", ")} · posted {day(String(r.facts.posting_date ?? r.first_signal))}
               </div>
+              <AssistantTypoCheck record={r} />
             </div>
           </div>
         ))}

@@ -520,6 +520,7 @@ export interface components {
             decided_class?: ("List component" | "Timing item" | "Required Adjustment Item") | null;
             /** Edited Comment */
             edited_comment?: string | null;
+            ai_check?: components["schemas"]["TypoCheck"] | null;
         };
         /**
          * ExposureGroup
@@ -1017,6 +1018,22 @@ export interface components {
             batch_eur: number | null;
             /** Batch Matched */
             batch_matched: boolean | null;
+        };
+        /**
+         * TypoCheck
+         * @description ADDITION (#30, A6): the assistant's reading of a spelling prompt.
+         *
+         *     Advisory only: it never changes the record's id, score, status, class or exposure, and a
+         *     "not_a_typo" verdict never hides the prompt. The controller can allow-list the word.
+         */
+        TypoCheck: {
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "typo" | "not_a_typo";
+            /** Suggestion */
+            suggestion?: string | null;
         };
         /**
          * UploadResult

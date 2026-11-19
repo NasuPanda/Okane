@@ -115,12 +115,14 @@ def ollama_available(settings: Settings, http: httpx.Client | None = None) -> bo
             client.close()
 
 
-def call_model(messages: list[dict[str, str]], settings: Settings, http: httpx.Client) -> str:
-    """One chat call. Returns the validated comment text."""
+def chat[Output: BaseModel](
+    messages: list[dict[str, str]], output: type[Output], settings: Settings, http: httpx.Client
+) -> Output:
+    """One Ollama chat call at temperature 0, its JSON answer validated against ``output``."""
     body = {
         "model": settings.ollama_model,
         "stream": False,
-        "format": ModelOutput.model_json_schema(),
+        "format": output.model_json_schema(),
         "options": {"temperature": 0},
         "messages": messages,
     }
@@ -128,9 +130,14 @@ def call_model(messages: list[dict[str, str]], settings: Settings, http: httpx.C
         response = http.post(f"{settings.ollama_url}/api/chat", json=body)
         response.raise_for_status()
         content = response.json()["message"]["content"]
-        return ModelOutput.model_validate_json(content).comment.strip()
+        return output.model_validate_json(content)
     except (httpx.HTTPError, KeyError, ValueError, ValidationError) as exc:
         raise ModelUnavailableError(failure_reason(exc)) from exc
+
+
+def call_model(messages: list[dict[str, str]], settings: Settings, http: httpx.Client) -> str:
+    """One comment call. Returns the validated comment text."""
+    return chat(messages, ModelOutput, settings, http).comment.strip()
 
 
 def check(raw: str, record: ExceptionRecord, figs: dict[str, dict[str, str]]) -> Attempt:

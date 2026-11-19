@@ -32,6 +32,17 @@ Status = Literal["new", "explained", "dismissed", "escalated"]
 VerifierResult = Literal["passed", "failed", "not_run"]
 
 
+class TypoCheck(BaseModel):
+    """ADDITION (#30, A6): the assistant's reading of a spelling prompt.
+
+    Advisory only: it never changes the record's id, score, status, class or exposure, and a
+    "not_a_typo" verdict never hides the prompt. The controller can allow-list the word.
+    """
+
+    verdict: Literal["typo", "not_a_typo"]
+    suggestion: str | None = None  # a word from the run's own dictionary, or None
+
+
 class ExceptionRecord(BaseModel):
     """One finding. Every engine emits this shape (brief section 7)."""
 
@@ -62,6 +73,8 @@ class ExceptionRecord(BaseModel):
     decided_class: ExceptionClass | None = None
     # ADDITION: the preparer's edited comment, kept separate from the AI draft for audit.
     edited_comment: str | None = None
+    # ADDITION (#30, A6): the assistant's check of a spelling prompt; None when no model ran.
+    ai_check: TypoCheck | None = None
 
 
 class PaymentProfile(BaseModel):
