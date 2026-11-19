@@ -43,6 +43,11 @@ const FIELD_LABEL: Record<string, string> = {
   miner_min_repeats: "Repeated postings: fewest months",
   miner_by_user: "Repeated postings: same person only",
   typo_allow_list: "Words that are never typos",
+  typo_max_rare_count: "Typos: rare word seen at most",
+  typo_common_ratio: "Typos: usual spelling at least … times as common",
+  typo_max_edits: "Typos: letters different",
+  typo_min_word_length: "Typos: shortest word checked",
+  period_label_min_lines: "Wrong month label: smallest document",
 };
 
 function fieldLabel(field: string) {
@@ -309,6 +314,37 @@ export function RulesPage() {
                 step={100}
                 value={draft.sentinel_s2_min_amount ?? 0}
                 onChange={(v) => set("sentinel_s2_min_amount", v)}
+              />
+              <div className="pt-2 text-sm font-medium">Possible typos</div>
+              <NumberField
+                label="Rare word: seen at most"
+                hint="Times in the run; a word used more often than this is never flagged"
+                value={draft.typo_max_rare_count ?? 0}
+                onChange={(v) => set("typo_max_rare_count", v)}
+              />
+              <NumberField
+                label="Usual spelling: at least … times as common"
+                hint="The word it looks like must be used this many times more often"
+                value={draft.typo_common_ratio ?? 0}
+                onChange={(v) => set("typo_common_ratio", v)}
+              />
+              <NumberField
+                label="Letters different"
+                hint="One letter added, removed or replaced counts as one (1 to 3)"
+                value={draft.typo_max_edits ?? 0}
+                onChange={(v) => set("typo_max_edits", v)}
+              />
+              <NumberField
+                label="Shortest word checked"
+                hint="Letters; shorter words are never flagged"
+                value={draft.typo_min_word_length ?? 0}
+                onChange={(v) => set("typo_min_word_length", v)}
+              />
+              <NumberField
+                label="Wrong month label: smallest document"
+                hint="Lines naming a month; a line naming another month than most of them is flagged"
+                value={draft.period_label_min_lines ?? 0}
+                onChange={(v) => set("period_label_min_lines", v)}
               />
               <WordListField
                 label="Words that are never typos"

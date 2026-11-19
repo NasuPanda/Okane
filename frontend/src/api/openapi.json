@@ -1974,16 +1974,20 @@
           },
           "typo_max_rare_count": {
             "type": "integer",
+            "minimum": 1.0,
             "title": "Typo Max Rare Count",
             "default": 3
           },
           "typo_common_ratio": {
             "type": "number",
+            "exclusiveMinimum": 0.0,
             "title": "Typo Common Ratio",
             "default": 20.0
           },
           "typo_max_edits": {
             "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
             "title": "Typo Max Edits",
             "default": 1
           },
@@ -1993,6 +1997,18 @@
             },
             "type": "array",
             "title": "Typo Allow List"
+          },
+          "typo_min_word_length": {
+            "type": "integer",
+            "minimum": 2.0,
+            "title": "Typo Min Word Length",
+            "default": 5
+          },
+          "period_label_min_lines": {
+            "type": "integer",
+            "minimum": 2.0,
+            "title": "Period Label Min Lines",
+            "default": 3
           },
           "miner_min_repeats": {
             "type": "integer",

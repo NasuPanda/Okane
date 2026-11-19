@@ -80,6 +80,8 @@
    "recov",
    "reverse"
   ],
+  "typo_min_word_length": 5,
+  "period_label_min_lines": 3,
   "miner_min_repeats": 3,
   "miner_min_score": 12,
   "miner_by_user": true,

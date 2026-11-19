@@ -226,6 +226,10 @@ def test_rules_change_is_logged_and_reruns(ran: TestClient) -> None:
     assert ran.put("/api/rules", json={"rules": rules, "reason": ""}).status_code == 422
     unchanged = ran.put("/api/rules", json={"rules": rules, "reason": "no change"})
     assert unchanged.status_code == 200 and ran.get("/api/rules/log").json() == []
+    bad = {**rules, "typo_max_edits": 0}
+    refused = ran.put("/api/rules", json={"rules": bad, "reason": "slip"})
+    assert refused.status_code == 422, "#13: typo thresholds are bounded"
+    assert ran.get("/api/rules/log").json() == []
 
     rules["materiality_eur"] = 100_000
     rules["weights"]["repeats"] = 5

@@ -181,13 +181,19 @@ class Rules(BaseModel):
     # ADDITION (#12, docs/ASSUMPTIONS.md A6): typo prompts. A word seen at most
     # typo_max_rare_count times, typo_max_edits letters (Levenshtein) away from a word seen at
     # least typo_common_ratio times as often, is flagged unless it is on the allow-list.
-    typo_max_rare_count: int = 3
-    typo_common_ratio: float = 20.0
-    typo_max_edits: int = 1
+    typo_max_rare_count: int = Field(default=3, ge=1)
+    typo_common_ratio: float = Field(default=20.0, gt=0)
+    # ADDITION (#13): bounded so a slip on the Rules page cannot flood the Inbox.
+    typo_max_edits: int = Field(default=1, ge=1, le=3)
     # known abbreviations and foreign words that are never typos (compared lower-case)
     typo_allow_list: list[str] = Field(
         default_factory=lambda: ["alloc", "avance", "recov", "reverse"]
     )
+    # ADDITION (#13, A6): only words of at least this many letters are checked for typos.
+    typo_min_word_length: int = Field(default=5, ge=2)
+    # ADDITION (#13, A6) / ASSUMPTION: the period-label prompt looks only at documents with at
+    # least this many lines that name a period, so "most lines" means something.
+    period_label_min_lines: int = Field(default=3, ge=2)
     # ADDITION / ASSUMPTION: Recurring-Correction Miner.
     miner_min_repeats: int = 3
     # ADDITION (#14, docs/ASSUMPTIONS.md A7): a repeated manual posting reaches the Inbox when

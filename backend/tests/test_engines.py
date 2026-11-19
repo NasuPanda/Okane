@@ -363,6 +363,48 @@ def test_spelling_prompt_thresholds_and_allow_list_come_from_rules() -> None:
     assert spelling(rows, Rules(typo_allow_list=[], typo_common_ratio=25)) == []
 
 
+def test_spelling_word_length_and_rare_count_come_from_rules() -> None:
+    """#13: the shortest word checked and "rare" are Rules parameters, shown in the facts."""
+    rows = [{"text": "Paid"} for _ in range(100)] + [{"text": "Pais"}]
+    assert spelling(rows) == [], "four letters is below the default minimum of five"
+    shorter = spelling(rows, Rules(typo_min_word_length=4))
+    assert [(r.facts["found"], r.facts["suggestion"]) for r in shorter] == [("Pais", "Paid")]
+    assert shorter[0].facts["min_word_length"] == 4
+
+    rows = [{"text": "Salary"} for _ in range(100)] + [{"text": "Salery"} for _ in range(4)]
+    assert spelling(rows) == [], "seen 4 times is not rare at the default of 3"
+    records = spelling(rows, Rules(typo_max_rare_count=4))
+    assert [(r.facts["found"], r.facts["suggestion"]) for r in records] == [("Salery", "Salary")]
+    assert records[0].facts["max_rare_count"] == 4
+    assert records[0].facts["common_ratio"] == 20.0
+
+
+def test_typo_thresholds_are_bounded() -> None:
+    from pydantic import ValidationError
+
+    for bad in (
+        {"typo_max_edits": 0},
+        {"typo_max_edits": 4},
+        {"typo_max_rare_count": 0},
+        {"typo_common_ratio": 0},
+        {"typo_min_word_length": 1},
+        {"period_label_min_lines": 1},
+    ):
+        with pytest.raises(ValidationError):
+            Rules(**bad)  # type: ignore[arg-type]
+
+
+def test_period_label_minimum_lines_comes_from_rules() -> None:
+    rows = [{"text": "Payroll202609", "document_no": "6", "item": 1}]
+    rows.append({"text": "Payroll202608", "document_no": "6", "item": 2})
+    rows.append({"text": "Payroll202609", "document_no": "6", "item": 3})
+    found = [r for r in run_typos(frame(rows), Rules()) if "found_period" in r.facts]
+    assert len(found) == 1, "three lines reach the default minimum"
+    assert found[0].facts["min_lines"] == 3
+    strict = Rules(period_label_min_lines=4)
+    assert [r for r in run_typos(frame(rows), strict) if "found_period" in r.facts] == []
+
+
 def test_period_label_prompt() -> None:
     rows = [{"text": "Payroll202609", "document_no": "5", "item": i} for i in range(4)]
     rows.append({"text": "Payroll202608", "document_no": "5", "item": 9})

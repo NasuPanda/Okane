@@ -816,6 +816,16 @@ export interface components {
             /** Typo Allow List */
             typo_allow_list?: string[];
             /**
+             * Typo Min Word Length
+             * @default 5
+             */
+            typo_min_word_length: number;
+            /**
+             * Period Label Min Lines
+             * @default 3
+             */
+            period_label_min_lines: number;
+            /**
              * Miner Min Repeats
              * @default 3
              */

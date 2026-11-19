@@ -2,8 +2,8 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261119T120806_94024f",
-  "snapshot_id": "b15a06d0dc15c016",
+  "run_id": "run_20261119T152347_9bed20",
+  "snapshot_id": "80ef57f6f5d3ed83",
   "trigger": "manual",
   "status": "finished",
   "source_files": [
@@ -11,13 +11,13 @@
    "Payroll_sample.xlsx"
   ],
   "file_hashes": [
-   "150f7f0cfe3082d3ab1ed888c5602d98a193f5925a3efd87e56614912eb6320e",
-   "1b487fc4b1fb58ead7a4883af9b3cce88eb5ed9ccc098b023144fb543af3f5f6"
+   "ded3831f79bb69f879d8e712537567b7dda6b1e9f2914a165d15aee59c34945a",
+   "0f4bb40a865cce33a31f9c5d8c82826780fa9d75bd3e8c9fb8cff60cd855c520"
   ],
   "synthetic": false,
   "as_of": "2026-11-18",
-  "started_at": "2026-11-19T12:08:06.128623",
-  "finished_at": "2026-11-19T12:08:06.401270",
+  "started_at": "2026-11-19T15:23:47.455857",
+  "finished_at": "2026-11-19T15:23:47.713720",
   "counts": {
    "lines": 246,
    "paired_lines": 42,
