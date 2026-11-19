@@ -310,9 +310,11 @@ def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
         "C218": "FRF was replaced by the euro",
     }
     two = [r for r in sentinel if r.type == "sentinel_two_currencies"]
-    assert [(r.entity, r.facts["currencies"], r.facts["lines"]) for r in two] == [
-        ("C132", "EUR, RWF", 2)
-    ]
+    # #11: one Payroll and one Fixed assets plant.
+    assert {(r.workgroup, r.entity, r.facts["currencies"], r.facts["lines"]) for r in two} == {
+        ("Payroll", "C132", "EUR, RWF", 2),
+        ("Fixed assets", "C219", "EUR, PLN", 2),
+    }
     typos = {
         (r.facts.get("found"), r.facts.get("suggestion")) for r in run_typos(synthetic_lines, rules)
     }

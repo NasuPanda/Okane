@@ -15,7 +15,8 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
   BOT_UPLOAD_002, settled by 3-4 bank (TX) lines within 14 days; one text misspelt "Auzahl.".
 - Exact offsetting pairs on C192 279014 and in Fixed assets.
 - Sentinel: a person-posted outlier (USER_901) and a bot-posted outlier; the same amount
-  posted in EUR and RWF on one day (C132); a withdrawn currency code in Payroll (C141) and a
+  posted in EUR and RWF on one day in Payroll (C132) and in EUR and PLN on one day in Fixed
+  assets (C219); a withdrawn currency code in Payroll (C141) and a
   currency the euro replaced in Fixed assets (C218).
 - Miner: the same manual correction by USER_045 in four consecutive months.
 - Pension-type account with "Actual ageing ( No Overdue )" (exempt from the 365-day rule).
@@ -325,6 +326,12 @@ def build_fixed_assets() -> tuple[pd.DataFrame, pd.DataFrame]:
     for i in range(4):
         p20_rows.append(row("C219", "119001", date(2025, 3 + i, 9), 42_000.0 + i, "PLN",
                             "BOT_RPA_011", "Machine capitalisation"))  # fmt: skip
+    # S2 (A4): the same amount posted in EUR and in PLN on one day (equal in whole units only).
+    # Appended last so every earlier document number stays the same.
+    p20_rows.append(row("C219", "119001", date(2026, 9, 24), round(12_500.40 * 4.29, 2), "PLN",
+                        "USER_902", "Asset transfer", curr="EUR", amount_dc=12_500.40))  # fmt: skip
+    p20_rows.append(row("C219", "119001", date(2026, 9, 24), 12_500.0, "PLN", "USER_902",
+                        "Asset transfer"))  # fmt: skip
     bpp = pd.DataFrame(bpp_rows, columns=FIXED_ASSET_COLUMNS)
     p20 = pd.DataFrame(p20_rows, columns=FIXED_ASSET_COLUMNS).drop(columns=["Reversal"])
     return bpp, p20
