@@ -286,7 +286,7 @@ export function InboxPage() {
         </div>
       ) : all.isError ? (
         <Empty title="Nothing to show yet">
-          Press <b>Check now</b> at the bottom, or drop a workbook into data/inbox. ({(all.error as Error).message})
+          Press <b>Upload extract</b> or <b>Check now</b> at the bottom, or drop a workbook on this page. ({(all.error as Error).message})
         </Empty>
       ) : records.length === 0 ? (
         <Empty title={status === "open" ? "All clear here 🎉" : "Nothing here"}>
