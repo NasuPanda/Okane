@@ -407,8 +407,16 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
     blind = [r for r in records if r.today_detection is None]
     assert {r.type for r in blind} == {"pulse_gap", "pulse_missing_batch", "miner_cluster"}
     assert all(r.facts["lead_badge"] == "Today's process would miss this" for r in blind)
+    # The Fixed assets S2 plant (C219, posted Thursday 24 Sep 2026, Monday run 28 Sep, close
+    # review 7 Oct) adds 9 days, so 13 dated findings with the 7th (23 days) as the median (#11).
+    s2 = next(
+        r for r in records if r.type == "sentinel_two_currencies" and r.entity == "C219"
+    )  # fmt: skip
+    assert (s2.facts["okane_run_date"], s2.today_detection, s2.lead_days) == (
+        "2026-09-28", date(2026, 10, 7), 9
+    )  # fmt: skip
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (12, 27.5)
+    assert (len(leads), statistics.median(leads)) == (13, 23)
 
 
 def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
