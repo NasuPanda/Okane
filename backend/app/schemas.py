@@ -210,7 +210,6 @@ class Rules(BaseModel):
     penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
     exposure_cap_multiple: float = 5.0
     days_past_expected_cap: int = 90
-    repeats_cap: int = 5
     # ADDITION (#18, A9): the repeats component is 1 when a Miner pattern on the account spans
     # at least this many months (the original rule).
     repeats_min_months: int = Field(default=3, ge=1)

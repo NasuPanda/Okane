@@ -277,6 +277,30 @@ def test_saved_rules_from_before_17_load_without_a_phantom_change(tmp_path: Path
     assert Rules(close_review_working_day=1).close_review_working_day == 1
 
 
+def test_saved_rules_from_before_19_load_without_a_phantom_change(tmp_path: Path) -> None:
+    """Rules saved before #19 carry repeats_cap and lack repeats_min_months: they load with the
+    default (3) and saving them unchanged logs nothing (A9)."""
+    from pydantic import ValidationError
+
+    from app.api.rules import diff_rules
+    from app.database import Database
+    from app.schemas import Rules
+
+    old = json.loads(Rules().model_dump_json())
+    old.pop("repeats_min_months")
+    old["repeats_cap"] = 5
+    db = Database(tmp_path / "rules.duckdb")
+    with db.cursor() as cur:
+        cur.execute("INSERT INTO rules VALUES (1, ?)", [json.dumps(old)])
+    loaded = db.get_rules()
+    db.close()
+    assert loaded.repeats_min_months == 3
+    assert not hasattr(loaded, "repeats_cap")
+    assert diff_rules(loaded, Rules()) == [], "no phantom change-log entry"
+    with pytest.raises(ValidationError):
+        Rules(repeats_min_months=0)
+
+
 # ----- jobs ---------------------------------------------------------------------------------
 def test_watcher_debounces_workbook_events() -> None:
     fired: list[str] = []

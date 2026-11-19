@@ -43,6 +43,7 @@ const FIELD_LABEL: Record<string, string> = {
   miner_min_score: "Repeated postings: smallest repeat strength",
   miner_min_repeats: "Repeated postings: fewest months",
   miner_by_user: "Repeated postings: same person only",
+  repeats_min_months: "Priority: months of repeated posting",
   typo_allow_list: "Words that are never typos",
   typo_max_rare_count: "Typos: rare word seen at most",
   typo_common_ratio: "Typos: usual spelling at least … times as common",
@@ -374,6 +375,12 @@ export function RulesPage() {
                 hint="The same posting must appear in at least this many different months"
                 value={draft.miner_min_repeats ?? 0}
                 onChange={(v) => set("miner_min_repeats", v)}
+              />
+              <NumberField
+                label="Priority: months of repeated posting"
+                hint="A finding on an account with a repeated posting at least this many months long gets the full 'Repeated manual posting' points"
+                value={draft.repeats_min_months ?? 0}
+                onChange={(v) => set("repeats_min_months", v)}
               />
               <div className="grid grid-cols-2 gap-2">
                 {([

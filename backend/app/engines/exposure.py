@@ -72,13 +72,13 @@ def payroll_netting(lines: pd.DataFrame, materiality_eur: float) -> NettingResul
 
 
 # ----- risk score ---------------------------------------------------------------------------
-# ASSUMPTION: the brief gives the weights (exposure 40, days past expected 20, penalty account
-# 20, error type 10, repeats 10) but not how each component is scaled. Each component is scaled
-# to 0..1 with parameters from Rules, multiplied by its weight, and summed (0..100).
+# Decided (#18, docs/ASSUMPTIONS.md A9): the brief gives the weights (exposure 40, days past
+# expected 20, penalty account 20, error type 10, repeats 10). Each component is scaled to 0..1
+# with parameters from Rules, multiplied by its weight, and summed (0..100).
 def score_components(
-    record: ExceptionRecord, rules: Rules, as_of: date, repeats: int
+    record: ExceptionRecord, rules: Rules, as_of: date, miner_months: int
 ) -> dict[str, float]:
-    """Each component on a 0..1 scale (see docs/ASSUMPTIONS.md, risk score)."""
+    """Each component on a 0..1 scale (see docs/ASSUMPTIONS.md A9)."""
     cap = max(rules.exposure_cap_multiple * rules.materiality_eur, 1.0)
     exposure = min(abs(record.exposure_eur) / cap, 1.0)
     # A gap has no expected-by date; it counts from the month-end it first crossed materiality.
@@ -89,45 +89,47 @@ def score_components(
     key = f"{record.erp}/{record.entity}/{record.account}"
     penalty = 1.0 if key in rules.penalty_accounts else 0.0
     error_type = float(rules.error_type_severity.get(record.type, 0.0))
-    repeat_score = min(max(repeats - 1, 0) / max(rules.repeats_cap, 1), 1.0)
+    repeats = 1.0 if miner_months >= rules.repeats_min_months else 0.0
     return {
         "exposure": exposure,
         "days_past_expected": days_past,
         "penalty_account": penalty,
         "error_type": error_type,
-        "repeats": repeat_score,
+        "repeats": repeats,
     }
 
 
-def repeat_counts(records: list[ExceptionRecord]) -> dict[str, int]:
-    """How often the same kind of finding occurs on the same account in this run.
+def miner_months(records: list[ExceptionRecord]) -> dict[str, int]:
+    """Months of the Miner pattern behind each record, read from the Miner's ``months`` fact.
 
-    Miner clusters count their repeated months and gaps their consecutive month-ends above
-    materiality instead.
+    A Miner card has its own months. Any other finding takes the longest Miner pattern on the
+    same ERP, account and company code (a pattern lists its company codes in ``entity_list``),
+    or 0 when there is none (A9).
     """
-    counts: dict[tuple[str, str, str, str], int] = {}
+    by_account: dict[tuple[str, str, str], int] = {}
     for r in records:
-        key = (r.type, r.erp, r.entity, r.account)
-        counts[key] = counts.get(key, 0) + 1
-    out: dict[str, int] = {}
-    for r in records:
-        if r.type == "miner_cluster":
-            out[r.id] = int(float(r.facts.get("months", 1)))
-        elif r.type == "pulse_gap":
-            out[r.id] = int(float(r.facts.get("months_above_materiality", 1)))
-        else:
-            out[r.id] = counts[(r.type, r.erp, r.entity, r.account)]
-    return out
+        if r.type != "miner_cluster":
+            continue
+        months = int(float(r.facts.get("months", 0)))
+        for entity in str(r.facts.get("entity_list", r.entity)).split(", "):
+            key = (r.erp, entity, r.account)
+            by_account[key] = max(by_account.get(key, 0), months)
+    return {
+        r.id: int(float(r.facts.get("months", 0)))
+        if r.type == "miner_cluster"
+        else by_account.get((r.erp, r.entity, r.account), 0)
+        for r in records
+    }
 
 
 def score_records(
     records: list[ExceptionRecord], rules: Rules, as_of: date
 ) -> list[ExceptionRecord]:
     """Fill ``score`` (0..100) and ``score_breakdown`` (points per weight) from Rules weights."""
-    repeats = repeat_counts(records)
+    months = miner_months(records)
     scored = []
     for record in records:
-        components = score_components(record, rules, as_of, repeats[record.id])
+        components = score_components(record, rules, as_of, months[record.id])
         breakdown = {
             name: round(rules.weights.get(name, 0) * value, 1) for name, value in components.items()
         }

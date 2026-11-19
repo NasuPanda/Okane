@@ -82,7 +82,7 @@ export const WEIGHT_LABEL: Record<string, string> = {
   days_past_expected: "How late it is",
   penalty_account: "Sensitive account",
   error_type: "Kind of problem",
-  repeats: "How often it happens",
+  repeats: "Repeated manual posting",
 };
 
 const FACT_LABEL: Record<string, string> = {
