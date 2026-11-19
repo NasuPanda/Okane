@@ -6,7 +6,6 @@ fails, decide whether the script or the product is wrong before changing either.
 
 from __future__ import annotations
 
-import shutil
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -16,21 +15,14 @@ from fastapi.testclient import TestClient
 
 from app.config import get_settings
 from app.main import create_app
-from tests.conftest import SAMPLE_RATES
 
 
 def demo_layout(root: Path) -> Path:
-    """The demo start state: Fixed assets and last week's Payroll in the inbox; this week's
-    Payroll waiting in ``ready/`` for step 2. Returns the file to upload."""
-    from generate_sample_data import generate, generate_previous_week
+    """The demo start state (scripts/demo_reset.py): Fixed assets and last week's Payroll in the
+    inbox; this week's Payroll waiting in ``ready/`` for step 2. Returns the file to upload."""
+    from demo_reset import build_demo_folder
 
-    inbox, ready = root / "inbox", root / "ready"
-    inbox.mkdir(parents=True)
-    payroll, fixed_assets = generate(ready)
-    shutil.move(str(fixed_assets), inbox / fixed_assets.name)
-    generate_previous_week(inbox)
-    shutil.copy(SAMPLE_RATES, root / "rates.csv")
-    return payroll
+    return build_demo_folder(root)
 
 
 def demo_settings(root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -117,6 +109,17 @@ def walk_demo_path(client: TestClient, payroll: Path) -> None:
     assert (payroll_outlier["entity"], payroll_outlier["account"]) == ("C192", "279002")
     assert payroll_outlier["facts"]["posted_by"] == "person"
     assert payroll_outlier["facts"]["lead_badge"] == "Caught 32 days before the close review"
+    feed_types = {
+        "sentinel_outlier",
+        "sentinel_two_currencies",
+        "sentinel_currency_code",
+        "sentinel_reversal",
+        "typo",
+        "label_mismatch",
+    }  # SentinelPage "all" feed
+    feed = [r for r in client.get("/api/exceptions").json() if r["type"] in feed_types]
+    newest = max(feed, key=lambda r: str(r["facts"].get("posting_date", r["first_signal"])))
+    assert newest["id"] == payroll_outlier["id"], "#26: the step-5 example tops the feed"
     # ... and the repeated manual posting that arrived with this week's extract (#31 card).
     [miner] = client.get("/api/exceptions", params={"view": "repeats"}).json()
     assert (miner["entity"], miner["facts"]["months"], miner["facts"]["entities"]) == ("C132", 6, 2)
@@ -138,3 +141,107 @@ def walk_demo_path(client: TestClient, payroll: Path) -> None:
 def test_demo_path_on_synthetic_data(demo: tuple[TestClient, Path]) -> None:
     client, payroll = demo
     walk_demo_path(client, payroll)
+
+
+# ----- the demo reset (#26) -----------------------------------------------------------------
+def _state(root: Path) -> dict[str, list[list[str]]]:
+    """Every file under ``root`` with its sheets' contents (workbooks) or text."""
+    import pandas as pd
+
+    out: dict[str, list[list[str]]] = {}
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        key = path.relative_to(root).as_posix()
+        if path.suffix == ".xlsx":
+            sheets = pd.read_excel(path, sheet_name=None, engine="calamine", dtype=str)
+            out[key] = [frame.fillna("").values.tolist() for frame in sheets.values()]
+        else:
+            out[key] = [[path.read_text(encoding="utf-8")]]
+    return out
+
+
+def test_reset_twice_gives_the_same_state(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from demo_reset import reset
+
+    target = tmp_path / "demo"
+    reset(target, yes=True)
+    first = _state(target)
+    (target / "okane.duckdb").write_text("a database left by a demo run")
+    reset(target, yes=True)
+    assert _state(target) == first
+    assert sorted(first) == ["inbox/Fixed_assets_sample.xlsx",
+                             "inbox/Payroll_sample_previous_week.xlsx",
+                             "rates.csv", "ready/Payroll_sample.xlsx"]  # fmt: skip
+    assert "delete" in capsys.readouterr().out, "the plan is printed before anything is deleted"
+
+
+def test_reset_changes_nothing_without_yes(tmp_path: Path) -> None:
+    from demo_reset import reset
+
+    target = tmp_path / "demo"
+    reset(target, yes=True)
+    (target / "okane.duckdb").write_text("runs and decisions")
+    plan = reset(target)
+    assert target / "okane.duckdb" in plan.delete
+    assert (target / "okane.duckdb").read_text() == "runs and decisions"
+
+
+def test_reset_refuses_anything_that_is_not_the_demo(tmp_path: Path) -> None:
+    from demo_reset import DATA_DIR, REPO_ROOT, RefusedError, main, reset
+
+    for protected in (REPO_ROOT, DATA_DIR, DATA_DIR / "inbox", REPO_ROOT / "backend"):
+        with pytest.raises(RefusedError):
+            reset(protected, yes=True)
+
+    target = tmp_path / "demo"
+    reset(target, yes=True)
+    stray = target / "notes.txt"
+    stray.write_text("my notes")
+    with pytest.raises(RefusedError):
+        reset(target, yes=True)
+    assert stray.exists()
+    stray.unlink()
+
+    # A workbook that is not a synthetic sample (an invented stand-in for a real extract).
+    real = target / "inbox" / "Payroll_extract.xlsx"
+    import pandas as pd
+
+    pd.DataFrame({"Payroll": ["not a sample"]}).to_excel(real, sheet_name="Summary", index=False)
+    with pytest.raises(RefusedError):
+        reset(target, yes=True)
+    assert real.exists() and (target / "ready" / "Payroll_sample.xlsx").exists()
+    assert main(["--dir", str(target), "--yes"]) == 2, "the command refuses too"
+
+
+def test_real_reset_moves_and_never_deletes(tmp_path: Path) -> None:
+    from demo_reset import apply, real_plan
+
+    data = tmp_path / "data"
+    (data / "inbox").mkdir(parents=True)
+    (data / "extracts" / "payroll").mkdir(parents=True)
+    (data / "inbox" / "extract.xlsx").write_text("the watched folder's file")
+    (data / "extracts" / "payroll" / "extract.xlsx").write_text("Okane's copy")
+    (data / "okane.duckdb").write_text("runs and decisions")
+    (data / ".env").write_text("OKANE_X=1")
+    plan = real_plan(data, stamp="T")
+    assert plan.delete == [] and plan.create == []
+    apply(plan)
+    aside = data / "archive" / "reset-T"
+    assert (aside / "okane.duckdb").read_text() == "runs and decisions"
+    assert (aside / "extracts" / "payroll" / "extract.xlsx").exists()
+    assert (data / "inbox" / "extract.xlsx").exists() and (data / ".env").exists()
+    assert not (data / "okane.duckdb").exists()
+
+
+def test_demo_path_after_a_reset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Reset, walk the demo, reset again and walk it again: the demo is repeatable."""
+    from demo_reset import reset
+
+    target = tmp_path / "demo"
+    for _ in range(2):
+        reset(target, yes=True)
+        demo_settings(target, monkeypatch)
+        with TestClient(create_app(get_settings())) as client:
+            walk_demo_path(client, target / "ready" / "Payroll_sample.xlsx")
+    get_settings.cache_clear()

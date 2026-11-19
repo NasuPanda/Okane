@@ -14,6 +14,35 @@ is on screen), A9 (risk score), A25 (inbox), A38 (extract intake).
   (analysis date 16 Oct 2026); this week's Payroll extract (taken 23 Oct 2026) waits in the
   demo folder's `ready/` for step 2.
 
+## Before each take: reset the demo
+
+Stop the app first (the reset clears the demo database), then rebuild the start state and run
+the app on it. The demo has its own folder, `data/demo/` (git-ignored): `data/inbox`,
+`data/okane.duckdb` and `.env` are never touched.
+
+```bash
+make demo-reset   # prints what it deletes and creates, then rebuilds data/demo
+make demo         # API on :8000 on data/demo (runs last week's extract on start-up) + Vite on :5173
+```
+
+In PowerShell, without `make`:
+
+```powershell
+backend\.venv\Scripts\python scripts\demo_reset.py --yes
+$d = "$PWD\data\demo"
+$env:OKANE_DATA_DIR = $d; $env:OKANE_INBOX_DIR = "$d\inbox"; $env:OKANE_DB_PATH = "$d\okane.duckdb"
+$env:OKANE_RATES_PATH = "$d\rates.csv"; $env:OKANE_SAMPLE_DIR = "$d\sample"; $env:OKANE_ENABLE_SCHEDULER = "false"
+cd backend; .venv\Scripts\python -m uvicorn app.main:app --port 8000   # then, in a second window: cd frontend; npm run dev
+```
+
+- Without `--yes` the reset only prints its plan. It refuses a folder holding anything other
+  than the demo's own files, a workbook not marked synthetic, the repository or `data/` itself.
+- Leave `OKANE_AS_OF` unset: the analysis date is the extract date (A2, A38).
+- `--real` (rehearsing on real data): moves `data/okane.duckdb` and Okane's extract store into
+  `data/archive/reset-<time>/` (never deletes). It does not move the workbook out of
+  `data/inbox` (Okane never changes the watched folder, A38); to show the upload in step 2 on
+  real data, take the Payroll workbook out of `data/inbox` yourself first.
+
 ## Step 1: the old report (Exposure)
 
 - **Click:** Exposure.
