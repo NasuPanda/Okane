@@ -146,6 +146,15 @@
    "failed_figures": [],
    "cached": false
   },
+  "6c91062e6c599fb8": {
+   "exception_id": "6c91062e6c599fb8",
+   "comment": "Standard note (no AI was used): Same amount posted in EUR and PLN on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Review the evidence documents.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false
+  },
   "0c33474c40046521": {
    "exception_id": "0c33474c40046521",
    "comment": "Standard note (no AI was used): Same amount posted in EUR and RWF on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Review the evidence documents.",

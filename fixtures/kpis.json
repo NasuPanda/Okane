@@ -2,10 +2,10 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261118T173235_057094",
-  "exceptions": 18,
-  "open_exceptions": 18,
-  "median_days_earlier": 26.0,
+  "run_id": "run_20261119T082132_ac44c5",
+  "exceptions": 19,
+  "open_exceptions": 19,
+  "median_days_earlier": 21.0,
   "blind_spots": 6,
   "by_type": {
    "pulse_gap": 1,
@@ -17,7 +17,7 @@
    "miner_cluster": 4,
    "pulse_missing_batch": 1,
    "sentinel_currency_code": 2,
-   "sentinel_two_currencies": 1
+   "sentinel_two_currencies": 2
   },
   "old_rule_lines": 72,
   "old_rule_overdue_abs": 11358855.29,
