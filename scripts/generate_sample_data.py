@@ -18,7 +18,7 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
   posted in EUR and RWF on one day (C132); a withdrawn currency code in Payroll (C141) and a
   currency the euro replaced in Fixed assets (C218).
 - Miner (A7): USER_045 posts the same header text ("Corr. ...") on 279030 in six months
-  and two entities (score 6 x 2 = 12, found); USER_046 repeats another header text in five
+  and two entities (score 6 x 2 = 12, found); USER_903 repeats another header text in five
   months and two entities (score 10, a near-miss). The older USER_045 lines on 279002 have
   no header text, so they are not a pattern.
 - Pension-type account with "Actual ageing ( No Overdue )" (exempt from the 365-day rule).
@@ -242,7 +242,7 @@ def build_payroll_p20(docs: DocCounter) -> PayrollSheet:
     for month in range(5, 10):
         for cocd in ("C192", "C132") if month == 9 else ("C192",):
             p20.add(cocd, "279030", "Payroll corrections", docs.next(2026), 1, "SA",
-                    date(2026, month, 24), 900.0 + 11 * month, "USER_046", "Accrual true-up",
+                    date(2026, month, 24), 900.0 + 11 * month, "USER_903", "Accrual true-up",
                     header=f"True-up accrual {month:02d}/2026")  # fmt: skip
     # Old aged debit balance on 179003 (an exposure group above 500K).
     for i, amount in enumerate([310_000.0, 245_500.0, 124_339.48]):
