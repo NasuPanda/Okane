@@ -52,7 +52,7 @@ Every Monday, Okane reads the open line items the robot already extracts and sho
 
 1. The old report: payroll shows 145.7M "overdue" on 5,475 lines.
 2. The preparer uploads this week's Payroll extract in Okane (the same file could instead land in the shared watched folder); a toast shows the run starting and finishing. See A38.
-3. "Show real exposure": matched lines fold away and 4 exceptions remain at 500K materiality. This is the wow moment.
+3. "Show real exposure": matched lines fold away and 4 accounts remain at 500K materiality (A25). This is the wow moment.
 4. Open the top exception, C192 social security: the gap chart (more than 1M off since May 2025, 1.84M today), a mistake prompt on a wrong period label, and an AI comment with its numbers ticked green.
 5. Sentinel feed: an outlier flagged on posting day, with the badge "N days before the close review". **To confirm:** the earlier example (a 9.86 billion WHT line) was Intercompany and is out of scope. See open item 1.
 6. Rules panel: lower materiality to 100K; the list grows from 4 to 7 and the change is logged.

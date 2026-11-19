@@ -29,6 +29,7 @@ so nobody re-investigates).
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
 | A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; 7 on real data |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
+| A25 | How short is the inbox | Decide | Decided (#21): default view = findings at or above materiality plus missing batches; prompts and repeated postings on their own tabs |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
 | A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
@@ -215,10 +216,27 @@ C192). Its evidence is the unmatched batches. Owner: team.
 median is computed. Real data: August 2026 for C192 (4.1x of 620,878), as expected, and
 January 2026 for C242 (3.5x). Owner: team.
 
-**A25. Netting groups are not Exception records.** *Info.* The brief's demo says "4 exceptions
-remain at 500K" on the Exposure page, but the Exception `type` list has no netting type. Netting
-groups are returned by `/api/exposure/payroll` (4 at 500K, 7 at 100K on real data) and each
-links to the highest-scored exception on its account. Owner: team.
+**A25. How short is the inbox.** *Decided (#21, 19 Nov 2026).* Netting groups are not
+Exception records: the brief's "4 remain at 500K" counts payroll accounts whose overdue lines
+net to materiality or more (`/api/exposure/payroll`: 4 at 500K, 7 at 100K on real data; each
+links to the highest-scored finding on its account). The inbox now says so.
+- Default view "Above materiality": findings whose amount is at or above
+  `Rules.materiality_eur`, plus the types in `Rules.inbox_always_types` (default: a missing
+  payroll batch, whose amount is unknown rather than small). Mistake prompts (typo, wrong month
+  label) and repeated manual postings have their own tabs; "Everything" shows all findings.
+  Each tab shows its count of findings still to review.
+- Header: "Today's report calls 5,475 lines overdue. After matching what was paid, 4 accounts
+  are really open, and 19 findings at or above 500K need a look first." The "Waiting for you"
+  card counts the open findings in the default view. The Exposure page keeps counting accounts.
+- Demo: step 3 reads "4 accounts remain"; at 100K the accounts grow from 4 to 7 (step 6) and the
+  default view grows with the same limit.
+- Real Payroll (aggregates, as of 18 Nov 2026): 46 findings; default view 19 at 500K (24 at
+  100K), mistake prompts 17, repeated postings 6; the C192 gap is first. Synthetic: 14 findings,
+  6 in the default view. (Issue #21 counted 147 before the typo rule, the Miner and the
+  missing-payment limit.)
+- Rejected: a priority-score threshold (6 at 500K; a number accountants would need explained);
+  one row per account (3 of the 7 accounts at 100K have no finding to open); no filter (46 rows).
+Owner: team.
 
 ## Sentinel, typos, Miner
 
