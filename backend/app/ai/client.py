@@ -9,9 +9,11 @@
   back once with the reasons (retry with feedback; at temperature 0 a plain retry repeats it).
 - If the second draft is also rejected, the labelled template is returned with the rejected
   draft attached, so the preparer never copies an unconfirmed figure.
-- Outcomes are cached in DuckDB by task, model, exception id and a hash of the prompt.
+- Outcomes are cached in DuckDB by task, model, exception id and a hash of everything the model
+  is given (prompt version, system prompt, output schema, prompt).
 - If Ollama is unreachable or disabled, the labelled template is returned with
   ``verifier = "not_run"`` (not cached); the app keeps working.
+- Errors and logs never carry the model's text: it can quote line texts and amounts (rule 3).
 """
 
 from __future__ import annotations
@@ -52,17 +54,29 @@ class ModelUnavailableError(RuntimeError):
     """Ollama is not reachable or returned something unusable."""
 
 
+def failure_reason(exc: Exception) -> str:
+    """Why a model call failed, without the model's text (pydantic errors quote the input)."""
+    if isinstance(exc, httpx.HTTPError):
+        return f"{type(exc).__name__}: {exc}"
+    return f"{type(exc).__name__} in the model's answer"
+
+
 @dataclass
 class Attempt:
     raw: str  # the model's text, with {slots}
     text: str  # rendered: slots filled with the exact figures
     outcome: VerifierOutput
-    reasons: list[str]  # why it was rejected; empty when it passes
+    reasons: list[str]  # why it was rejected, for the model; empty when it passes
+    shown_reasons: list[str]  # the same, in plain words for the person (no slot names)
 
 
 def prompt_hash(record: ExceptionRecord) -> str:
-    """Hash of everything the model sees, so a changed finding gets a fresh comment."""
-    raw = json.dumps({"v": PROMPT_VERSION, "prompt": user_prompt(record)}, sort_keys=True)
+    """Hash of everything the model is given, so any change to it drafts again."""
+    raw = json.dumps(
+        {"v": PROMPT_VERSION, "system": SYSTEM_PROMPT, "schema": ModelOutput.model_json_schema(),
+         "prompt": user_prompt(record)},
+        sort_keys=True,
+    )  # fmt: skip
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
@@ -116,17 +130,25 @@ def call_model(messages: list[dict[str, str]], settings: Settings, http: httpx.C
         content = response.json()["message"]["content"]
         return ModelOutput.model_validate_json(content).comment.strip()
     except (httpx.HTTPError, KeyError, ValueError, ValidationError) as exc:
-        raise ModelUnavailableError(str(exc)) from exc
+        raise ModelUnavailableError(failure_reason(exc)) from exc
 
 
 def check(raw: str, record: ExceptionRecord, figs: dict[str, dict[str, str]]) -> Attempt:
-    """Render the draft and list every reason to reject it, in plain language."""
+    """Render the draft and list every reason to reject it, in plain language.
+
+    The model is told the unknown slot names; the person sees plain words instead.
+    """
     text, unknown = render(raw, figs)
     outcome = verify(text, record.facts, [record.entity, record.account])
+    figures_off = [
+        f"'{figure}' doesn't match any of our figures" for figure in dict.fromkeys(outcome.failed)
+    ]
+    wording = wording_issues(raw)
     reasons = [f"Uses a figure name we don't have: {{{name}}}" for name in unknown]
-    reasons += [f"'{figure}' doesn't match any of our figures" for figure in outcome.failed]
-    reasons += wording_issues(raw)
-    return Attempt(raw, text, outcome, reasons)
+    shown = ["Refers to a figure Okane doesn't have"] if unknown else []
+    return Attempt(
+        raw, text, outcome, reasons + figures_off + wording, shown + figures_off + wording
+    )
 
 
 def feedback(attempt: Attempt, figs: dict[str, dict[str, str]]) -> str:
@@ -168,7 +190,7 @@ def model_comment(record: ExceptionRecord, settings: Settings, http: httpx.Clien
         log.warning("comment for %s rejected (%d reasons)", record.id, len(attempt.reasons))
     assert attempt is not None
     return template(record).model_copy(
-        update={"rejected_draft": attempt.text, "rejected_reasons": attempt.reasons}
+        update={"rejected_draft": attempt.text, "rejected_reasons": attempt.shown_reasons}
     )
 
 

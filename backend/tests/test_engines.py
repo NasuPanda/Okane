@@ -682,6 +682,8 @@ GAP_FACTS: dict[str, float | str] = {
         ("Above materiality since June 2025.", False),
         ("Two payments of 7 days.", False),  # invented figure
         ("Check the batch for C192 and the Payroll202609 lines.", True),  # identifiers
+        ("Clear it within 21 days.", False),  # the day of a fact date is not a figure
+        ("The 2026 accruals are open.", False),  # nor is its year
         ("No numbers here at all.", True),
     ],
 )
@@ -730,6 +732,7 @@ def test_prompt_masks_names_hides_documents_and_titles(synthetic_lines: pd.DataF
         assert not re.search(r"NAME\d+", prompt, re.IGNORECASE)
         if "prompt" not in record.facts:  # a mistake prompt repeats its own wording
             assert record.title not in prompt  # titles carry rounded amounts (#45)
+        assert '"miner_score"' not in prompt  # the comment may not give a score (A10)
         for document in record.evidence:
             assert document.split("/")[0] not in prompt
 
@@ -786,6 +789,13 @@ def test_render_fills_slots_and_reports_unknown_names() -> None:
         ("A gap of {gap_eur} away from plan.", "A gap of 1,838,462 EUR away from plan."),
         ("Seen {lines} lines in {entity}.", "Seen 3 lines in C192."),
         ("It is {multiple} the median.", "It is 4.1x the median."),
+        ("It is {multiple} times the median.", "It is 4.1x the median."),
+        ("A gap of {gap_eur} euros.", "A gap of 1,838,462 EUR."),
+        ("A gap of EUR {gap_eur}.", "A gap of 1,838,462 EUR."),
+        ("A gap of € {gap_eur}.", "A gap of 1,838,462 EUR."),
+        ("Posted as DEM {amount_dc}.", "Posted as 12,000 DEM."),
+        ("Paid in HUF {gap_eur}.", "Paid in HUF 1,838,462 EUR."),  # a different code stays
+        ("A gap of {{gap_eur}}.", "A gap of 1,838,462 EUR."),
     ],
 )
 def test_render_drops_a_repeated_unit(draft: str, shown: str) -> None:
@@ -816,6 +826,13 @@ def test_render_drops_a_repeated_unit(draft: str, shown: str) -> None:
         ("The risk level is high.", "Gives a risk level"),
         ("Clear it before the deadline.", "Sets a deadline"),
         ("Check the unmatched batches listed as evidence.", None),
+        ("Check the cause of the gap.", None),  # names a cause, does not state one
+        ("Find the reason for the difference.", None),
+        ("The cause is a late payment.", "States a cause"),
+        ("The likely reason was a late payment.", "States a cause"),
+        ("Clear it within 21 days.", "Sets a deadline"),
+        ("Clear it by the end of {latest_month}.", "Sets a deadline"),
+        ("It is usually paid within {lag_p90_days} days.", None),  # a figure, not a deadline
     ],
 )
 def test_wording_issues(comment: str, issue: str | None) -> None:
@@ -908,7 +925,8 @@ def test_client_retries_with_feedback(tmp_path, synthetic_lines) -> None:  # typ
 
 
 def test_client_rejects_wording_and_unknown_names(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
-    from app.ai.client import draft_comment
+    from app.ai.client import check, draft_comment
+    from app.ai.prompts import figures
     from app.config import Settings
     from app.database import Database
 
@@ -921,7 +939,10 @@ def test_client_rejects_wording_and_unknown_names(tmp_path, synthetic_lines) -> 
                            http=_mock_ollama([cause, unknown], calls))  # fmt: skip
     assert "States a cause" in calls[1]["messages"][3]["content"]
     assert result.source == "template" and result.rejected_draft is not None
-    assert result.rejected_reasons == ["Uses a figure name we don't have: {liability_eur}"]
+    assert result.rejected_reasons == ["Refers to a figure Okane doesn't have"]  # no slot names
+    # the model, on the other hand, is told the exact name it got wrong
+    attempt = check("The liability of {liability_eur} is open.", record, figures(record))
+    assert attempt.reasons == ["Uses a figure name we don't have: {liability_eur}"]
     db.close()
 
 

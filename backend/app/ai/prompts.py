@@ -19,20 +19,27 @@ from typing import Any
 
 from app.schemas import ExceptionRecord, ExceptionType
 
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 NAME_PLACEHOLDER = re.compile(r"\bNAME\d+\b", re.IGNORECASE)
-# A slot, plus a unit the model may have repeated after it ("{multiple}x", "{gap_eur} EUR").
-SLOT = re.compile(r"\{\s*([A-Za-z0-9_]+)\s*\}(?P<tail>\s?(?:in\s)?(?:[A-Za-z]+|%|×))?")
+# A slot (single or double braces), plus a currency code the model may have written before it
+# ("EUR {gap_eur}") and a unit it may have repeated after it ("{multiple}x", "{gap_eur} euros").
+SLOT = re.compile(
+    r"(?P<lead>\b[A-Z]{3}\s?|€\s?)?\{\{?\s*(?P<name>[A-Za-z0-9_]+)\s*\}\}?"
+    r"(?P<tail>\s?(?:in\s)?(?:[A-Za-z]+|%|×|€))?"
+)
+# Words that mean a unit a figure already carries.
+UNIT_WORDS = {"×": "x", "times": "x", "percent": "%", "€": "eur", "euro": "eur", "euros": "eur"}
 CURRENCY_UNIT = re.compile(r" ([A-Z]{3})$")
 ISO_DAY = re.compile(r"^(\d{4})-(\d{2})-(\d{2})$")
 ISO_MONTH = re.compile(r"^(\d{4})-(\d{2})$")
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 TEMPLATE_LABEL = "Standard note (no AI was used):"
 
-# Facts the model is never shown: lead-time bookkeeping (the badge text carries the meaning).
+# Facts the model is never shown: lead-time bookkeeping (the badge text carries the meaning),
+# and the Miner score, as the comment may not give a score (A10; entities and months are shown).
 HIDDEN_FACTS = frozenset(
     {"today_detection_basis", "lead_days", "lead_days_daily", "lead_days_weekly",
-     "okane_run_date", "lead_view"}
+     "okane_run_date", "lead_view", "miner_score"}
 )  # fmt: skip
 
 # What each figure means, in accountant language, so the model names it correctly (#45 cause 4).
@@ -244,29 +251,33 @@ def _unit(value: str) -> str | None:
     return currency.group(1) if currency else None
 
 
-def _repeats_unit(tail: str | None, unit: str | None) -> bool:
-    """Is the text after a slot just its unit again ("x", " EUR", " in DEM", " percent")?"""
-    if not tail or not unit:
+def _repeats_unit(word: str | None, unit: str | None) -> bool:
+    """Is the text next to a slot just its unit again ("x", " EUR", " in DEM", " euros")?"""
+    if not word or not unit:
         return False
-    word = tail.strip().removeprefix("in ").strip().lower()
-    return {"×": "x", "percent": "%"}.get(word, word) == unit.lower()
+    word = word.strip().removeprefix("in ").strip().lower()
+    return UNIT_WORDS.get(word, word) == unit.lower()
 
 
 def render(text: str, figs: dict[str, dict[str, str]]) -> tuple[str, list[str]]:
     """Fill ``{name}`` slots with their values. Returns the text and any unknown names.
 
-    A unit the model repeats after a slot is dropped, as the value already carries it
-    ("{multiple}x" gives "4.1x", not "4.1xx").
+    A unit the model repeats before or after a slot is dropped, as the value already carries it
+    ("{multiple}x" gives "4.1x", not "4.1xx"; "EUR {gap_eur}" gives "1,838,462 EUR"). Double
+    braces are read as one slot.
     """
     unknown: list[str] = []
 
     def fill(match: re.Match[str]) -> str:
-        name, tail = match.group(1), match.group("tail")
+        name, lead, tail = match.group("name"), match.group("lead"), match.group("tail")
         if name not in figs:
             unknown.append(name)
             return match.group(0)
         value = figs[name]["value"]
-        return value if _repeats_unit(tail, _unit(value)) else value + (tail or "")
+        unit = _unit(value)
+        before = "" if _repeats_unit(lead, unit) else (lead or "")
+        after = "" if _repeats_unit(tail, unit) else (tail or "")
+        return before + value + after
 
     return SLOT.sub(fill, text), unknown
 
