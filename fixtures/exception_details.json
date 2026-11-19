@@ -5,7 +5,7 @@
   "b80b0b905e1fe118": {
    "exception": {
     "id": "b80b0b905e1fe118",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "pulse_gap",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -535,7 +535,7 @@
   "c52c3931a9d01b05": {
    "exception": {
     "id": "c52c3931a9d01b05",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "pulse_spike",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -983,7 +983,7 @@
   "5b2756df8b78173c": {
    "exception": {
     "id": "5b2756df8b78173c",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1434,7 +1434,7 @@
   "7bbbe9271b0a2e1d": {
    "exception": {
     "id": "7bbbe9271b0a2e1d",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1885,7 +1885,7 @@
   "532032f4fe383650": {
    "exception": {
     "id": "532032f4fe383650",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "sentinel_outlier",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1953,7 +1953,7 @@
   "5cb790939c58a948": {
    "exception": {
     "id": "5cb790939c58a948",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "sentinel_outlier",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -2021,7 +2021,7 @@
   "ca26141f45d62ffe": {
    "exception": {
     "id": "ca26141f45d62ffe",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "label_mismatch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2492,7 +2492,7 @@
   "3267f451b8da112e": {
    "exception": {
     "id": "3267f451b8da112e",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2508,6 +2508,9 @@
      "edits": 1.0,
      "occurrences": 2.0,
      "dictionary_count": 66.0,
+     "min_word_length": 5.0,
+     "max_rare_count": 3.0,
+     "common_ratio": 20.0,
      "posting_date": "2026-05-01",
      "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 66 times.",
      "today_detection_basis": "month-end close review",
@@ -2922,7 +2925,7 @@
   "0c7228820c2b5ca8": {
    "exception": {
     "id": "0c7228820c2b5ca8",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "pulse_missing_batch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3320,7 +3323,7 @@
   "d00346a86e3ca1d6": {
    "exception": {
     "id": "d00346a86e3ca1d6",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "miner_cluster",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3406,7 +3409,7 @@
   "f5cb477294a2b6ac": {
    "exception": {
     "id": "f5cb477294a2b6ac",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "sentinel_currency_code",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3472,7 +3475,7 @@
   "f04ae2adff34c19c": {
    "exception": {
     "id": "f04ae2adff34c19c",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "sentinel_currency_code",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3539,7 +3542,7 @@
   "6c91062e6c599fb8": {
    "exception": {
     "id": "6c91062e6c599fb8",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "sentinel_two_currencies",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3615,7 +3618,7 @@
   "0c33474c40046521": {
    "exception": {
     "id": "0c33474c40046521",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "sentinel_two_currencies",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3691,7 +3694,7 @@
   "f4d7086d081a2e09": {
    "exception": {
     "id": "f4d7086d081a2e09",
-    "run_id": "run_20261119T120806_94024f",
+    "run_id": "run_20261119T152347_9bed20",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3707,6 +3710,9 @@
      "edits": 1.0,
      "occurrences": 1.0,
      "dictionary_count": 92.0,
+     "min_word_length": 5.0,
+     "max_rare_count": 3.0,
+     "common_ratio": 20.0,
      "posting_date": "2024-05-28",
      "prompt": "You may have made a mistake: 'Pauroll' looks like 'Payroll', which is used 92 times.",
      "today_detection_basis": "month-end close review",

@@ -18,7 +18,7 @@ so nobody re-investigates).
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
-| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12): one letter from a word 20x as common, Text and header, allow-list |
+| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12), built (#13): one letter from a word 20x as common, Text and header, allow-list |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
@@ -173,9 +173,9 @@ none. Golden test: `test_real_sentinel_s3`. Built in #48 (#11). Synthetic plants
 **A26. S5 reversal mismatch.** *Info.* P1; not built. The type exists in the schema.
 Owner: team.
 
-**A6. Typo prompts.** *Decided (#12).* (1) Spelling: words of 5+ letters are counted over
-Text and Doc.Header Text of every line in the run (Payroll and Fixed assets together, case
-ignored, NAME placeholders removed). A word seen at most `Rules.typo_max_rare_count` (3) times
+**A6. Typo prompts.** *Decided (#12), built (#13).* (1) Spelling: words of at least
+`Rules.typo_min_word_length` (5) letters are counted over Text and Doc.Header Text of every
+line in the run (Payroll and Fixed assets together, case ignored, NAME placeholders removed). A word seen at most `Rules.typo_max_rare_count` (3) times
 that is `typo_max_edits` (1) letter away (Levenshtein: one letter added, removed or replaced)
 from a word seen at least `typo_common_ratio` (20) times as often is flagged. Plurals and
 shortened forms (one word starts with the other) are skipped. Known abbreviations and foreign
@@ -183,7 +183,11 @@ words go on `typo_allow_list` (default alloc, avance, recov, reverse), which con
 on the Rules page; the model check of each candidate is #30. Two swapped letters count as two
 edits, so "Langrf" or "recalss" are not flagged (chosen to keep the agreed rule; OSA distance
 would add 3 such words on real data). (2) Period label (unchanged; demo step 4): a line whose
-text names a different period than most lines of its document. Real data: 11 prompts, all
+text names a different period than most lines of its document. ASSUMPTION (#13): only
+documents with at least `Rules.period_label_min_lines` (3) lines that name a period are
+checked, so "most lines" means something. All typo thresholds are on the Rules page and bounded
+(edits 1 to 3, rare count at least 1, ratio above 0, word length at least 2, lines at least 2);
+each prompt's facts show the values that applied. Real data: 11 prompts, all
 Payroll; Fixed assets has none. Spelling: Adjustmnt, retirment, SwissLlife, URSAAF (6 before
 the allow-list, which removes Alloc and recov); period labels: 7. The previous per-account rule
 (similarity 80, rarity 2.5x, Text only) gave 15 spelling prompts, several false ("Advance" for
