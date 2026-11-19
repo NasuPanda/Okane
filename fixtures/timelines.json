@@ -326,7 +326,7 @@
      "expected": -598600.0,
      "gap": -2021537.3,
      "batch_eur": -598600.0,
-     "batch_matched": true
+     "batch_matched": false
     },
     {
      "month": "2026-07",
@@ -338,25 +338,25 @@
     },
     {
      "month": "2026-08",
-     "balance": -4566938.37,
+     "balance": -5163742.57,
      "expected": -2531445.87,
-     "gap": -2035492.5,
+     "gap": -2632296.7,
      "batch_eur": -2531445.87,
      "batch_matched": true
     },
     {
      "month": "2026-09",
-     "balance": -4461746.36,
+     "balance": -5058550.56,
      "expected": -513823.36,
-     "gap": -3947923.0,
+     "gap": -4544727.2,
      "batch_eur": -513823.36,
      "batch_matched": false
     },
     {
      "month": "2026-10",
-     "balance": -1937894.83,
+     "balance": -2534699.03,
      "expected": 0.0,
-     "gap": -1937894.83,
+     "gap": -2534699.03,
      "batch_eur": null,
      "batch_matched": null
     }
@@ -727,19 +727,13 @@
      "evidence": [
       "0000000013/2026"
      ],
-     "matched": true,
-     "payment_eur": 596804.2,
-     "payment_dates": [
-      "2026-08-03"
-     ],
-     "payment_evidence": [
-      "0000000014/2026"
-     ],
-     "payment_labels": [
-      "URSSAF/ASSEDIC SITE03 - June'2026"
-     ],
-     "diff_pct": -0.3,
-     "lag_days": 34
+     "matched": false,
+     "payment_eur": null,
+     "payment_dates": [],
+     "payment_evidence": [],
+     "payment_labels": [],
+     "diff_pct": null,
+     "lag_days": null
     },
     {
      "period": "2026-07",
@@ -748,7 +742,7 @@
      "batch_eur": -620878.0,
      "lines": 4,
      "evidence": [
-      "0000000015/2026"
+      "0000000014/2026"
      ],
      "matched": true,
      "payment_eur": 619015.37,
@@ -756,7 +750,7 @@
       "2026-09-04"
      ],
      "payment_evidence": [
-      "0000000016/2026"
+      "0000000015/2026"
      ],
      "payment_labels": [
       "URSSAF/ASSEDIC SITE03 - July'2026"
@@ -771,7 +765,7 @@
      "batch_eur": -2531445.87,
      "lines": 4,
      "evidence": [
-      "0000000017/2026"
+      "0000000016/2026"
      ],
      "matched": true,
      "payment_eur": 2523851.53,
@@ -779,7 +773,7 @@
       "2026-10-06"
      ],
      "payment_evidence": [
-      "0000000018/2026"
+      "0000000017/2026"
      ],
      "payment_labels": [
       "URSSAF/ASSEDIC SITE03 - Aug'2026"
@@ -794,7 +788,7 @@
      "batch_eur": -513823.36,
      "lines": 4,
      "evidence": [
-      "0000000019/2026"
+      "0000000018/2026"
      ],
      "matched": false,
      "payment_eur": null,
@@ -805,7 +799,7 @@
      "lag_days": null
     }
    ],
-   "lag_median": 32.0,
+   "lag_median": 31.5,
    "lag_p90": 36.0
   },
   "BPP/C242/34900015": {

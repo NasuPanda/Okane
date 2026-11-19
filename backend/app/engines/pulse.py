@@ -261,6 +261,14 @@ def lag_stats(matches: list[Match]) -> tuple[float | None, float | None]:
     return float(np.median(lags)), float(np.percentile(lags, 90))
 
 
+def months_before(day: date, months: int) -> date:
+    """The same day ``months`` calendar months earlier, clamped to the month's last day."""
+    index = day.year * 12 + day.month - 1 - months
+    year, month = divmod(index, 12)
+    last = period_end(year, month + 1).day
+    return date(year, month + 1, min(day.day, last))
+
+
 def expected_by(batch: Batch, profile: PaymentProfile, p90: float | None, rules: Rules) -> date:
     """Period end (or accrual date) + 90th-percentile lag + grace days."""
     lag = p90 if p90 is not None else float(profile.window_end_days)
@@ -395,12 +403,16 @@ def missing_payment_alerts(
     result: ProfileResult, rules: Rules, as_of: date
 ) -> list[ExceptionRecord]:
     """pulse_missing_payment for each batch unmatched after its expected-by date."""
+    # ASSUMPTION: only batches whose expected-by date falls within
+    # Rules.missing_payment_lookback_months before the run date are raised; older unmatched
+    # batches stay in the gap alert's evidence. Decided in #20 (docs/ASSUMPTIONS.md A15).
+    oldest_due = months_before(as_of, rules.missing_payment_lookback_months)
     records = []
     for m in result.matches:
         if m.matched:
             continue
         due = expected_by(m.batch, result.profile, result.lag_p90, rules)
-        if due >= as_of:
+        if due >= as_of or due < oldest_due:
             continue
         refs = doc_refs(m.batch.lines)
         days_late = (as_of - due).days
@@ -423,6 +435,7 @@ def missing_payment_alerts(
                     "lag_p90_days": result.lag_p90 if result.lag_p90 is not None else "n/a",
                     "grace_days": rules.grace_days,
                     "days_past_expected": days_late,
+                    "lookback_months": rules.missing_payment_lookback_months,
                 },
                 evidence=refs,
                 first_signal=due + timedelta(days=1),

@@ -825,6 +825,11 @@ export interface components {
              */
             missing_batch_lookback_months: number;
             /**
+             * Missing Payment Lookback Months
+             * @default 12
+             */
+            missing_payment_lookback_months: number;
+            /**
              * Sentinel S1 Scope
              * @default people_only
              * @enum {string}

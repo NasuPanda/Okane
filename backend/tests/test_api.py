@@ -205,7 +205,7 @@ def test_pulse_timeline(ran: TestClient) -> None:
     assert timeline["label"] == "C192 social security"
     months = [p["month"] for p in timeline["points"]]
     assert "2026-09" in months and months == sorted(months)
-    assert sum(b["matched"] for b in timeline["batches"]) == 17
+    assert sum(b["matched"] for b in timeline["batches"]) == 16
     assert timeline["lag_p90"] is not None
     assert ran.get("/api/pulse/P20/C192/999999/timeline").status_code == 404
 
@@ -229,6 +229,9 @@ def test_rules_change_is_logged_and_reruns(ran: TestClient) -> None:
     bad = {**rules, "typo_max_edits": 0}
     refused = ran.put("/api/rules", json={"rules": bad, "reason": "slip"})
     assert refused.status_code == 422, "#13: typo thresholds are bounded"
+    bad = {**rules, "missing_payment_lookback_months": 0}
+    refused = ran.put("/api/rules", json={"rules": bad, "reason": "slip"})
+    assert refused.status_code == 422, "#20: the missing-payment look-back is at least 1 month"
     assert ran.get("/api/rules/log").json() == []
 
     rules["materiality_eur"] = 100_000

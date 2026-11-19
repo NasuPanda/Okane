@@ -5,19 +5,19 @@
   "b80b0b905e1fe118": {
    "exception": {
     "id": "b80b0b905e1fe118",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "pulse_gap",
     "workgroup": "Payroll",
     "erp": "P20",
     "entity": "C192",
     "account": "279006",
     "account_name": "Social security liabilities",
-    "title": "Liability 1.94M below expected",
-    "exposure_eur": -1937894.83,
+    "title": "Liability 2.53M below expected",
+    "exposure_eur": -2534699.03,
     "facts": {
      "rule": "Latest month-end gap at or above materiality",
-     "gap_eur": -1937894.83,
-     "balance_eur": -1937894.83,
+     "gap_eur": -2534699.03,
+     "balance_eur": -2534699.03,
      "expected_eur": 0.0,
      "latest_month": "2026-10",
      "since_month": "2025-06",
@@ -25,23 +25,24 @@
      "lowest_gap_eur": -705292.26,
      "lowest_gap_month": "2025-06",
      "materiality_eur": 500000.0,
-     "unmatched_batches": 3.0,
+     "unmatched_batches": 4.0,
      "today_detection_basis": "not detected by today's process",
      "lead_badge": "Today's process would miss this"
     },
     "evidence": [
      "0000000009/2025",
      "0000000010/2025",
-     "0000000019/2026"
+     "0000000013/2026",
+     "0000000018/2026"
     ],
     "first_signal": "2025-06-30",
     "today_detection": null,
     "lead_days": null,
     "expected_by": null,
     "suggested_class": "Required Adjustment Item",
-    "score": 91.0,
+    "score": 100.0,
     "score_breakdown": {
-     "exposure": 31.0,
+     "exposure": 40.0,
      "days_past_expected": 20.0,
      "penalty_account": 20.0,
      "error_type": 10.0,
@@ -136,7 +137,47 @@
      "amount_dc": -68894.02
     },
     {
-     "document": "0000000019/2026",
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202606",
+     "amount_eur": -239440.0,
+     "currency_dc": "EUR",
+     "amount_dc": -239440.0
+    },
+    {
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202606",
+     "amount_eur": -179580.0,
+     "currency_dc": "EUR",
+     "amount_dc": -179580.0
+    },
+    {
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202606",
+     "amount_eur": -119720.0,
+     "currency_dc": "EUR",
+     "amount_dc": -119720.0
+    },
+    {
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Payroll202606",
+     "amount_eur": -59860.0,
+     "currency_dc": "EUR",
+     "amount_dc": -59860.0
+    },
+    {
+     "document": "0000000018/2026",
      "posting_date": "2026-09-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -146,7 +187,7 @@
      "amount_dc": -205529.34
     },
     {
-     "document": "0000000019/2026",
+     "document": "0000000018/2026",
      "posting_date": "2026-09-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -156,7 +197,7 @@
      "amount_dc": -154147.01
     },
     {
-     "document": "0000000019/2026",
+     "document": "0000000018/2026",
      "posting_date": "2026-09-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -166,7 +207,7 @@
      "amount_dc": -102764.67
     },
     {
-     "document": "0000000019/2026",
+     "document": "0000000018/2026",
      "posting_date": "2026-09-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -495,7 +536,7 @@
      "expected": -598600.0,
      "gap": -2021537.3,
      "batch_eur": -598600.0,
-     "batch_matched": true
+     "batch_matched": false
     },
     {
      "month": "2026-07",
@@ -507,35 +548,35 @@
     },
     {
      "month": "2026-08",
-     "balance": -4566938.37,
+     "balance": -5163742.57,
      "expected": -2531445.87,
-     "gap": -2035492.5,
+     "gap": -2632296.7,
      "batch_eur": -2531445.87,
      "batch_matched": true
     },
     {
      "month": "2026-09",
-     "balance": -4461746.36,
+     "balance": -5058550.56,
      "expected": -513823.36,
-     "gap": -3947923.0,
+     "gap": -4544727.2,
      "batch_eur": -513823.36,
      "batch_matched": false
     },
     {
      "month": "2026-10",
-     "balance": -1937894.83,
+     "balance": -2534699.03,
      "expected": 0.0,
-     "gap": -1937894.83,
+     "gap": -2534699.03,
      "batch_eur": null,
      "batch_matched": null
     }
    ],
    "decisions": []
   },
-  "c52c3931a9d01b05": {
+  "5a2ed0b6c0c57484": {
    "exception": {
-    "id": "c52c3931a9d01b05",
-    "run_id": "run_20261119T173111_666cdc",
+    "id": "5a2ed0b6c0c57484",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "pulse_spike",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -560,7 +601,7 @@
      "lead_badge": "Caught 7 days before the close review"
     },
     "evidence": [
-     "0000000017/2026"
+     "0000000016/2026"
     ],
     "first_signal": "2026-08-30",
     "today_detection": "2026-09-07",
@@ -584,7 +625,7 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000017/2026",
+     "document": "0000000016/2026",
      "posting_date": "2026-08-30",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -594,7 +635,7 @@
      "amount_dc": -1012578.35
     },
     {
-     "document": "0000000017/2026",
+     "document": "0000000016/2026",
      "posting_date": "2026-08-30",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -604,7 +645,7 @@
      "amount_dc": -759433.76
     },
     {
-     "document": "0000000017/2026",
+     "document": "0000000016/2026",
      "posting_date": "2026-08-30",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -614,7 +655,7 @@
      "amount_dc": -506289.17
     },
     {
-     "document": "0000000017/2026",
+     "document": "0000000016/2026",
      "posting_date": "2026-08-30",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
@@ -943,7 +984,7 @@
      "expected": -598600.0,
      "gap": -2021537.3,
      "batch_eur": -598600.0,
-     "batch_matched": true
+     "batch_matched": false
     },
     {
      "month": "2026-07",
@@ -955,76 +996,77 @@
     },
     {
      "month": "2026-08",
-     "balance": -4566938.37,
+     "balance": -5163742.57,
      "expected": -2531445.87,
-     "gap": -2035492.5,
+     "gap": -2632296.7,
      "batch_eur": -2531445.87,
      "batch_matched": true
     },
     {
      "month": "2026-09",
-     "balance": -4461746.36,
+     "balance": -5058550.56,
      "expected": -513823.36,
-     "gap": -3947923.0,
+     "gap": -4544727.2,
      "batch_eur": -513823.36,
      "batch_matched": false
     },
     {
      "month": "2026-10",
-     "balance": -1937894.83,
+     "balance": -2534699.03,
      "expected": 0.0,
-     "gap": -1937894.83,
+     "gap": -2534699.03,
      "batch_eur": null,
      "batch_matched": null
     }
    ],
    "decisions": []
   },
-  "5b2756df8b78173c": {
+  "61ca766fbdf173e5": {
    "exception": {
-    "id": "5b2756df8b78173c",
-    "run_id": "run_20261119T173111_666cdc",
+    "id": "61ca766fbdf173e5",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
     "entity": "C192",
     "account": "279006",
     "account_name": "Social security liabilities",
-    "title": "No payment found for the 2025-05 batch",
-    "exposure_eur": -702310.55,
+    "title": "No payment found for the 2026-06 batch",
+    "exposure_eur": -598600.0,
     "facts": {
      "rule": "Batch unmatched after period end + 90th-percentile lag + grace days",
-     "batch_eur": -702310.55,
-     "batch_period": "2025-05",
+     "batch_eur": -598600.0,
+     "batch_period": "2026-06",
      "batch_lines": 4.0,
-     "accrual_date": "2025-05-30",
-     "expected_by": "2025-07-21",
+     "accrual_date": "2026-06-29",
+     "expected_by": "2026-08-20",
      "lag_p90_days": 36.0,
      "grace_days": 15.0,
-     "days_past_expected": 485.0,
+     "days_past_expected": 90.0,
+     "lookback_months": 12.0,
      "today_detection_basis": "365-day ageing rule",
-     "lead_days": 306.0,
+     "lead_days": 309.0,
      "lead_days_daily": 312.0,
-     "lead_days_weekly": 306.0,
-     "okane_run_date": "2025-07-28",
+     "lead_days_weekly": 309.0,
+     "okane_run_date": "2026-08-24",
      "lead_view": "weekly",
-     "lead_badge": "Caught 306 days before the 365-day ageing rule"
+     "lead_badge": "Caught 309 days before the 365-day ageing rule"
     },
     "evidence": [
-     "0000000009/2025"
+     "0000000013/2026"
     ],
-    "first_signal": "2025-07-22",
-    "today_detection": "2026-05-30",
-    "lead_days": 306,
-    "expected_by": "2025-07-21",
+    "first_signal": "2026-08-21",
+    "today_detection": "2027-06-29",
+    "lead_days": 309,
+    "expected_by": "2026-08-20",
     "suggested_class": "Required Adjustment Item",
-    "score": 62.2,
+    "score": 58.6,
     "score_breakdown": {
-     "exposure": 11.2,
+     "exposure": 9.6,
      "days_past_expected": 20.0,
      "penalty_account": 20.0,
      "error_type": 9.0,
-     "repeats": 2.0
+     "repeats": 0.0
     },
     "ai_comment": null,
     "verifier": "not_run",
@@ -1035,44 +1077,44 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000009/2025",
-     "posting_date": "2025-05-30",
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202505",
-     "amount_eur": -280924.22,
+     "text": "Payroll202606",
+     "amount_eur": -239440.0,
      "currency_dc": "EUR",
-     "amount_dc": -280924.22
+     "amount_dc": -239440.0
     },
     {
-     "document": "0000000009/2025",
-     "posting_date": "2025-05-30",
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202505",
-     "amount_eur": -210693.17,
+     "text": "Payroll202606",
+     "amount_eur": -179580.0,
      "currency_dc": "EUR",
-     "amount_dc": -210693.17
+     "amount_dc": -179580.0
     },
     {
-     "document": "0000000009/2025",
-     "posting_date": "2025-05-30",
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202505",
-     "amount_eur": -140462.11,
+     "text": "Payroll202606",
+     "amount_eur": -119720.0,
      "currency_dc": "EUR",
-     "amount_dc": -140462.11
+     "amount_dc": -119720.0
     },
     {
-     "document": "0000000009/2025",
-     "posting_date": "2025-05-30",
+     "document": "0000000013/2026",
+     "posting_date": "2026-06-29",
      "doc_type": "P0",
      "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202505",
-     "amount_eur": -70231.05,
+     "text": "Payroll202606",
+     "amount_eur": -59860.0,
      "currency_dc": "EUR",
-     "amount_dc": -70231.05
+     "amount_dc": -59860.0
     }
    ],
    "timeline": [
@@ -1394,7 +1436,7 @@
      "expected": -598600.0,
      "gap": -2021537.3,
      "batch_eur": -598600.0,
-     "batch_matched": true
+     "batch_matched": false
     },
     {
      "month": "2026-07",
@@ -1406,486 +1448,35 @@
     },
     {
      "month": "2026-08",
-     "balance": -4566938.37,
+     "balance": -5163742.57,
      "expected": -2531445.87,
-     "gap": -2035492.5,
+     "gap": -2632296.7,
      "batch_eur": -2531445.87,
      "batch_matched": true
     },
     {
      "month": "2026-09",
-     "balance": -4461746.36,
+     "balance": -5058550.56,
      "expected": -513823.36,
-     "gap": -3947923.0,
+     "gap": -4544727.2,
      "batch_eur": -513823.36,
      "batch_matched": false
     },
     {
      "month": "2026-10",
-     "balance": -1937894.83,
+     "balance": -2534699.03,
      "expected": 0.0,
-     "gap": -1937894.83,
+     "gap": -2534699.03,
      "batch_eur": null,
      "batch_matched": null
     }
    ],
    "decisions": []
   },
-  "7bbbe9271b0a2e1d": {
+  "4b75e13ab2dc5a8d": {
    "exception": {
-    "id": "7bbbe9271b0a2e1d",
-    "run_id": "run_20261119T173111_666cdc",
-    "type": "pulse_missing_payment",
-    "workgroup": "Payroll",
-    "erp": "P20",
-    "entity": "C192",
-    "account": "279006",
-    "account_name": "Social security liabilities",
-    "title": "No payment found for the 2025-06 batch",
-    "exposure_eur": -688940.2,
-    "facts": {
-     "rule": "Batch unmatched after period end + 90th-percentile lag + grace days",
-     "batch_eur": -688940.2,
-     "batch_period": "2025-06",
-     "batch_lines": 4.0,
-     "accrual_date": "2025-06-29",
-     "expected_by": "2025-08-20",
-     "lag_p90_days": 36.0,
-     "grace_days": 15.0,
-     "days_past_expected": 455.0,
-     "today_detection_basis": "365-day ageing rule",
-     "lead_days": 308.0,
-     "lead_days_daily": 312.0,
-     "lead_days_weekly": 308.0,
-     "okane_run_date": "2025-08-25",
-     "lead_view": "weekly",
-     "lead_badge": "Caught 308 days before the 365-day ageing rule"
-    },
-    "evidence": [
-     "0000000010/2025"
-    ],
-    "first_signal": "2025-08-21",
-    "today_detection": "2026-06-29",
-    "lead_days": 308,
-    "expected_by": "2025-08-20",
-    "suggested_class": "Required Adjustment Item",
-    "score": 62.0,
-    "score_breakdown": {
-     "exposure": 11.0,
-     "days_past_expected": 20.0,
-     "penalty_account": 20.0,
-     "error_type": 9.0,
-     "repeats": 2.0
-    },
-    "ai_comment": null,
-    "verifier": "not_run",
-    "status": "new",
-    "decision_reason": null,
-    "decided_class": null,
-    "edited_comment": null
-   },
-   "evidence_lines": [
-    {
-     "document": "0000000010/2025",
-     "posting_date": "2025-06-29",
-     "doc_type": "P0",
-     "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202506",
-     "amount_eur": -275576.08,
-     "currency_dc": "EUR",
-     "amount_dc": -275576.08
-    },
-    {
-     "document": "0000000010/2025",
-     "posting_date": "2025-06-29",
-     "doc_type": "P0",
-     "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202506",
-     "amount_eur": -206682.06,
-     "currency_dc": "EUR",
-     "amount_dc": -206682.06
-    },
-    {
-     "document": "0000000010/2025",
-     "posting_date": "2025-06-29",
-     "doc_type": "P0",
-     "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202506",
-     "amount_eur": -137788.04,
-     "currency_dc": "EUR",
-     "amount_dc": -137788.04
-    },
-    {
-     "document": "0000000010/2025",
-     "posting_date": "2025-06-29",
-     "doc_type": "P0",
-     "user_name": "BOT_UPLOAD_001",
-     "text": "Payroll202506",
-     "amount_eur": -68894.02,
-     "currency_dc": "EUR",
-     "amount_dc": -68894.02
-    }
-   ],
-   "timeline": [
-    {
-     "month": "2023-03",
-     "balance": 1250.0,
-     "expected": 0.0,
-     "gap": 1250.0,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-04",
-     "balance": 2130.5,
-     "expected": 0.0,
-     "gap": 2130.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-05",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-06",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-07",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-08",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-09",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-10",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-11",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2023-12",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-01",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-02",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-03",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-04",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-05",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-06",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-07",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-08",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-09",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-10",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-11",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2024-12",
-     "balance": 4530.5,
-     "expected": 0.0,
-     "gap": 4530.5,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2025-01",
-     "balance": -605869.5,
-     "expected": -610400.0,
-     "gap": 4530.5,
-     "batch_eur": -610400.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-02",
-     "balance": -595551.1,
-     "expected": -598250.4,
-     "gap": 2699.3,
-     "batch_eur": -598250.4,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-03",
-     "balance": -639215.55,
-     "expected": -640120.1,
-     "gap": 904.55,
-     "batch_eur": -640120.1,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-04",
-     "balance": -656315.81,
-     "expected": -655300.0,
-     "gap": -1015.81,
-     "batch_eur": -655300.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-05",
-     "balance": -705292.26,
-     "expected": -702310.55,
-     "gap": -2981.71,
-     "batch_eur": -702310.55,
-     "batch_matched": false
-    },
-    {
-     "month": "2025-06",
-     "balance": -1394232.46,
-     "expected": -688940.2,
-     "gap": -705292.26,
-     "batch_eur": -688940.2,
-     "batch_matched": false
-    },
-    {
-     "month": "2025-07",
-     "balance": -2009232.46,
-     "expected": -615000.0,
-     "gap": -1394232.46,
-     "batch_eur": -615000.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-08",
-     "balance": -2009232.46,
-     "expected": 0.0,
-     "gap": -2009232.46,
-     "batch_eur": null,
-     "batch_matched": null
-    },
-    {
-     "month": "2025-09",
-     "balance": -2029528.21,
-     "expected": -633450.75,
-     "gap": -1396077.46,
-     "batch_eur": -633450.75,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-10",
-     "balance": -2620408.21,
-     "expected": -590880.0,
-     "gap": -2029528.21,
-     "batch_eur": -590880.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-11",
-     "balance": -2601158.11,
-     "expected": -612300.3,
-     "gap": -1988857.81,
-     "batch_eur": -612300.3,
-     "batch_matched": true
-    },
-    {
-     "month": "2025-12",
-     "balance": -2657750.75,
-     "expected": -645700.0,
-     "gap": -2012050.75,
-     "batch_eur": -645700.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-01",
-     "balance": -2004746.55,
-     "expected": -601222.1,
-     "gap": -1403524.45,
-     "batch_eur": -601222.1,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-02",
-     "balance": -2620646.55,
-     "expected": -615900.0,
-     "gap": -2004746.55,
-     "batch_eur": -615900.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-03",
-     "balance": -2035576.42,
-     "expected": -628400.6,
-     "gap": -1407175.82,
-     "batch_eur": -628400.6,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-04",
-     "balance": -2677586.42,
-     "expected": -642010.0,
-     "gap": -2035576.42,
-     "batch_eur": -642010.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-05",
-     "balance": -2661621.27,
-     "expected": -610550.25,
-     "gap": -2051071.02,
-     "batch_eur": -610550.25,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-06",
-     "balance": -2620137.3,
-     "expected": -598600.0,
-     "gap": -2021537.3,
-     "batch_eur": -598600.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-07",
-     "balance": -2632296.7,
-     "expected": -620878.0,
-     "gap": -2011418.7,
-     "batch_eur": -620878.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-08",
-     "balance": -4566938.37,
-     "expected": -2531445.87,
-     "gap": -2035492.5,
-     "batch_eur": -2531445.87,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-09",
-     "balance": -4461746.36,
-     "expected": -513823.36,
-     "gap": -3947923.0,
-     "batch_eur": -513823.36,
-     "batch_matched": false
-    },
-    {
-     "month": "2026-10",
-     "balance": -1937894.83,
-     "expected": 0.0,
-     "gap": -1937894.83,
-     "batch_eur": null,
-     "batch_matched": null
-    }
-   ],
-   "decisions": []
-  },
-  "532032f4fe383650": {
-   "exception": {
-    "id": "532032f4fe383650",
-    "run_id": "run_20261119T173111_666cdc",
+    "id": "4b75e13ab2dc5a8d",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "sentinel_outlier",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1913,7 +1504,7 @@
      "lead_badge": "Caught 32 days before the close review"
     },
     "evidence": [
-     "0000000032/2026"
+     "0000000031/2026"
     ],
     "first_signal": "2026-10-05",
     "today_detection": "2026-11-06",
@@ -1937,7 +1528,7 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000032/2026",
+     "document": "0000000031/2026",
      "posting_date": "2026-10-05",
      "doc_type": "SA",
      "user_name": "USER_901",
@@ -1953,7 +1544,7 @@
   "5cb790939c58a948": {
    "exception": {
     "id": "5cb790939c58a948",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "sentinel_outlier",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -2021,7 +1612,7 @@
   "ca26141f45d62ffe": {
    "exception": {
     "id": "ca26141f45d62ffe",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "label_mismatch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2452,7 +2043,7 @@
      "expected": -598600.0,
      "gap": -2021537.3,
      "batch_eur": -598600.0,
-     "batch_matched": true
+     "batch_matched": false
     },
     {
      "month": "2026-07",
@@ -2464,25 +2055,25 @@
     },
     {
      "month": "2026-08",
-     "balance": -4566938.37,
+     "balance": -5163742.57,
      "expected": -2531445.87,
-     "gap": -2035492.5,
+     "gap": -2632296.7,
      "batch_eur": -2531445.87,
      "batch_matched": true
     },
     {
      "month": "2026-09",
-     "balance": -4461746.36,
+     "balance": -5058550.56,
      "expected": -513823.36,
-     "gap": -3947923.0,
+     "gap": -4544727.2,
      "batch_eur": -513823.36,
      "batch_matched": false
     },
     {
      "month": "2026-10",
-     "balance": -1937894.83,
+     "balance": -2534699.03,
      "expected": 0.0,
-     "gap": -1937894.83,
+     "gap": -2534699.03,
      "batch_eur": null,
      "batch_matched": null
     }
@@ -2492,7 +2083,7 @@
   "3267f451b8da112e": {
    "exception": {
     "id": "3267f451b8da112e",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2507,12 +2098,12 @@
      "suggestion": "URSSAF",
      "edits": 1.0,
      "occurrences": 2.0,
-     "dictionary_count": 66.0,
+     "dictionary_count": 62.0,
      "min_word_length": 5.0,
      "max_rare_count": 3.0,
      "common_ratio": 20.0,
      "posting_date": "2026-05-01",
-     "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 66 times.",
+     "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 62 times.",
      "today_detection_basis": "month-end close review",
      "lead_days": 32.0,
      "lead_days_daily": 35.0,
@@ -2885,7 +2476,7 @@
      "expected": -598600.0,
      "gap": -2021537.3,
      "batch_eur": -598600.0,
-     "batch_matched": true
+     "batch_matched": false
     },
     {
      "month": "2026-07",
@@ -2897,25 +2488,25 @@
     },
     {
      "month": "2026-08",
-     "balance": -4566938.37,
+     "balance": -5163742.57,
      "expected": -2531445.87,
-     "gap": -2035492.5,
+     "gap": -2632296.7,
      "batch_eur": -2531445.87,
      "batch_matched": true
     },
     {
      "month": "2026-09",
-     "balance": -4461746.36,
+     "balance": -5058550.56,
      "expected": -513823.36,
-     "gap": -3947923.0,
+     "gap": -4544727.2,
      "batch_eur": -513823.36,
      "batch_matched": false
     },
     {
      "month": "2026-10",
-     "balance": -1937894.83,
+     "balance": -2534699.03,
      "expected": 0.0,
-     "gap": -1937894.83,
+     "gap": -2534699.03,
      "batch_eur": null,
      "batch_matched": null
     }
@@ -2925,7 +2516,7 @@
   "0c7228820c2b5ca8": {
    "exception": {
     "id": "0c7228820c2b5ca8",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "pulse_missing_batch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3283,7 +2874,7 @@
      "expected": -598600.0,
      "gap": -2021537.3,
      "batch_eur": -598600.0,
-     "batch_matched": true
+     "batch_matched": false
     },
     {
      "month": "2026-07",
@@ -3295,25 +2886,25 @@
     },
     {
      "month": "2026-08",
-     "balance": -4566938.37,
+     "balance": -5163742.57,
      "expected": -2531445.87,
-     "gap": -2035492.5,
+     "gap": -2632296.7,
      "batch_eur": -2531445.87,
      "batch_matched": true
     },
     {
      "month": "2026-09",
-     "balance": -4461746.36,
+     "balance": -5058550.56,
      "expected": -513823.36,
-     "gap": -3947923.0,
+     "gap": -4544727.2,
      "batch_eur": -513823.36,
      "batch_matched": false
     },
     {
      "month": "2026-10",
-     "balance": -1937894.83,
+     "balance": -2534699.03,
      "expected": 0.0,
-     "gap": -1937894.83,
+     "gap": -2534699.03,
      "batch_eur": null,
      "batch_matched": null
     }
@@ -3323,7 +2914,7 @@
   "d00346a86e3ca1d6": {
    "exception": {
     "id": "d00346a86e3ca1d6",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "miner_cluster",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3352,14 +2943,14 @@
      "lead_badge": "Today's process would miss this"
     },
     "evidence": [
+     "0000000037/2026",
      "0000000038/2026",
      "0000000039/2026",
      "0000000040/2026",
      "0000000041/2026",
      "0000000042/2026",
      "0000000043/2026",
-     "0000000044/2026",
-     "0000000045/2026"
+     "0000000044/2026"
     ],
     "first_signal": "2026-10-21",
     "today_detection": null,
@@ -3383,7 +2974,7 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000043/2026",
+     "document": "0000000042/2026",
      "posting_date": "2026-09-21",
      "doc_type": "SA",
      "user_name": "USER_045",
@@ -3393,7 +2984,7 @@
      "amount_dc": 2333.0
     },
     {
-     "document": "0000000045/2026",
+     "document": "0000000044/2026",
      "posting_date": "2026-10-21",
      "doc_type": "SA",
      "user_name": "USER_045",
@@ -3406,10 +2997,10 @@
    "timeline": null,
    "decisions": []
   },
-  "f5cb477294a2b6ac": {
+  "1578d0ba41872186": {
    "exception": {
-    "id": "f5cb477294a2b6ac",
-    "run_id": "run_20261119T173111_666cdc",
+    "id": "1578d0ba41872186",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "sentinel_currency_code",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3435,7 +3026,7 @@
      "lead_badge": "Caught 32 days before the close review"
     },
     "evidence": [
-     "0000000054/2026"
+     "0000000053/2026"
     ],
     "first_signal": "2026-10-02",
     "today_detection": "2026-11-06",
@@ -3459,7 +3050,7 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000054/2026",
+     "document": "0000000053/2026",
      "posting_date": "2026-10-02",
      "doc_type": "SA",
      "user_name": "USER_088",
@@ -3475,7 +3066,7 @@
   "f04ae2adff34c19c": {
    "exception": {
     "id": "f04ae2adff34c19c",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "sentinel_currency_code",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3542,7 +3133,7 @@
   "6c91062e6c599fb8": {
    "exception": {
     "id": "6c91062e6c599fb8",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "sentinel_two_currencies",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3618,7 +3209,7 @@
   "0c33474c40046521": {
    "exception": {
     "id": "0c33474c40046521",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "sentinel_two_currencies",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3643,8 +3234,8 @@
      "lead_badge": "Caught 23 days before the close review"
     },
     "evidence": [
-     "0000000052/2026",
-     "0000000053/2026"
+     "0000000051/2026",
+     "0000000052/2026"
     ],
     "first_signal": "2026-09-14",
     "today_detection": "2026-10-07",
@@ -3668,7 +3259,7 @@
    },
    "evidence_lines": [
     {
-     "document": "0000000052/2026",
+     "document": "0000000051/2026",
      "posting_date": "2026-09-14",
      "doc_type": "SA",
      "user_name": "USER_077",
@@ -3678,7 +3269,7 @@
      "amount_dc": -4200.4
     },
     {
-     "document": "0000000053/2026",
+     "document": "0000000052/2026",
      "posting_date": "2026-09-14",
      "doc_type": "SA",
      "user_name": "USER_077",
@@ -3694,7 +3285,7 @@
   "f4d7086d081a2e09": {
    "exception": {
     "id": "f4d7086d081a2e09",
-    "run_id": "run_20261119T173111_666cdc",
+    "run_id": "run_20261119T182456_62a48f",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",

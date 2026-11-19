@@ -161,6 +161,10 @@ class Rules(BaseModel):
     # ADDITION / ASSUMPTION: only months inside this look-back are checked for a missing batch.
     # Confirmed in #4 (docs/ASSUMPTIONS.md A14).
     missing_batch_lookback_months: int = 24
+    # ADDITION / ASSUMPTION: a missing payment is raised only when the batch's expected-by
+    # date falls within this many months before the run date; older unmatched batches stay
+    # listed on the gap alert. Decided in #20 (docs/ASSUMPTIONS.md A15).
+    missing_payment_lookback_months: int = Field(default=12, ge=1)
     # ADDITION (brief open item 2): which lines Sentinel S1 may flag. Decided in #9
     # (docs/ASSUMPTIONS.md A1): person-posted lines only.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"

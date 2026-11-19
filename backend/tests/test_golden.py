@@ -138,6 +138,23 @@ def test_real_c192_alerts(real_pulse: PulseResult) -> None:
     assert sep == [], "the September 2026 batch is not due before 21 Nov 2026"
 
 
+def test_real_missing_payments_capped(real_lines: pd.DataFrame, real_pulse: PulseResult) -> None:
+    """A15 (#20): 21 missing payments without the cap, 7 with it (C192 4, C242 3).
+
+    Older unmatched C192 batches stay listed on the gap alert. Widening the C192 profile was
+    tried and matched no further payments, so the profile is unchanged.
+    """
+    missing = [r for r in real_pulse.records if r.type == "pulse_missing_payment"]
+    c192 = sorted(r.facts["batch_period"] for r in missing if r.entity == "C192")
+    assert c192 == ["2026-04", "2026-05", "2026-06", "2026-07"]
+    assert sum(r.entity == "C242" for r in missing) == 3
+    assert len(missing) == 7
+    gap = next(r for r in real_pulse.records if r.type == "pulse_gap" and r.entity == "C192")
+    assert gap.facts["unmatched_batches"] == 19, "the 18 overdue plus Sep 2026, not yet due"
+    uncapped = run_pulse(real_lines, Rules(missing_payment_lookback_months=120), AS_OF)
+    assert sum(r.type == "pulse_missing_payment" for r in uncapped.records) == 21
+
+
 def test_real_c242_matches(real_pulse: PulseResult) -> None:
     c242 = {m.batch.period: m for m in real_pulse.profiles["BPP/C242/34900015"].matches}
     july, august, september = c242[(2025, 7)], c242[(2025, 8)], c242[(2025, 9)]
@@ -318,11 +335,12 @@ def test_synthetic_pairs_and_netting(synthetic_lines: pd.DataFrame) -> None:
 def test_synthetic_c192_pulse(synthetic_pulse: PulseResult) -> None:
     c192 = synthetic_pulse.profiles["P20/C192/279006"]
     assert len(c192.matches) == 20
-    assert sum(m.matched for m in c192.matches) == 17
+    assert sum(m.matched for m in c192.matches) == 16
     records = [r for r in synthetic_pulse.records if r.entity == "C192"]
     assert sum(r.type == "pulse_gap" for r in records) == 1
     unpaid = sorted(r.facts["batch_period"] for r in records if r.type == "pulse_missing_payment")
-    assert unpaid == ["2025-05", "2025-06"]
+    # May and Jun 2025 are unpaid too, but due more than 12 months ago (A15, #20).
+    assert unpaid == ["2026-06"]
     missing = [r.facts["missing_period"] for r in records if r.type == "pulse_missing_batch"]
     assert missing == ["2025-08"]
     assert [r.facts["batch_period"] for r in records if r.type == "pulse_spike"] == ["2026-08"]
@@ -402,17 +420,18 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
     assert outlier.today_detection == date(2026, 10, 7)
     assert (outlier.lead_days, outlier.facts["lead_days_daily"]) == (16, 19)
     assert outlier.facts["lead_badge"] == "Caught 16 days before the close review"
-    # Pulse: the unpaid May 2025 batch. First signal the day after expected-by (Wed 22 Jul
-    # 2025), Monday run 28 Jul; the 365-day ageing rule shows it 30 May 2026.
-    may = next(
+    # Pulse: the unpaid June 2026 batch (the May 2025 one is past the 12-month cap, A15).
+    # First signal the day after expected-by (Fri 21 Aug 2026), Monday run 24 Aug; the 365-day
+    # ageing rule shows it 29 Jun 2027.
+    june = next(
         r for r in records
-        if r.type == "pulse_missing_payment" and r.facts["batch_period"] == "2025-05"
+        if r.type == "pulse_missing_payment" and r.facts["batch_period"] == "2026-06"
     )  # fmt: skip
-    assert may.first_signal == date(2025, 7, 22)
-    assert may.facts["okane_run_date"] == "2025-07-28"
-    assert may.today_detection == date(2026, 5, 30)
-    assert (may.lead_days, may.facts["lead_days_daily"]) == (306, 312)
-    assert may.facts["lead_badge"] == "Caught 306 days before the 365-day ageing rule"
+    assert june.first_signal == date(2026, 8, 21)
+    assert june.facts["okane_run_date"] == "2026-08-24"
+    assert june.today_detection == date(2027, 6, 29)
+    assert (june.lead_days, june.facts["lead_days_daily"]) == (309, 312)
+    assert june.facts["lead_badge"] == "Caught 309 days before the 365-day ageing rule"
     # Blind spots and the KPI median ("median days earlier", weekly).
     blind = [r for r in records if r.today_detection is None]
     assert {r.type for r in blind} == {"pulse_gap", "pulse_missing_batch", "miner_cluster"}
@@ -426,30 +445,33 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
         "2026-09-28", date(2026, 10, 7), 9
     )  # fmt: skip
     # The "Pauroll" typo (C172, posted Tuesday 28 May 2024, Monday run 3 Jun, close review
-    # Friday 7 Jun): 4 days. Under A6 (#12) it replaces the "Auzahl" and "trnasit" prompts, so
-    # 12 dated findings with a median of 19.5 (16 and 23 in the middle).
+    # Friday 7 Jun): 4 days. Under A6 (#12) it replaces the "Auzahl" and "trnasit" prompts.
+    # Under A15 (#20) only one missing payment remains, so 11 dated findings, median 16.
     pauroll = next(r for r in records if r.type == "typo" and r.entity == "C172")
     assert (pauroll.facts["okane_run_date"], pauroll.today_detection, pauroll.lead_days) == (
         "2024-06-03", date(2024, 6, 7), 4
     )  # fmt: skip
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (12, 19.5)
+    assert (len(leads), statistics.median(leads)) == (11, 16)
 
 
 def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
-    """A8, aggregates only: weekly median 25 days earlier over 51 dated findings, 9 blind (62 and
-    17.5 before the typo rule A6, #12, cut the typo prompts from 22 to 11)."""
+    """A8, aggregates only: weekly median 11 days earlier over 37 dated findings, 9 blind.
+
+    History: 62 / 17.5 before the typo rule (A6, #12) cut the typo prompts from 22 to 11;
+    51 / 25 before the missing-payment cap (A15, #20) cut missing payments from 21 to 7.
+    """
     import statistics
 
     from app.services.pipeline import run_engines
 
     records = run_engines(real_lines, Rules(), AS_OF).records
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (51, 25)
+    assert (len(leads), statistics.median(leads)) == (37, 11)
     assert sum(r.today_detection is None for r in records) == 9
     assert min(leads) >= 0
     daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
-    assert statistics.median(daily) == 29
+    assert statistics.median(daily) == 17
 
 
 def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
@@ -520,9 +542,10 @@ def test_real_extract_dates(real_payroll, real_fixed_assets) -> None:  # type: i
 def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
     """A38: a live run uses the Payroll extract date (23 Oct 2026), not the run date.
 
-    Aggregates only. Against 18 Nov: one missing-payment alert fewer (20, not 21; its
-    expected-by date falls after the extract), so 50 dated findings; the C192 gap still ranks
-    first at 89.4, 4 exposure groups stay above 500K and the median stays 25 days.
+    Aggregates only. With the 12-month missing-payment limit (A15, #20), which counts back from
+    the analysis date: 6 missing payments instead of 7 at 18 Nov. C242's October 2026 batch is
+    expected by 13 Nov, after the extract, so it is not yet due. 36 dated findings (37), median
+    still 11 days; the C192 gap still ranks first at 89.4 and 4 groups stay above 500K.
     """
     import statistics
 
@@ -530,9 +553,12 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
 
     output = run_engines(real_lines, Rules(), date(2026, 10, 23))
     records = output.records
-    assert sum(r.type == "pulse_missing_payment" for r in records) == 20
+    missing = [r for r in records if r.type == "pulse_missing_payment"]
+    assert sorted(r.facts["batch_period"] for r in missing if r.entity == "C192") == [
+        "2026-04", "2026-05", "2026-06", "2026-07"]  # fmt: skip
+    assert sum(r.entity == "C242" for r in missing) == 2
     assert (records[0].type, records[0].entity, round(records[0].score, 1)) == (
         "pulse_gap", "C192", 89.4)  # fmt: skip
     assert output.counts["exposure_groups_above"] == 4
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (50, 25)
+    assert (len(leads), statistics.median(leads)) == (36, 11)

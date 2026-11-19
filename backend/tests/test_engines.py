@@ -17,6 +17,7 @@ from app.engines.pulse import (
     analyse_profile,
     gap_timeline,
     match_batches,
+    months_before,
     parse_period,
     run_pulse,
 )
@@ -216,6 +217,37 @@ def test_pulse_alerts_on_small_frame() -> None:
     assert "pulse_spike" in types  # May = 5x the median of Jan/Feb/Apr
     missing_batch = next(r for r in result.records if r.type == "pulse_missing_batch")
     assert missing_batch.facts["missing_period"] == "2026-03"
+
+
+def test_missing_payment_lookback() -> None:
+    """A15 (#20): only batches due within the look-back before the run date are raised."""
+    # April is expected by 14 Jun 2026 and May by 14 Jul 2026 (period end + 30 + 15 grace).
+    base = {"materiality_eur": 100, "tolerance_eur": 0, "payment_profiles": [_profile()]}
+
+    def unpaid(months: int) -> list[str]:
+        rules = Rules(**base, missing_payment_lookback_months=months)
+        records = run_pulse(_pulse_lines(), rules, AS_OF).records
+        missing = [r for r in records if r.type == "pulse_missing_payment"]
+        assert all(r.facts["lookback_months"] == months for r in missing)
+        return sorted(str(r.facts["batch_period"]) for r in missing)
+
+    assert unpaid(6) == ["2026-04", "2026-05"]  # due on or after 18 May 2026
+    assert unpaid(5) == ["2026-05"]  # due on or after 18 Jun 2026: April drops out
+    assert unpaid(4) == []
+    gap = next(
+        r for r in run_pulse(_pulse_lines(), Rules(**base, missing_payment_lookback_months=1),
+                             AS_OF).records
+        if r.type == "pulse_gap"
+    )  # fmt: skip
+    assert gap.facts["unmatched_batches"] == 2, "older batches stay on the gap alert"
+    with pytest.raises(ValueError):
+        Rules(missing_payment_lookback_months=0)
+
+
+def test_months_before_clamps_to_month_end() -> None:
+    assert months_before(date(2026, 11, 18), 12) == date(2025, 11, 18)
+    assert months_before(date(2026, 3, 31), 1) == date(2026, 2, 28)
+    assert months_before(date(2026, 1, 15), 1) == date(2025, 12, 15)
 
 
 def test_match_batches_does_not_reuse_payments() -> None:
