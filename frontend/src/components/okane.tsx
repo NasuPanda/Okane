@@ -65,10 +65,15 @@ export function TypeLabel({ type, className }: { type: ExceptionType; className?
   );
 }
 
-/** How much earlier Okane spots it than today's month-end report. */
+/** How much earlier Okane spots it than today's process. The wording comes from the engine
+ *  (A8, #16): counted from the weekly run on or after the first signal. */
 export function LeadBadge({ record, size = "sm" }: { record: ExceptionRecord; size?: "sm" | "lg" }) {
   const basis = String(record.facts.today_detection_basis ?? "");
   const lead = record.lead_days;
+  const badge = typeof record.facts.lead_badge === "string" ? record.facts.lead_badge : null;
+  const run = typeof record.facts.okane_run_date === "string" ? record.facts.okane_run_date : null;
+  const daily = record.facts.lead_days_daily;
+  const weekly = record.facts.lead_view === "weekly";
   const big = size === "lg";
   const shape = cn(
     "inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap",
@@ -80,28 +85,35 @@ export function LeadBadge({ record, size = "sm" }: { record: ExceptionRecord; si
         <TooltipTrigger asChild>
           <span className={cn(shape, "bg-hot-soft text-hot")}>
             <EyeOff className={big ? "size-4" : "size-3"} />
-            Today's report would miss this
+            {badge ?? "Today's process would miss this"}
           </span>
         </TooltipTrigger>
         <TooltipContent>
-          Neither the 365-day ageing rule nor the month-end review looks for this. Only Okane does.
+          Neither the ageing rule nor the month-end close review looks for this. Only Okane does.
         </TooltipContent>
       </Tooltip>
     );
   }
-  const what = basis.includes("ageing") ? "the 365-day ageing rule" : "the month-end review";
+  const what = basis.includes("ageing") ? "the ageing rule" : "the month-end close review";
   const earlier = lead >= 0;
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <span className={cn(shape, earlier ? "bg-dock text-white" : "bg-muted text-muted-foreground")}>
           <Sparkles className={cn(big ? "size-4" : "size-3", earlier && "text-signal")} />
-          {earlier ? "Caught" : "Seen"} <span className="num">{Math.abs(lead)}</span> days {earlier ? "earlier" : "later"}
+          {badge ?? `${earlier ? "Caught" : "Seen"} ${Math.abs(lead)} days ${earlier ? "earlier" : "later"}`}
         </span>
       </TooltipTrigger>
       <TooltipContent>
-        Okane can flag it on {day(record.first_signal)}. Today it would surface through {what} on{" "}
-        {day(record.today_detection)}.
+        {weekly && run ? (
+          <>
+            The first sign is on {day(record.first_signal)}; Okane's weekly run flags it on {day(run)}.{" "}
+          </>
+        ) : (
+          <>Okane can flag it on {day(record.first_signal)}. </>
+        )}
+        Today it would surface through {what} on {day(record.today_detection)}.
+        {weekly && typeof daily === "number" ? ` (${daily} days earlier if Okane ran every day.)` : ""}
       </TooltipContent>
     </Tooltip>
   );

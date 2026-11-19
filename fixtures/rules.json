@@ -66,7 +66,10 @@
   "spike_lookback_months": 12,
   "missing_batch_lookback_months": 24,
   "sentinel_s1_scope": "people_only",
-  "close_review_days": 5,
+  "close_review_working_day": 5,
+  "close_review_holidays": [],
+  "lead_time_view": "weekly",
+  "weekly_run_weekday": 0,
   "sentinel_s2_min_amount": 1000.0,
   "typo_max_rare_count": 3,
   "typo_common_ratio": 20.0,
@@ -78,6 +81,8 @@
    "reverse"
   ],
   "miner_min_repeats": 3,
+  "miner_min_score": 12,
+  "miner_by_user": true,
   "penalty_accounts": [
    "P20/C192/279006"
   ],

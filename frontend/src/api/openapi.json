@@ -1937,10 +1937,35 @@
             "title": "Sentinel S1 Scope",
             "default": "people_only"
           },
-          "close_review_days": {
+          "close_review_working_day": {
             "type": "integer",
-            "title": "Close Review Days",
+            "minimum": 1.0,
+            "title": "Close Review Working Day",
             "default": 5
+          },
+          "close_review_holidays": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Close Review Holidays"
+          },
+          "lead_time_view": {
+            "type": "string",
+            "enum": [
+              "weekly",
+              "daily"
+            ],
+            "title": "Lead Time View",
+            "default": "weekly"
+          },
+          "weekly_run_weekday": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Weekly Run Weekday",
+            "default": 0
           },
           "sentinel_s2_min_amount": {
             "type": "number",
@@ -1973,6 +1998,16 @@
             "type": "integer",
             "title": "Miner Min Repeats",
             "default": 3
+          },
+          "miner_min_score": {
+            "type": "integer",
+            "title": "Miner Min Score",
+            "default": 12
+          },
+          "miner_by_user": {
+            "type": "boolean",
+            "title": "Miner By User",
+            "default": true
           },
           "penalty_accounts": {
             "items": {

@@ -243,6 +243,33 @@ def test_rules_change_is_logged_and_reruns(ran: TestClient) -> None:
     assert ran.get("/api/exposure/payroll").json()["groups_above"] == 4
 
 
+def test_saved_rules_from_before_17_load_without_a_phantom_change(tmp_path: Path) -> None:
+    """Rules saved before #17 carry close_review_days and lack the new lead-time fields: they
+    load with the defaults, and saving them unchanged logs nothing (A8)."""
+    from pydantic import ValidationError
+
+    from app.api.rules import diff_rules
+    from app.database import Database
+    from app.schemas import Rules
+
+    old = json.loads(Rules().model_dump_json())
+    for field in ("close_review_working_day", "close_review_holidays", "lead_time_view",
+                  "weekly_run_weekday", "miner_min_score", "miner_by_user"):  # fmt: skip
+        old.pop(field)
+    old["close_review_days"] = 5
+    db = Database(tmp_path / "rules.duckdb")
+    with db.cursor() as cur:
+        cur.execute("INSERT INTO rules VALUES (1, ?)", [json.dumps(old)])
+    loaded = db.get_rules()
+    db.close()
+    assert loaded.close_review_working_day == 5 and loaded.lead_time_view == "weekly"
+    assert not hasattr(loaded, "close_review_days")
+    assert diff_rules(loaded, Rules()) == [], "no phantom change-log entry"
+    with pytest.raises(ValidationError):
+        Rules(close_review_working_day=0)
+    assert Rules(close_review_working_day=1).close_review_working_day == 1
+
+
 # ----- jobs ---------------------------------------------------------------------------------
 def test_watcher_debounces_workbook_events() -> None:
     fired: list[str] = []

@@ -9,7 +9,7 @@ import {
 import { ArrowDownUp, BellRing, EyeOff, Hourglass, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { useExceptions, useKpis } from "@/api/hooks";
+import { useExceptions, useKpis, useRules } from "@/api/hooks";
 import type { ExceptionRecord, Status } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
 import {
@@ -30,7 +30,7 @@ import {
 } from "@/components/okane";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { GROUP_LABEL, GROUP_TONE, TYPE_GROUP, greeting, type TypeGroup } from "@/lib/labels";
+import { GROUP_LABEL, GROUP_TONE, TYPE_GROUP, greeting, weekdayName, type TypeGroup } from "@/lib/labels";
 import { cn, eur, shortEur } from "@/lib/utils";
 
 const column = createColumnHelper<ExceptionRecord>();
@@ -81,6 +81,7 @@ const GROUPS = Object.keys(GROUP_LABEL) as TypeGroup[];
 
 export function InboxPage() {
   const kpis = useKpis();
+  const rules = useRules();
   const all = useExceptions();
   const open = useOpenFinding();
   const [group, setGroup] = useState<TypeGroup | "all">("all");
@@ -157,7 +158,7 @@ export function InboxPage() {
           label="Spotted earlier by"
           value={k?.median_days_earlier ?? "–"}
           unit="days"
-          note="typically, before today's report would"
+          note={`median, counted from the weekly ${weekdayName(rules.data?.weekly_run_weekday)} run`}
           icon={Sparkles}
           color="var(--pulse)"
           soft="var(--pulse-soft)"
