@@ -2221,10 +2221,11 @@
             "title": "Days Past Expected Cap",
             "default": 90
           },
-          "repeats_cap": {
+          "repeats_min_months": {
             "type": "integer",
-            "title": "Repeats Cap",
-            "default": 5
+            "minimum": 1.0,
+            "title": "Repeats Min Months",
+            "default": 3
           },
           "error_type_severity": {
             "additionalProperties": {

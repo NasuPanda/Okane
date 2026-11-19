@@ -91,7 +91,7 @@
   ],
   "exposure_cap_multiple": 5.0,
   "days_past_expected_cap": 90,
-  "repeats_cap": 5,
+  "repeats_min_months": 3,
   "error_type_severity": {
    "pulse_gap": 1.0,
    "pulse_missing_payment": 0.9,

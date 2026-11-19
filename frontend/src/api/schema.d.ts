@@ -913,10 +913,10 @@ export interface components {
              */
             days_past_expected_cap: number;
             /**
-             * Repeats Cap
-             * @default 5
+             * Repeats Min Months
+             * @default 3
              */
-            repeats_cap: number;
+            repeats_min_months: number;
             /**
              * Error Type Severity
              * @default {
