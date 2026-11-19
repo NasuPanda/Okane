@@ -342,7 +342,7 @@ Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default
 | Q | Question | Unblocks | Status | Default if no answer | Answer | Date |
 |---|----------|----------|--------|----------------------|--------|------|
 | 1 | Exact deadline and format for the deck, video and summary | #36, #37, #38, #39 | drafted, not yet sent | Brief section 2: deck at most 12 slides plus appendix (PDF), video at most 3 minutes (MP4), one-page summary (PDF); submit Tue 24 Nov, with Mon 23 Nov as code freeze | | |
-| 2 | Which working day after month end the close review falls on | #16 (then #17) | drafted, not yet sent | The original rule: the 5th working day after month end (today the code uses month end + 5 calendar days, A8) | | |
+| 2 | Which working day after month end the close review falls on | #16 (then #17) | drafted, not yet sent | The original rule: the 5th working day after month end, Monday to Friday, no holidays listed (what the code does since #17, A8) | | |
 | 3 | Group closing rates for the run date, or ECB reference rates | #8 | drafted, not yet sent | ECB euro reference rates on each workbook's ageing date (public and reproducible), A11 | | |
 | 4 | Is the cross-ERP posting text on C192's payment lines a known route, and are some C192 batches paid quarterly? | #20 | drafted, not yet sent | Keep one alert per unmatched batch, as built (A15) | | |
 | 5 | What repeated manual corrections on payroll and fixed-asset accounts usually fix (replaces the CC06 question) | #14 (then #15, #31) | drafted, not yet sent | The original Miner rule: person-posted lines with a header text, score = distinct entities x distinct months; the card is labelled a hypothesis and not called CC06 (A7) | | |
