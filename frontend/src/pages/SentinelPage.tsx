@@ -7,7 +7,7 @@ import { useOpenFinding } from "@/components/AppShell";
 import { Card, Chip, Empty, LeadBadge, PageHeader, StatCard, StatusPill, TypeIcon, TypeLabel, stagger } from "@/components/okane";
 import { Skeleton } from "@/components/ui/skeleton";
 import { factLabel, isAmountFact, promptOf, toneOf } from "@/lib/labels";
-import { cn, eur } from "@/lib/utils";
+import { cn, eur, monthLabel } from "@/lib/utils";
 
 type Feed = "all" | "outliers" | "currencies" | "mistakes";
 const FEED_TYPES: Record<Feed, ExceptionType[]> = {
@@ -101,8 +101,8 @@ function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (i
         The same posting was typed by hand in <span className="text-signal">{String(top.facts.months)} months</span>
       </div>
       <div className="rounded-xl bg-dock-raised p-4 font-mono text-sm text-signal">“{String(top.facts.pattern)}”</div>
-      <div className="grid grid-cols-3 gap-4 text-sm">
-        {(["months", "documents", "total_abs_eur"] as const).map((k) => (
+      <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+        {(["months", "entities", "lines", "total_abs_eur"] as const).map((k) => (
           <div key={k}>
             <div className="text-[11px] tracking-wide text-white/50 uppercase">{factLabel(k)}</div>
             <div className="num text-xl font-light">
@@ -111,10 +111,7 @@ function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (i
           </div>
         ))}
       </div>
-      <p className="text-sm text-white/70">
-        <Sparkles className="mr-1 inline size-3.5 text-signal" />
-        {String(top.facts.hint)}
-      </p>
+      <MinerStory record={top} />
       <div className="flex flex-wrap gap-2">
         {ranked.slice(0, 6).map((r) => (
           <button
@@ -127,6 +124,47 @@ function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (i
         ))}
       </div>
     </section>
+  );
+}
+
+/** #31: the static Miner card, every figure read from the record's facts (A7). */
+function MinerStory({ record: r }: { record: ExceptionRecord }) {
+  const f = r.facts;
+  const people = Number(f.people);
+  const rows: [string, string][] = [
+    [
+      "What is corrected",
+      `Document type ${String(f.doc_type || "–")} on account ${r.account}${r.account_name ? ` ${r.account_name}` : ""}`,
+    ],
+    [
+      "How often",
+      `${String(f.lines)} lines in ${String(f.documents)} documents, ${monthLabel(String(f.first_month))} to ${monthLabel(String(f.last_month))}`,
+    ],
+    ["Where", `Company code${Number(f.entities) === 1 ? "" : "s"} ${String(f.entity_list)}`],
+    [
+      "Who",
+      people === 1 ? "One colleague, typed by hand each time" : `${people} colleagues, typed by hand each time`,
+    ],
+    [
+      "If it is fixed at the source",
+      `${String(f.lines)} manual lines over ${String(f.months)} months would no longer be needed`,
+    ],
+  ];
+  return (
+    <div className="space-y-3">
+      <dl className="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[auto_1fr]">
+        {rows.map(([label, value]) => (
+          <div key={label} className="contents">
+            <dt className="text-white/50">{label}</dt>
+            <dd className="text-white/85">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="text-sm text-white/70">
+        <Sparkles className="mr-1 inline size-3.5 text-signal" />
+        {String(f.hint)} <span className="text-white/50">This is a hypothesis for you to check, not a finding.</span>
+      </p>
+    </div>
   );
 }
 

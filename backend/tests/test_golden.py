@@ -294,6 +294,9 @@ def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
     assert (top.erp, top.entity, top.account) == ("BPP", "C242", "48900002")
     assert (top.facts["miner_score"], top.facts["months"], top.facts["entities"]) == (42, 42, 1)
     assert top.facts["lines"] == 111
+    shown = ("pattern", "months", "entities", "lines", "total_abs_eur", "documents",
+             "first_month", "last_month", "entity_list", "people", "hint")  # fmt: skip
+    assert all(r.facts.get(k) not in (None, "") for r in records for k in shown), "#31 card"
     # No top pattern names a correction, so the card stays a hypothesis.
     assert not any("correction" in str(r.facts["pattern"]) for r in records)
 
@@ -402,6 +405,18 @@ def test_synthetic_miner_planted_pattern_and_near_miss(synthetic_lines: pd.DataF
     lower = run_miner(synthetic_lines, rules.model_copy(update={"miner_min_score": 10}))
     assert {(r.account, r.facts["miner_score"]) for r in lower} == {("279030", 12), ("279030", 10)}
     assert [r for r in lower if r.account == "279002"] == [], "no header text, no pattern"
+
+
+def test_synthetic_miner_card_has_every_fact_it_shows(synthetic_lines: pd.DataFrame) -> None:
+    """#31: the static Miner card (SentinelPage ``MinerCard`` and ``MinerStory``) reads only the
+    record's facts; the planted pattern carries each of them, so the card renders in full."""
+    top = run_miner(synthetic_lines, Rules())[0]
+    shown = ("pattern", "months", "entities", "lines", "total_abs_eur", "doc_type", "documents",
+             "first_month", "last_month", "entity_list", "people", "hint")  # fmt: skip
+    assert all(top.facts.get(k) not in (None, "") for k in shown), shown
+    assert (top.facts["lines"], top.facts["documents"], top.facts["people"]) == (8, 8, 1)
+    assert (top.facts["first_month"], top.facts["last_month"]) == ("2026-05", "2026-10")
+    assert top.account_name
 
 
 # ----- lead time (A8, decided in #16) -------------------------------------------------------

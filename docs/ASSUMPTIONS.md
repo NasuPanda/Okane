@@ -331,6 +331,10 @@ the name "CC06" is dropped.
   top score 159.
 - Rejected: the earlier rule (entity, account, document type and line text, 3+ months; 42
   Payroll and about 38 Fixed assets clusters, no score) and the original without the user.
+- Card (#31, static part): what is corrected (document type, account), how often (lines,
+  documents, first and last month), where (company codes), who (one colleague or several,
+  by hand) and what fixing the source would remove, all read from the record's facts and
+  labelled a hypothesis. The model-written text (A10) follows once #61 and #62 are merged.
 Owner: team.
 
 ## Lead time and score
