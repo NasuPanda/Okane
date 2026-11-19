@@ -9,7 +9,8 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
 
 - C192 P20 279006 (payment profile 1): monthly "PayrollYYYYMM" batches Jan 2025 - Sep 2026,
   paid ~30 days after period end; Aug 2025 has no batch (missing batch); May and Jun 2025 are
-  never paid (missing payments, gap); Aug 2026 is a 4x spike; the Feb 2026 payment is labelled
+  never paid (gap; older than the 12-month missing-payment cap, A15); Jun 2026 is never paid
+  (missing payment); Aug 2026 is a 4x spike; the Feb 2026 payment is labelled
   "Jan'2026" (label mismatch); one payment text says "URSAAF" (typo; payment headers say
   "URSSAF payment").
 - C242 BPP 34900015 (payment profile 2): monthly GX batches "Auszahl. Rente_MM.YYYY" from
@@ -175,7 +176,7 @@ C192_BATCHES: dict[tuple[int, int], float] = {
     (2026, 6): 598_600.00, (2026, 7): 620_878.00, (2026, 8): 2_531_445.87,
     (2026, 9): 513_823.36,
 }  # fmt: skip
-C192_UNPAID = {(2025, 5), (2025, 6), (2026, 9)}
+C192_UNPAID = {(2025, 5), (2025, 6), (2026, 6), (2026, 9)}
 C192_LABEL_SHIFT = {(2026, 2): (2026, 1)}  # paid for Feb 2026 but labelled January 2026
 C192_TYPO = {(2026, 3)}
 

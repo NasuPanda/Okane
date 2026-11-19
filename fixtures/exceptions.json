@@ -4,19 +4,19 @@
  "data": [
   {
    "id": "b80b0b905e1fe118",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "pulse_gap",
    "workgroup": "Payroll",
    "erp": "P20",
    "entity": "C192",
    "account": "279006",
    "account_name": "Social security liabilities",
-   "title": "Liability 1.94M below expected",
-   "exposure_eur": -1937894.83,
+   "title": "Liability 2.53M below expected",
+   "exposure_eur": -2534699.03,
    "facts": {
     "rule": "Latest month-end gap at or above materiality",
-    "gap_eur": -1937894.83,
-    "balance_eur": -1937894.83,
+    "gap_eur": -2534699.03,
+    "balance_eur": -2534699.03,
     "expected_eur": 0.0,
     "latest_month": "2026-10",
     "since_month": "2025-06",
@@ -24,29 +24,30 @@
     "lowest_gap_eur": -705292.26,
     "lowest_gap_month": "2025-06",
     "materiality_eur": 500000.0,
-    "unmatched_batches": 3.0,
+    "unmatched_batches": 4.0,
     "today_detection_basis": "not detected by today's process",
     "lead_badge": "Today's process would miss this"
    },
    "evidence": [
     "0000000009/2025",
     "0000000010/2025",
-    "0000000019/2026"
+    "0000000013/2026",
+    "0000000018/2026"
    ],
    "first_signal": "2025-06-30",
    "today_detection": null,
    "lead_days": null,
    "expected_by": null,
    "suggested_class": "Required Adjustment Item",
-   "score": 91.0,
+   "score": 100.0,
    "score_breakdown": {
-    "exposure": 31.0,
+    "exposure": 40.0,
     "days_past_expected": 20.0,
     "penalty_account": 20.0,
     "error_type": 10.0,
     "repeats": 10.0
    },
-   "ai_comment": "Standard note (no AI was used): The month-end balance for 2026-10 is -1,937,895 EUR against an expected 0 EUR, a gap of -1,937,895 EUR. The gap has been at or above materiality since 2025-06; the lowest was -705,292 EUR in 2025-06. Check the unmatched batches listed as evidence.",
+   "ai_comment": "Standard note (no AI was used): The month-end balance for 2026-10 is -2,534,699 EUR against an expected 0 EUR, a gap of -2,534,699 EUR. The gap has been at or above materiality since 2025-06; the lowest was -705,292 EUR in 2025-06. Check the unmatched batches listed as evidence.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -54,8 +55,8 @@
    "edited_comment": null
   },
   {
-   "id": "c52c3931a9d01b05",
-   "run_id": "run_20261119T152347_9bed20",
+   "id": "5a2ed0b6c0c57484",
+   "run_id": "run_20261119T154942_780f93",
    "type": "pulse_spike",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -80,7 +81,7 @@
     "lead_badge": "Caught 7 days before the close review"
    },
    "evidence": [
-    "0000000017/2026"
+    "0000000016/2026"
    ],
    "first_signal": "2026-08-30",
    "today_detection": "2026-09-07",
@@ -103,51 +104,52 @@
    "edited_comment": null
   },
   {
-   "id": "5b2756df8b78173c",
-   "run_id": "run_20261119T152347_9bed20",
+   "id": "61ca766fbdf173e5",
+   "run_id": "run_20261119T154942_780f93",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
    "entity": "C192",
    "account": "279006",
    "account_name": "Social security liabilities",
-   "title": "No payment found for the 2025-05 batch",
-   "exposure_eur": -702310.55,
+   "title": "No payment found for the 2026-06 batch",
+   "exposure_eur": -598600.0,
    "facts": {
     "rule": "Batch unmatched after period end + 90th-percentile lag + grace days",
-    "batch_eur": -702310.55,
-    "batch_period": "2025-05",
+    "batch_eur": -598600.0,
+    "batch_period": "2026-06",
     "batch_lines": 4.0,
-    "accrual_date": "2025-05-30",
-    "expected_by": "2025-07-21",
+    "accrual_date": "2026-06-29",
+    "expected_by": "2026-08-20",
     "lag_p90_days": 36.0,
     "grace_days": 15.0,
-    "days_past_expected": 485.0,
+    "days_past_expected": 90.0,
+    "lookback_months": 12.0,
     "today_detection_basis": "365-day ageing rule",
-    "lead_days": 306.0,
+    "lead_days": 309.0,
     "lead_days_daily": 312.0,
-    "lead_days_weekly": 306.0,
-    "okane_run_date": "2025-07-28",
+    "lead_days_weekly": 309.0,
+    "okane_run_date": "2026-08-24",
     "lead_view": "weekly",
-    "lead_badge": "Caught 306 days before the 365-day ageing rule"
+    "lead_badge": "Caught 309 days before the 365-day ageing rule"
    },
    "evidence": [
-    "0000000009/2025"
+    "0000000013/2026"
    ],
-   "first_signal": "2025-07-22",
-   "today_detection": "2026-05-30",
-   "lead_days": 306,
-   "expected_by": "2025-07-21",
+   "first_signal": "2026-08-21",
+   "today_detection": "2027-06-29",
+   "lead_days": 309,
+   "expected_by": "2026-08-20",
    "suggested_class": "Required Adjustment Item",
-   "score": 62.2,
+   "score": 58.6,
    "score_breakdown": {
-    "exposure": 11.2,
+    "exposure": 9.6,
     "days_past_expected": 20.0,
     "penalty_account": 20.0,
     "error_type": 9.0,
-    "repeats": 2.0
+    "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): The 2025-05 batch of -702,311 EUR has no matching payment. It was expected by 2025-07-21. Confirm whether it was paid under another reference or is still owed.",
+   "ai_comment": "Standard note (no AI was used): The 2026-06 batch of -598,600 EUR has no matching payment. It was expected by 2026-08-20. Confirm whether it was paid under another reference or is still owed.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -155,60 +157,8 @@
    "edited_comment": null
   },
   {
-   "id": "7bbbe9271b0a2e1d",
-   "run_id": "run_20261119T152347_9bed20",
-   "type": "pulse_missing_payment",
-   "workgroup": "Payroll",
-   "erp": "P20",
-   "entity": "C192",
-   "account": "279006",
-   "account_name": "Social security liabilities",
-   "title": "No payment found for the 2025-06 batch",
-   "exposure_eur": -688940.2,
-   "facts": {
-    "rule": "Batch unmatched after period end + 90th-percentile lag + grace days",
-    "batch_eur": -688940.2,
-    "batch_period": "2025-06",
-    "batch_lines": 4.0,
-    "accrual_date": "2025-06-29",
-    "expected_by": "2025-08-20",
-    "lag_p90_days": 36.0,
-    "grace_days": 15.0,
-    "days_past_expected": 455.0,
-    "today_detection_basis": "365-day ageing rule",
-    "lead_days": 308.0,
-    "lead_days_daily": 312.0,
-    "lead_days_weekly": 308.0,
-    "okane_run_date": "2025-08-25",
-    "lead_view": "weekly",
-    "lead_badge": "Caught 308 days before the 365-day ageing rule"
-   },
-   "evidence": [
-    "0000000010/2025"
-   ],
-   "first_signal": "2025-08-21",
-   "today_detection": "2026-06-29",
-   "lead_days": 308,
-   "expected_by": "2025-08-20",
-   "suggested_class": "Required Adjustment Item",
-   "score": 62.0,
-   "score_breakdown": {
-    "exposure": 11.0,
-    "days_past_expected": 20.0,
-    "penalty_account": 20.0,
-    "error_type": 9.0,
-    "repeats": 2.0
-   },
-   "ai_comment": "Standard note (no AI was used): The 2025-06 batch of -688,940 EUR has no matching payment. It was expected by 2025-08-20. Confirm whether it was paid under another reference or is still owed.",
-   "verifier": "not_run",
-   "status": "new",
-   "decision_reason": null,
-   "decided_class": null,
-   "edited_comment": null
-  },
-  {
-   "id": "532032f4fe383650",
-   "run_id": "run_20261119T152347_9bed20",
+   "id": "4b75e13ab2dc5a8d",
+   "run_id": "run_20261119T154942_780f93",
    "type": "sentinel_outlier",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -236,7 +186,7 @@
     "lead_badge": "Caught 32 days before the close review"
    },
    "evidence": [
-    "0000000032/2026"
+    "0000000031/2026"
    ],
    "first_signal": "2026-10-05",
    "today_detection": "2026-11-06",
@@ -260,7 +210,7 @@
   },
   {
    "id": "5cb790939c58a948",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "sentinel_outlier",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -312,7 +262,7 @@
   },
   {
    "id": "ca26141f45d62ffe",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "label_mismatch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -364,7 +314,7 @@
   },
   {
    "id": "3267f451b8da112e",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -379,12 +329,12 @@
     "suggestion": "URSSAF",
     "edits": 1.0,
     "occurrences": 2.0,
-    "dictionary_count": 66.0,
+    "dictionary_count": 62.0,
     "min_word_length": 5.0,
     "max_rare_count": 3.0,
     "common_ratio": 20.0,
     "posting_date": "2026-05-01",
-    "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 66 times.",
+    "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 62 times.",
     "today_detection_basis": "month-end close review",
     "lead_days": 32.0,
     "lead_days_daily": 35.0,
@@ -409,7 +359,7 @@
     "error_type": 2.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 66 times.",
+   "ai_comment": "Standard note (no AI was used): You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 62 times.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -418,7 +368,7 @@
   },
   {
    "id": "0c7228820c2b5ca8",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "pulse_missing_batch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -458,7 +408,7 @@
   },
   {
    "id": "d00346a86e3ca1d6",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -487,14 +437,14 @@
     "lead_badge": "Today's process would miss this"
    },
    "evidence": [
+    "0000000037/2026",
     "0000000038/2026",
     "0000000039/2026",
     "0000000040/2026",
     "0000000041/2026",
     "0000000042/2026",
     "0000000043/2026",
-    "0000000044/2026",
-    "0000000045/2026"
+    "0000000044/2026"
    ],
    "first_signal": "2026-10-21",
    "today_detection": null,
@@ -517,8 +467,8 @@
    "edited_comment": null
   },
   {
-   "id": "f5cb477294a2b6ac",
-   "run_id": "run_20261119T152347_9bed20",
+   "id": "1578d0ba41872186",
+   "run_id": "run_20261119T154942_780f93",
    "type": "sentinel_currency_code",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -544,7 +494,7 @@
     "lead_badge": "Caught 32 days before the close review"
    },
    "evidence": [
-    "0000000054/2026"
+    "0000000053/2026"
    ],
    "first_signal": "2026-10-02",
    "today_detection": "2026-11-06",
@@ -568,7 +518,7 @@
   },
   {
    "id": "f04ae2adff34c19c",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "sentinel_currency_code",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -619,7 +569,7 @@
   },
   {
    "id": "6c91062e6c599fb8",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "sentinel_two_currencies",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -669,7 +619,7 @@
   },
   {
    "id": "0c33474c40046521",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "sentinel_two_currencies",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -694,8 +644,8 @@
     "lead_badge": "Caught 23 days before the close review"
    },
    "evidence": [
-    "0000000052/2026",
-    "0000000053/2026"
+    "0000000051/2026",
+    "0000000052/2026"
    ],
    "first_signal": "2026-09-14",
    "today_detection": "2026-10-07",
@@ -719,7 +669,7 @@
   },
   {
    "id": "f4d7086d081a2e09",
-   "run_id": "run_20261119T152347_9bed20",
+   "run_id": "run_20261119T154942_780f93",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",

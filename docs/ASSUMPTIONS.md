@@ -27,7 +27,7 @@ so nobody re-investigates).
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
 | A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
-| A15 | 21 missing-payment alerts on real data | Decide | Kept, one per unmatched batch |
+| A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; 7 on real data |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
@@ -110,10 +110,25 @@ batch. This yields exactly August 2025 for C192, as expected; C242 also shows Oc
 36-month look-back gives the same result; with no look-back C192 adds four months in 2023.
 Owner: team.
 
-**A15. Missing payments on real data.** *Decide.* The rule yields 21 alerts (C192: 18 across
-2023 to 2026; C242: 3). Older C192 batches are probably settled by payment patterns outside the
-profile (quarterly CFE and GARP payments). Options: keep (current), restrict to batches inside
-the current gap period, or widen the C192 payment profile. Owner: team.
+**A15. Missing payments on real data.** *Decided (19 Nov 2026, #20).* Without a limit the rule
+yields 21 alerts (C192: 18 across 2023 to 2026; C242: 3). The C192 gap stayed below materiality
+until May 2025, so the older C192 batches were most likely settled by payments the profile does
+not recognise (quarterly CFE and GARP payments or another ERP), not left unpaid.
+- Rule: a missing payment is raised only when the batch's expected-by date falls within
+  `Rules.missing_payment_lookback_months` (12) before the run date. Older unmatched batches
+  are not raised on their own; they stay in the gap alert's evidence and its count of
+  accruals without a payment. Controllers can change the number on the Rules page.
+- Real data (as of 18 Nov 2026): 7 alerts, C192 April to July 2026 (4) and C242 (3), down from
+  21. An 18-month limit gives 12, 24 months gives 13.
+- Rejected: widening the C192 profile (a window to +100 or +130 days with 3 or 4 payments still
+  leaves 18; a 5% tolerance leaves 17, so the extract holds no further payments to match);
+  keeping only batches inside the current gap run (it drops C242's October 2026 batch, the
+  freshest signal, because C242 has no gap alert); keeping all 21 (mostly false alarms, and
+  the inbox gets noisier, #21).
+- Synthetic sample: June 2026 on C192 is also left unpaid, so the demo keeps one missing
+  payment (May and June 2025 are past the limit and only drive the gap).
+- Mentor question 4: a "yes, some are paid quarterly" answer needs no change.
+Owner: team.
 
 **A23. Gap alert.** *Info.* Fires when the latest |gap| is at or above materiality. Its first
 signal is the month-end where the current unbroken run above materiality began (31 May 2025 for
@@ -246,10 +261,12 @@ is pending mentor question 2).*
   kept in the facts and shown in the badge's tooltip. `daily` switches back.
 - Badge: "Caught N days before the close review" or "Caught N days before the 365-day ageing
   rule" (the account's own allowed age); "Seen N days after ..." when negative.
-- Real Payroll (aggregates, as of 18 Nov 2026, with the typo rule A6 from #12): 51 findings
-  with a date, 9 blind spots; median 25 days earlier (weekly, 5th working day), against 29
-  daily. Before #12 cut the typo prompts from 22 to 11: 62 findings, median 17.5 (21 daily);
-  under the earlier lead-time rule (month end + 5 calendar days, daily) it was 19.
+- Real Payroll (aggregates, as of 18 Nov 2026, with the typo rule A6 from #12 and the
+  missing-payment limit A15 from #20): 37 findings with a date, 9 blind spots; median 11 days
+  earlier (weekly, 5th working day), against 17 daily. Before #20 cut missing payments from 21
+  to 7 (each had about 300 or more days of lead time against the 365-day rule): 51 findings,
+  median 25 (29 daily). Before #12 cut the typo prompts from 22 to 11: 62 findings, median 17.5
+  (21 daily); under the earlier lead-time rule (month end + 5 calendar days, daily) it was 19.
 - Rejected: month end + 5 calendar days (it can fall on a weekend); a daily-only badge
   (overstates what a Monday run delivers by up to 6 days).
 Owner: team.
@@ -363,7 +380,7 @@ Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default
 | 1 | Exact deadline and format for the deck, video and summary | #36, #37, #38, #39 | drafted, not yet sent | Brief section 2: deck at most 12 slides plus appendix (PDF), video at most 3 minutes (MP4), one-page summary (PDF); submit Tue 24 Nov, with Mon 23 Nov as code freeze | | |
 | 2 | Which working day after month end the close review falls on | #16 (then #17) | drafted, not yet sent | The original rule: the 5th working day after month end, Monday to Friday, no holidays listed (what the code does since #17, A8) | | |
 | 3 | Group closing rates for the run date, or ECB reference rates | #8 | drafted, not yet sent | ECB euro reference rates on each workbook's ageing date (public and reproducible), A11 | | |
-| 4 | Is the cross-ERP posting text on C192's payment lines a known route, and are some C192 batches paid quarterly? | #20 | drafted, not yet sent | Keep one alert per unmatched batch, as built (A15) | | |
+| 4 | Is the cross-ERP posting text on C192's payment lines a known route, and are some C192 batches paid quarterly? | #20 | drafted, not yet sent | Decided in #20 without waiting: missing payments only for batches due in the last 12 months (A15); a "quarterly" answer needs no change | | |
 | 5 | What repeated manual corrections on payroll and fixed-asset accounts usually fix (replaces the CC06 question) | #14 (then #15, #31) | drafted, not yet sent | The original Miner rule: person-posted lines with a header text, score = distinct entities x distinct months; the card is labelled a hypothesis and not called CC06 (A7) | | |
 | 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as built (A9) | | |
 | 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |

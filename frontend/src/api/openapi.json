@@ -1927,6 +1927,12 @@
             "title": "Missing Batch Lookback Months",
             "default": 24
           },
+          "missing_payment_lookback_months": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Missing Payment Lookback Months",
+            "default": 12
+          },
           "sentinel_s1_scope": {
             "type": "string",
             "enum": [
