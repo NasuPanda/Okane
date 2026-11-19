@@ -168,7 +168,7 @@ class Rules(BaseModel):
     # after month end. Working days are Monday to Friday minus close_review_holidays. (This
     # replaces close_review_days, month end + 5 calendar days; saved rules that still carry
     # that field load fine, it is ignored.)
-    close_review_working_day: int = 5
+    close_review_working_day: int = Field(default=5, ge=1)
     close_review_holidays: list[date] = Field(default_factory=list)
     # ADDITION (#16, A8): "weekly" counts lead days from the weekly run on or after the first
     # signal (Okane runs weekly); "daily" counts from the first signal itself.
