@@ -51,7 +51,7 @@ Every Monday, Okane reads the open line items the robot already extracts and sho
 ### The demo path the build must support (the 3-minute video)
 
 1. The old report: payroll shows 145.7M "overdue" on 5,475 lines.
-2. A new extract lands in the watched folder; a toast shows the run starting and finishing.
+2. The preparer uploads this week's Payroll extract in Okane (the same file could instead land in the shared watched folder); a toast shows the run starting and finishing. See A38.
 3. "Show real exposure": matched lines fold away and 4 exceptions remain at 500K materiality. This is the wow moment.
 4. Open the top exception, C192 social security: the gap chart (more than 1M off since May 2025, 1.84M today), a mistake prompt on a wrong period label, and an AI comment with its numbers ticked green.
 5. Sentinel feed: an outlier flagged on posting day, with the badge "N days before the close review". **To confirm:** the earlier example (a 9.86 billion WHT line) was Intercompany and is out of scope. See open item 1.
@@ -209,7 +209,7 @@ okane/
 
 **Pipeline, per run**
 
-1. A new workbook lands in data/inbox, or the Monday job fires.
+1. A new workbook is uploaded in Okane or lands in the watched folder (`OKANE_INBOX_DIR`, default data/inbox), or the Monday job fires. One intake step checks it and copies it into Okane's store before the run (A38).
 2. ingest.py reads every sheet, maps the columns to the common model, converts to EUR, and writes a snapshot to DuckDB with the file hash.
 3. The engines run in order: pairs, pulse, sentinel, typos, miner, lead time, exposure and score.
 4. Each engine writes Exception records into the snapshot.
@@ -376,6 +376,7 @@ Decided in #3 (18 Nov 2026): the original's rules, minus Intercompany, are the d
 | Risk score                        | Weights in Rules (exposure 40, days past expected 20, penalty account 20, error type 10, repeats 10)        | #18; build #19           | A9          |
 | AI layer                          | Ollama, JSON output validated by pydantic, masking, cache, verifier                                         | #28; build #29           | A10, A28    |
 | Screens                           | Inbox, Exposure, Sentinel, Rules; detail drawer with gap chart, AI comment, lead-time badge                 | Built to UI reference    | A16         |
+| Extract intake, analysis date     | How the weekly extract reaches Okane, the analysis date, when an extract is late, archive of past weeks     | #23 (decided); build #24 | A38         |
 | Mentor questions                  | Nine questions drafted; none depends on Intercompany or WHT                                                  | #2                       | A36         |
 
 ## 10. Changes in the Intercompany revision, and open items

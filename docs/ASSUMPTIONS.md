@@ -33,6 +33,7 @@ so nobody re-investigates).
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
 | A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
 | A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
+| A38 | How the weekly extract reaches Okane | Decide | Decided (#23): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive; build #24 |
 
 ## Data and ingestion
 
@@ -71,10 +72,60 @@ exactly the brief's 185 hits / 12 person-posted (Payroll alone 183 / 11; Fixed a
 
 **A20. Inbox and sample data.** *Info.* A run reads the newest Payroll and the newest Fixed
 assets workbook in `data/inbox/`. If the inbox has none, it reads `data/sample/` (synthetic)
-and marks the run `synthetic`. Owner: team.
+and marks the run `synthetic`. Decided in #23 (A38): the run will read Okane's own store
+(`data/extracts/`), filled by the intake step from an upload or the watched folder; the
+synthetic fallback stays. Until #24 builds it, the current behaviour applies. Owner: team.
 
 **A21. Analysis date.** *Info.* Engines use `OKANE_AS_OF` if set, otherwise today. Golden tests
 use 18 Nov 2026 so "the September 2026 batch is expected by 21 Nov 2026" is not yet late.
+Decided in #23 (A38): the analysis date becomes the day the Payroll extract was taken;
+`OKANE_AS_OF` still overrides. Until #24 builds it, the current behaviour applies. Owner: team.
+
+**A38. How the weekly extract reaches Okane.** *Decided (#23, 19 Nov 2026; mentor question 9
+had no answer by its due date, so its default applies, which is also the team's choice).* Built
+in #24.
+- Cadence: one Payroll and one Fixed assets extract a week. A new extract starts its own run;
+  the Monday 06:00 job is the backstop when none came. Okane first sees a posting in the next
+  weekly extract, not on its posting day, so the weekly lead-time view (A8, #16) is the honest
+  figure.
+- One intake step, several routes. Every route hands the file to the same intake step, which
+  checks it by its sheets and columns (not its file name), skips it when its hash is already
+  known, copies it into Okane's store (`data/extracts/`, current file per kind), moves the file
+  it replaces to `data/archive/`, and starts a run with the route as its trigger. Runs read only
+  from the store, never from the source location.
+  - (a) Upload page in Okane (`POST /api/uploads`, trigger `upload`): the demo route. A wrong
+    file or a duplicate gets a plain message and no run.
+  - (b) Watched folder: `OKANE_INBOX_DIR` may point at a synced SharePoint, OneDrive or Teams
+    folder the preparer already uses (trigger `watcher`). Same intake code as (a), so building
+    (a) keeps (b) working; one test feeds a file through each route. Okane only reads and
+    copies from this folder and never moves or deletes anything in it. Synced folders can miss
+    file events, so the Monday job also scans the folder (trigger `schedule`).
+  - (c) Connector polling a SharePoint library or a cloud bucket: not built; shown in the deck
+    as the production route (a third source that downloads the file and calls intake, with no
+    change to the pipeline or engines). It needs credentials and a sign-in.
+  - Real data does not go into a cloud folder during the hackathon unless the mentor allows it;
+    (b) is documented and tested with synthetic workbooks.
+  - Read-only toward every source (CLAUDE.md rules 2 and 3); the store and the archive stay
+    under `data/`, which Git ignores.
+- Analysis date: the day the Payroll extract was taken (Pulse and the score use only Payroll),
+  worked out from the data as posting date + ageing days. On the real files this gives
+  23 Oct 2026 for Payroll and 2 Oct 2026 for Fixed assets (the ageing dates in brief section 6).
+  Each workbook's own extract date is shown on the data-source line. ASSUMPTION: when a sheet's
+  lines give different dates, the most common one is used and ingest warns; when none can be
+  worked out, the run date is used. `OKANE_AS_OF` still overrides.
+  - Why: with the run date, a payment made after the extract looks missing until the next
+    extract arrives.
+  - Consequence: the real-data figures quoted as of 18 Nov 2026 (A8's median, A15's 21
+    missing-payment alerts, A9's 89.4) are re-measured when #24 builds this; golden tests keep
+    pinning `as_of`. On-screen counts no longer change with the calendar day (helps #25).
+- Late: an extract is late when no new file (new hash) of that kind has arrived since the
+  previous Monday 06:00 run. That Monday run still goes ahead on last week's file, and the
+  Inbox says "No new extract since <date>".
+- Archive: replaced extracts are kept in `data/archive/`, so a past week can be re-run; a run
+  still reads the newest file per kind.
+- Rejected: folder only, with no upload page (the demo would not show a pipeline anyone could
+  use); the run date as the analysis date (false missing payments between extracts); "late
+  after 7 days" with old files overwritten (no re-run of a past week).
 Owner: team.
 
 ## Pulse
@@ -368,4 +419,4 @@ Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default
 | 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as built (A9) | | |
 | 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |
 | 8 | May the video and deck show the real (scaled) data, or must they use the synthetic sample? | #25 (then #26, #37, #38) | drafted, not yet sent | Synthetic sample on screen; real figures only as the aggregates the brief quotes | | |
-| 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | drafted, not yet sent | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | | |
+| 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | no answer, default applied | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | Default applied in #23 (A38); revisit A38 if the mentor answers, especially on cloud folders | 19 Nov 2026 |
