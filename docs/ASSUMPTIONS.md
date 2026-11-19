@@ -242,9 +242,10 @@ is pending mentor question 2).*
   kept in the facts and shown in the badge's tooltip. `daily` switches back.
 - Badge: "Caught N days before the close review" or "Caught N days before the 365-day ageing
   rule" (the account's own allowed age); "Seen N days after ..." when negative.
-- Real Payroll (aggregates, as of 18 Nov 2026): 62 findings with a date, 9 blind spots;
-  median 17.5 days earlier (weekly, 5th working day), against 21 daily and 19 under the
-  earlier rule (month end + 5 calendar days, daily).
+- Real Payroll (aggregates, as of 18 Nov 2026, with the typo rule A6 from #12): 51 findings
+  with a date, 9 blind spots; median 25 days earlier (weekly, 5th working day), against 29
+  daily. Before #12 cut the typo prompts from 22 to 11: 62 findings, median 17.5 (21 daily);
+  under the earlier lead-time rule (month end + 5 calendar days, daily) it was 19.
 - Rejected: month end + 5 calendar days (it can fall on a weekend); a daily-only badge
   (overstates what a Monday run delivers by up to 6 days).
 Owner: team.

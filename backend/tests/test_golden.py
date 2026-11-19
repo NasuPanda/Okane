@@ -418,30 +418,38 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
     assert {r.type for r in blind} == {"pulse_gap", "pulse_missing_batch", "miner_cluster"}
     assert all(r.facts["lead_badge"] == "Today's process would miss this" for r in blind)
     # The Fixed assets S2 plant (C219, posted Thursday 24 Sep 2026, Monday run 28 Sep, close
-    # review 7 Oct) adds 9 days, so 13 dated findings with the 7th (23 days) as the median (#11).
+    # review 7 Oct): 9 days (#11).
     s2 = next(
         r for r in records if r.type == "sentinel_two_currencies" and r.entity == "C219"
     )  # fmt: skip
     assert (s2.facts["okane_run_date"], s2.today_detection, s2.lead_days) == (
         "2026-09-28", date(2026, 10, 7), 9
     )  # fmt: skip
+    # The "Pauroll" typo (C172, posted Tuesday 28 May 2024, Monday run 3 Jun, close review
+    # Friday 7 Jun): 4 days. Under A6 (#12) it replaces the "Auzahl" and "trnasit" prompts, so
+    # 12 dated findings with a median of 19.5 (16 and 23 in the middle).
+    pauroll = next(r for r in records if r.type == "typo" and r.entity == "C172")
+    assert (pauroll.facts["okane_run_date"], pauroll.today_detection, pauroll.lead_days) == (
+        "2024-06-03", date(2024, 6, 7), 4
+    )  # fmt: skip
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (13, 23)
+    assert (len(leads), statistics.median(leads)) == (12, 19.5)
 
 
 def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
-    """A8, aggregates only: weekly median 17.5 days earlier over 62 dated findings, 9 blind."""
+    """A8, aggregates only: weekly median 25 days earlier over 51 dated findings, 9 blind (62 and
+    17.5 before the typo rule A6, #12, cut the typo prompts from 22 to 11)."""
     import statistics
 
     from app.services.pipeline import run_engines
 
     records = run_engines(real_lines, Rules(), AS_OF).records
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (62, 17.5)
+    assert (len(leads), statistics.median(leads)) == (51, 25)
     assert sum(r.today_detection is None for r in records) == 9
     assert min(leads) >= 0
     daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
-    assert statistics.median(daily) == 21
+    assert statistics.median(daily) == 29
 
 
 def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
