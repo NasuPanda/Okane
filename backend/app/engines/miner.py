@@ -77,10 +77,11 @@ def run_miner(lines: pd.DataFrame, rules: Rules) -> list[ExceptionRecord]:
         score = len(months) * len(entities)
         if len(months) < rules.miner_min_repeats or score < rules.miner_min_score:
             continue
-        # The record sits on the entity with the most lines (ties: lowest code); the others
-        # are listed in the facts. ASSUMPTION (A7): a pattern spanning entities is one record.
-        counts = group["entity"].value_counts()
-        primary = min(counts.index, key=lambda e: (-counts[e], e))
+        # The record sits on the lowest entity code in the pattern; the others are listed in
+        # the facts. Line counts never choose it, so the id (which hashes this entity) stays
+        # the same when a later extract shifts lines between entities (CLAUDE.md rule 10).
+        # ASSUMPTION (A7): a pattern spanning entities is one record.
+        primary = entities[0]
         group = pd.concat([group[group["entity"] == primary], group[group["entity"] != primary]])
         found.append((score, len(months), len(group), group, months, entities))
     found.sort(key=lambda item: (-item[0], -item[1], -item[2]))

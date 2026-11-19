@@ -360,7 +360,8 @@ def test_synthetic_miner_planted_pattern_and_near_miss(synthetic_lines: pd.DataF
     records = run_miner(synthetic_lines, rules)
     assert len(records) == 1
     top = records[0]
-    assert (top.erp, top.entity, top.account) == ("P20", "C192", "279030")
+    # The record sits on the lowest company code in the pattern, not the one with most lines.
+    assert (top.erp, top.entity, top.account) == ("P20", "C132", "279030")
     assert (top.facts["months"], top.facts["entities"], top.facts["miner_score"]) == (6, 2, 12)
     assert top.facts["entity_list"] == "C132, C192"
     assert top.facts["pattern"] == "correction <name> reclass to # #/#"

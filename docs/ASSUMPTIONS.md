@@ -185,7 +185,9 @@ the name "CC06" is dropped.
   without a header text are ignored.
 - Fingerprint: ERP, user, account, document type and the header text, lower-cased, with name
   placeholders replaced, "corr" spelled out as "correction" and digits masked. The entity is
-  not part of the fingerprint, so one pattern can span entities.
+  not part of the fingerprint, so one pattern can span entities. Such a pattern is one record,
+  placed on the lowest entity code in it (never on the one with most lines), so its id stays
+  the same when a later extract shifts lines between entities (CLAUDE.md rule 10).
 - Score: distinct entities x distinct posting months. A cluster reaches the Inbox when its
   score is at least `Rules.miner_min_score` (12) and it appears in at least
   `Rules.miner_min_repeats` (3) distinct months.

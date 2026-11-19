@@ -384,7 +384,7 @@ def test_miner_score_is_entities_times_months() -> None:
     assert (record.facts["months"], record.facts["entities"]) == (6, 2)
     assert record.facts["miner_score"] == 12
     assert record.facts["entity_list"] == "C132, C192"
-    assert record.entity == "C192", "the record sits on the entity with most lines"
+    assert record.entity == "C132", "the record sits on the lowest company code"
     assert record.title == "Repeated manual posting: 6 months"
     # 25 May adds the second entity (5 x 2 = 10); 20 Jun adds the sixth month (6 x 2 = 12).
     assert record.first_signal == date(2026, 6, 20), "the line that lifted the score to 12"
@@ -429,6 +429,34 @@ def test_miner_ids_are_stable_and_ranked_by_score() -> None:
     assert [r.facts["months"] for r in records] == [8, 3], "highest score first"
     later = run_miner(frame(strong[1:] + weak), rules)
     assert {r.id for r in later} == {r.id for r in records}, "a cleared line keeps the id"
+
+
+def test_miner_id_survives_line_counts_shifting_between_entities() -> None:
+    """CLAUDE.md rule 10: a pattern spanning company codes keeps its id when a later extract
+    changes which code has the most lines. The record sits on the lowest code (A7)."""
+    rules = Rules(miner_min_score=0)
+    low = _manual([1, 2, 3], entity="C132", first_doc=0)
+
+    def run(c192_months: list[int]):  # type: ignore[no-untyped-def]
+        rows = low + _manual(c192_months, entity="C192", day=25, first_doc=100)
+        [record] = run_miner(frame(rows), rules)
+        return record
+
+    first = run([4, 5])  # C132 has more lines (3 against 2)
+    overtaken = run([4, 5, 6, 7])  # the higher code overtakes (4 against 3)
+    tied = run([4, 5, 6])  # a tie (3 and 3)
+    assert first.id == overtaken.id == tied.id
+    assert {first.entity, overtaken.entity, tied.entity} == {"C132"}
+    assert overtaken.facts["entity_list"] == "C132, C192"
+
+
+def test_miner_id_survives_a_tie_after_the_higher_code_led() -> None:
+    rules = Rules(miner_min_score=0)
+    low = _manual([1, 2], entity="C132", first_doc=0)
+    led = low + _manual([3, 4, 5], entity="C192", day=25, first_doc=100)  # C192 leads
+    tied = low + _manual([3, 4], entity="C192", day=25, first_doc=100)  # one C192 line cleared
+    [a], [b] = run_miner(frame(led), rules), run_miner(frame(tied), rules)
+    assert a.id == b.id and a.entity == b.entity == "C132"
 
 
 # ----- lead time and score ------------------------------------------------------------------
