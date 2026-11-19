@@ -272,11 +272,12 @@ def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
 
 
 def test_real_miner_fixed_assets(real_fixed_assets: object) -> None:
-    """A3, A7: Fixed assets feed the Miner. Invariants only: the counts were not measured,
-    because the workbook was not available when #15 was built (see the PR)."""
+    """A3, A7: Fixed assets feed the Miner; aggregates only: 8 patterns at score 12+ (measured
+    in the review of PR #50)."""
     lines = real_fixed_assets.lines  # type: ignore[attr-defined]
     rules = Rules()
     records = run_miner(lines, rules)
+    assert len(records) == 8
     for record in records:
         assert record.workgroup == "Fixed assets"
         assert float(record.facts["miner_score"]) >= rules.miner_min_score

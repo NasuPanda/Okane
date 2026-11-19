@@ -198,8 +198,10 @@ the name "CC06" is dropped.
   do it."). On real Payroll none of the top clusters' header texts contain a correction word,
   so the card does not call them corrections.
 - Real Payroll (aggregates): 165 fingerprints, 33 in 3+ months; in the Inbox (both
-  thresholds) 6 at score 12+ (16 at 6+, 4 at 20+). Each top cluster sits in one entity, so its score equals its months. Fixed assets
-  could not be measured locally (the workbook is not in `data/inbox/`).
+  thresholds) 6 at score 12+ (16 at 6+, 4 at 20+). Each top cluster sits in one entity, so
+  its score equals its months.
+- Real Fixed assets (aggregates, measured in the review of PR #50): 8 patterns at score 12+,
+  top score 159.
 - Rejected: the earlier rule (entity, account, document type and line text, 3+ months; 42
   Payroll and about 38 Fixed assets clusters, no score) and the original without the user.
 Owner: team.
