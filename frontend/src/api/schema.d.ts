@@ -776,10 +776,23 @@ export interface components {
              */
             sentinel_s1_scope: "people_only" | "exempt_bot_upload" | "all";
             /**
-             * Close Review Days
+             * Close Review Working Day
              * @default 5
              */
-            close_review_days: number;
+            close_review_working_day: number;
+            /** Close Review Holidays */
+            close_review_holidays?: string[];
+            /**
+             * Lead Time View
+             * @default weekly
+             * @enum {string}
+             */
+            lead_time_view: "weekly" | "daily";
+            /**
+             * Weekly Run Weekday
+             * @default 0
+             */
+            weekly_run_weekday: number;
             /**
              * Sentinel S2 Min Amount
              * @default 1000
@@ -805,6 +818,16 @@ export interface components {
              * @default 3
              */
             miner_min_repeats: number;
+            /**
+             * Miner Min Score
+             * @default 12
+             */
+            miner_min_score: number;
+            /**
+             * Miner By User
+             * @default true
+             */
+            miner_by_user: boolean;
             /** Penalty Accounts */
             penalty_accounts?: string[];
             /**

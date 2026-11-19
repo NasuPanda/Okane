@@ -2,7 +2,7 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261119T082132_ac44c5",
+  "run_id": "run_20261119T120051_eb926d",
   "materiality_eur": 500000.0,
   "old_rule_lines": 72,
   "old_rule_overdue_abs": 11358855.29,
@@ -43,7 +43,7 @@
     "net_eur": 679839.48,
     "paired_lines": 0,
     "above_materiality": true,
-    "exception_id": "964330a843f480e5"
+    "exception_id": null
    },
    {
     "erp": "P20",
@@ -67,7 +67,7 @@
     "net_eur": -27000.0,
     "paired_lines": 0,
     "above_materiality": false,
-    "exception_id": "642c728b835e7a01"
+    "exception_id": null
    },
    {
     "erp": "P20",

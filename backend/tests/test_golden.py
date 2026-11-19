@@ -252,6 +252,41 @@ def test_real_typos_find_known_misspellings(real_lines: pd.DataFrame) -> None:
     assert {"auzahl", "ursaaf"} <= found
 
 
+def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
+    """A7 (decided, #14), aggregates only: 6 patterns reach the Inbox at score 12 (16 at 6, 4 at
+    20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242."""
+    rules = Rules()
+    records = run_miner(real_lines, rules)
+    assert len(records) == 6
+    assert all(r.workgroup == "Payroll" for r in records)
+    assert all(float(r.facts["miner_score"]) >= 12 for r in records)
+    lower = rules.model_copy(update={"miner_min_score": 6})
+    assert len(run_miner(real_lines, lower)) == 16
+    assert len(run_miner(real_lines, rules.model_copy(update={"miner_min_score": 20}))) == 4
+    top = records[0]
+    assert (top.erp, top.entity, top.account) == ("BPP", "C242", "48900002")
+    assert (top.facts["miner_score"], top.facts["months"], top.facts["entities"]) == (42, 42, 1)
+    assert top.facts["lines"] == 111
+    # No top pattern names a correction, so the card stays a hypothesis.
+    assert not any("correction" in str(r.facts["pattern"]) for r in records)
+
+
+def test_real_miner_fixed_assets(real_fixed_assets: object) -> None:
+    """A3, A7: Fixed assets feed the Miner; aggregates only: 8 patterns at score 12+ (measured
+    in the review of PR #50)."""
+    lines = real_fixed_assets.lines  # type: ignore[attr-defined]
+    rules = Rules()
+    records = run_miner(lines, rules)
+    assert len(records) == 8
+    for record in records:
+        assert record.workgroup == "Fixed assets"
+        assert float(record.facts["miner_score"]) >= rules.miner_min_score
+        assert float(record.facts["months"]) >= rules.miner_min_repeats
+        assert record.evidence
+    scores = [float(r.facts["miner_score"]) for r in records]
+    assert scores == sorted(scores, reverse=True)
+
+
 # ----- engines on synthetic data (always run) -----------------------------------------------
 @pytest.fixture(scope="module")
 def synthetic_pulse(synthetic_lines: pd.DataFrame) -> PulseResult:
@@ -319,8 +354,120 @@ def test_synthetic_sentinel_typos_miner(synthetic_lines: pd.DataFrame) -> None:
         (r.facts.get("found"), r.facts.get("suggestion")) for r in run_typos(synthetic_lines, rules)
     }
     assert {("Auzahl", "Auszahl"), ("URSAAF", "URSSAF"), ("trnasit", "transit")} <= typos
-    planted = [r for r in run_miner(synthetic_lines, rules) if r.account == "279002"]
-    assert len(planted) == 1 and planted[0].facts["months"] == 4
+
+
+def test_synthetic_miner_planted_pattern_and_near_miss(synthetic_lines: pd.DataFrame) -> None:
+    """A7 (decided, #14): the planted pattern (6 months x 2 company codes = 12) is found; the
+    near-miss (5 x 2 = 10) and the older lines without a header text are not."""
+    rules = Rules()
+    records = run_miner(synthetic_lines, rules)
+    assert len(records) == 1
+    top = records[0]
+    # The record sits on the lowest company code in the pattern, not the one with most lines.
+    assert (top.erp, top.entity, top.account) == ("P20", "C132", "279030")
+    assert (top.facts["months"], top.facts["entities"], top.facts["miner_score"]) == (6, 2, 12)
+    assert top.facts["entity_list"] == "C132, C192"
+    assert top.facts["pattern"] == "correction <name> reclass to # #/#"
+    assert top.title == "Repeated manual posting: 6 months"
+    assert top.first_signal == date(2026, 10, 21)
+    assert len(top.evidence) == 8
+    lower = run_miner(synthetic_lines, rules.model_copy(update={"miner_min_score": 10}))
+    assert {(r.account, r.facts["miner_score"]) for r in lower} == {("279030", 12), ("279030", 10)}
+    assert [r for r in lower if r.account == "279002"] == [], "no header text, no pattern"
+
+
+# ----- lead time (A8, decided in #16) -------------------------------------------------------
+def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
+    """Weekly view: from the Monday run on or after the first signal to today's detection."""
+    import statistics
+
+    from app.services.pipeline import run_engines
+
+    records = run_engines(synthetic_lines, Rules(), AS_OF).records
+    # Sentinel: the C218 person-posted outlier, posted Friday 18 Sep 2026. Monday run 21 Sep;
+    # close review on the 5th working day after Wednesday 30 Sep: Wednesday 7 Oct.
+    outlier = next(r for r in records if r.type == "sentinel_outlier" and r.entity == "C218")
+    assert outlier.first_signal == date(2026, 9, 18)
+    assert outlier.facts["okane_run_date"] == "2026-09-21"
+    assert outlier.today_detection == date(2026, 10, 7)
+    assert (outlier.lead_days, outlier.facts["lead_days_daily"]) == (16, 19)
+    assert outlier.facts["lead_badge"] == "Caught 16 days before the close review"
+    # Pulse: the unpaid May 2025 batch. First signal the day after expected-by (Wed 22 Jul
+    # 2025), Monday run 28 Jul; the 365-day ageing rule shows it 30 May 2026.
+    may = next(
+        r for r in records
+        if r.type == "pulse_missing_payment" and r.facts["batch_period"] == "2025-05"
+    )  # fmt: skip
+    assert may.first_signal == date(2025, 7, 22)
+    assert may.facts["okane_run_date"] == "2025-07-28"
+    assert may.today_detection == date(2026, 5, 30)
+    assert (may.lead_days, may.facts["lead_days_daily"]) == (306, 312)
+    assert may.facts["lead_badge"] == "Caught 306 days before the 365-day ageing rule"
+    # Blind spots and the KPI median ("median days earlier", weekly).
+    blind = [r for r in records if r.today_detection is None]
+    assert {r.type for r in blind} == {"pulse_gap", "pulse_missing_batch", "miner_cluster"}
+    assert all(r.facts["lead_badge"] == "Today's process would miss this" for r in blind)
+    leads = [r.lead_days for r in records if r.lead_days is not None]
+    assert (len(leads), statistics.median(leads)) == (12, 27.5)
+
+
+def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
+    """A8, aggregates only: weekly median 17.5 days earlier over 62 dated findings, 9 blind."""
+    import statistics
+
+    from app.services.pipeline import run_engines
+
+    records = run_engines(real_lines, Rules(), AS_OF).records
+    leads = [r.lead_days for r in records if r.lead_days is not None]
+    assert (len(leads), statistics.median(leads)) == (62, 17.5)
+    assert sum(r.today_detection is None for r in records) == 9
+    assert min(leads) >= 0
+    daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
+    assert statistics.median(daily) == 21
+
+
+def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
+    """The original's example: the C192 September 2026 batch, still unpaid in the extract.
+
+    Brief section 8 quotes its accrual date (29 Sep 2026) and expected-by date (21 Nov 2026);
+    the analysis date is pinned to Monday 23 Nov 2026, after it falls due.
+    """
+    from app.services.pipeline import run_engines
+
+    records = run_engines(real_lines, Rules(), date(2026, 11, 23)).records
+    sep = [
+        r for r in records
+        if (r.entity, r.account) == ("C192", "279006")
+        and r.type == "pulse_missing_payment" and r.facts["batch_period"] == "2026-09"
+    ]  # fmt: skip
+    assert len(sep) == 1
+    record = sep[0]
+    assert record.expected_by == date(2026, 11, 21)
+    assert record.first_signal == date(2026, 11, 22)
+    assert record.facts["okane_run_date"] == "2026-11-23"
+    assert record.today_detection == date(2027, 9, 29), "29 Sep 2026 + the account's 365 days"
+    assert (record.lead_days, record.facts["lead_days_daily"]) == (310, 311)
+
+
+def test_real_s2_fixed_assets_lead_time(real_all_lines: pd.DataFrame) -> None:
+    """The original's example: the S2 same-figure-in-two-currencies case on Fixed assets.
+
+    Not run when #17 was built (the Fixed assets workbook was not available), so it checks
+    the rule rather than fixed dates. #11 (S2 as built) was still open; S2 itself is on main.
+    """
+    from app.engines.leadtime import close_review_date, next_run_on_or_after
+    from app.services.pipeline import run_engines
+
+    rules = Rules()
+    records = run_engines(real_all_lines, rules, AS_OF).records
+    hits = [r for r in records if r.type == "sentinel_two_currencies"]
+    assert len(hits) == 1
+    hit = hits[0]
+    assert (hit.workgroup, hit.entity, hit.account) == ("Fixed assets", "C218", "119001")
+    assert hit.today_detection == close_review_date(hit.first_signal, rules)
+    run = next_run_on_or_after(hit.first_signal, rules.weekly_run_weekday)
+    assert hit.lead_days == (hit.today_detection - run).days >= 0
+    assert hit.facts["lead_badge"] == f"Caught {hit.lead_days} days before the close review"
 
 
 def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:

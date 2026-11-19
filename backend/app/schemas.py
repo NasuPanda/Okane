@@ -164,8 +164,17 @@ class Rules(BaseModel):
     # ADDITION (brief open item 2): which lines Sentinel S1 may flag. Decided in #9
     # (docs/ASSUMPTIONS.md A1): person-posted lines only.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
-    # ADDITION / ASSUMPTION: today's close review happens this many days after month end.
-    close_review_days: int = 5
+    # ADDITION (#16, docs/ASSUMPTIONS.md A8): today's close review falls on this working day
+    # after month end. Working days are Monday to Friday minus close_review_holidays. (This
+    # replaces close_review_days, month end + 5 calendar days; saved rules that still carry
+    # that field load fine, it is ignored.)
+    close_review_working_day: int = Field(default=5, ge=1)
+    close_review_holidays: list[date] = Field(default_factory=list)
+    # ADDITION (#16, A8): "weekly" counts lead days from the weekly run on or after the first
+    # signal (Okane runs weekly); "daily" counts from the first signal itself.
+    lead_time_view: Literal["weekly", "daily"] = "weekly"
+    # ADDITION (#16, A8): weekday of the weekly run, 0 = Monday (the Monday 06:00 job).
+    weekly_run_weekday: int = Field(default=0, ge=0, le=6)
     # ADDITION (#10, docs/ASSUMPTIONS.md A4): Sentinel S2 ignores amounts below this, in the
     # document currency (the figure as typed).
     sentinel_s2_min_amount: float = 1_000
@@ -175,6 +184,12 @@ class Rules(BaseModel):
     typo_rarity_ratio: float = 2.5  # the common spelling is used at least this many times more
     # ADDITION / ASSUMPTION: Recurring-Correction Miner.
     miner_min_repeats: int = 3
+    # ADDITION (#14, docs/ASSUMPTIONS.md A7): a repeated manual posting reaches the Inbox when
+    # its score (distinct entities x distinct months) is at least this.
+    miner_min_score: int = 12
+    # ADDITION (#14, A7): True = the person who posted is part of the fingerprint (the original
+    # rule); False = the same header text by anyone on the account forms one pattern.
+    miner_by_user: bool = True
     # ADDITION / ASSUMPTION: risk score scaling.
     penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
     exposure_cap_multiple: float = 5.0
