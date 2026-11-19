@@ -1939,6 +1939,7 @@
           },
           "close_review_working_day": {
             "type": "integer",
+            "minimum": 1.0,
             "title": "Close Review Working Day",
             "default": 5
           },
