@@ -4,7 +4,7 @@
  "data": [
   {
    "id": "b80b0b905e1fe118",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "pulse_gap",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -55,7 +55,7 @@
   },
   {
    "id": "c52c3931a9d01b05",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "pulse_spike",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -104,7 +104,7 @@
   },
   {
    "id": "5b2756df8b78173c",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -156,7 +156,7 @@
   },
   {
    "id": "7bbbe9271b0a2e1d",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -208,7 +208,7 @@
   },
   {
    "id": "532032f4fe383650",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "sentinel_outlier",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -260,7 +260,7 @@
   },
   {
    "id": "5cb790939c58a948",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "sentinel_outlier",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -312,7 +312,7 @@
   },
   {
    "id": "2bfb780a3f72d9bf",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "BPP",
@@ -363,7 +363,7 @@
   },
   {
    "id": "ca26141f45d62ffe",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "label_mismatch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -415,7 +415,7 @@
   },
   {
    "id": "3267f451b8da112e",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -466,7 +466,7 @@
   },
   {
    "id": "0c7228820c2b5ca8",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "pulse_missing_batch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -506,7 +506,7 @@
   },
   {
    "id": "d00346a86e3ca1d6",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -566,7 +566,7 @@
   },
   {
    "id": "f5cb477294a2b6ac",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "sentinel_currency_code",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -616,7 +616,7 @@
   },
   {
    "id": "f04ae2adff34c19c",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "sentinel_currency_code",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -666,8 +666,58 @@
    "edited_comment": null
   },
   {
+   "id": "6c91062e6c599fb8",
+   "run_id": "run_20261119T120051_eb926d",
+   "type": "sentinel_two_currencies",
+   "workgroup": "Fixed assets",
+   "erp": "P20",
+   "entity": "C219",
+   "account": "119001",
+   "account_name": "Assets under construction",
+   "title": "Same amount posted in EUR and PLN on the same day",
+   "exposure_eur": 12500.4,
+   "facts": {
+    "rule": "S2: the same amount of at least 1,000 posted in different currencies on one day",
+    "currencies": "EUR, PLN",
+    "amount_dc": 12500.0,
+    "min_amount": 1000.0,
+    "lines": 2.0,
+    "posting_date": "2026-09-24",
+    "today_detection_basis": "month-end close review",
+    "lead_days": 9.0,
+    "lead_days_daily": 13.0,
+    "lead_days_weekly": 9.0,
+    "okane_run_date": "2026-09-28",
+    "lead_view": "weekly",
+    "lead_badge": "Caught 9 days before the close review"
+   },
+   "evidence": [
+    "4900000003/2026",
+    "4900000004/2026"
+   ],
+   "first_signal": "2026-09-24",
+   "today_detection": "2026-10-07",
+   "lead_days": 9,
+   "expected_by": null,
+   "suggested_class": "Required Adjustment Item",
+   "score": 7.2,
+   "score_breakdown": {
+    "exposure": 0.2,
+    "days_past_expected": 0.0,
+    "penalty_account": 0.0,
+    "error_type": 7.0,
+    "repeats": 0.0
+   },
+   "ai_comment": "Standard note (no AI was used): Same amount posted in EUR and PLN on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Review the evidence documents.",
+   "verifier": "not_run",
+   "status": "new",
+   "decision_reason": null,
+   "decided_class": null,
+   "edited_comment": null
+  },
+  {
    "id": "0c33474c40046521",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "sentinel_two_currencies",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -717,7 +767,7 @@
   },
   {
    "id": "2853e8b1894ed623",
-   "run_id": "run_20261119T104204_75c1bc",
+   "run_id": "run_20261119T120051_eb926d",
    "type": "typo",
    "workgroup": "Fixed assets",
    "erp": "BPP",

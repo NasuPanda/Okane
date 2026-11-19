@@ -155,7 +155,9 @@ is cleared. Real data: exactly one hit, Fixed assets P20 C218 119001, three line
 documents (EUR and JPY); Payroll has none; any minimum from 0.01 to 1,000 gives the same hit.
 This replaces the placeholder rule (two document currencies in one document, or two local
 currencies in one company code), which found nothing and which SAP does not normally produce.
-Golden test: `test_real_sentinel_s2`. Owner: team.
+Golden test: `test_real_sentinel_s2`. Built in #48 (#11). Synthetic plants: Payroll C132 (EUR and
+RWF) and Fixed assets C219 (EUR and PLN), asserted in `test_synthetic_sentinel_typos_miner`.
+Owner: team.
 
 **A5. S3 currency code.** *Decided (#10).* S3 flags a document currency that is not an ISO 4217
 code ("not a valid currency code"), or one the euro had already replaced on the posting date
@@ -165,7 +167,8 @@ joiners, the changeover day for later ones (BGN from 1 Jan 2026). A replaced cod
 that day is not flagged. The earlier branch for amounts copied without conversion (document and
 local currency differ, amounts equal) is dropped: it is not part of the agreed rule and found
 nothing on real data. Real data: one hit, a DEM line on Fixed assets P20 C238; Payroll has
-none. Golden test: `test_real_sentinel_s3`. Owner: team.
+none. Golden test: `test_real_sentinel_s3`. Built in #48 (#11). Synthetic plants: Payroll C141
+(GHC) and Fixed assets C218 (FRF). Owner: team.
 
 **A26. S5 reversal mismatch.** *Info.* P1; not built. The type exists in the schema.
 Owner: team.
