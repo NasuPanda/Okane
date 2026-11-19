@@ -6,7 +6,13 @@
 - Small PRs, one concern each. Describe what changed, how you tested it, and any new entry in
   `docs/ASSUMPTIONS.md`.
 - CI must be green: ruff, pytest, frontend typecheck and build, and the forbidden-files check.
-- Squash-merge with a clear message.
+- Merge with a merge commit (not squash or rebase), so each PR's commits stay reviewable one
+  by one, then delete the branch.
+- When `main` moves on, merge `main` into your branch; don't rebase a branch others have seen.
+  Resolve conflicts in `fixtures/`, `openapi.json` and `schema.d.ts` by rerunning
+  `make fixtures` / `make types`, never by hand. Then rerun `make test`: when a merged change
+  moves a figure a test asserts (a count or a median), confirm which findings changed before
+  updating it.
 
 ## Before you push
 
