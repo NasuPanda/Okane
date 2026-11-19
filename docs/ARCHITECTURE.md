@@ -4,10 +4,14 @@ One Python backend computes everything; the React frontend only displays and col
 decisions. Nothing is written back to an ERP or a workbook.
 
 ```
-data/inbox/*.xlsx ──watchdog──┐            Monday 06:00 ──APScheduler──┐
-                              ▼                                        ▼
-                     services/pipeline.py  (one run at a time, SSE run_started/run_finished)
+POST /api/uploads ──────────┐   OKANE_INBOX_DIR ──watchdog──┐   Monday 06:00 ──APScheduler──┐
+  (Upload extract)          │   (watched folder, read only) │   (also scans the folder)     │
+                            ▼                               ▼                               ▼
+          intake.py: check sheets and columns, skip known hash, copy to data/extracts/,
+                     move the replaced extract to data/archive/  (A38)
                               │
+                     services/pipeline.py  (one run at a time, SSE run_started/run_finished;
+                              │             analysis date = Payroll extract date)
    ingest.py  ── calamine ──► common model, EUR ──► DuckDB snapshot (keyed by file hashes)
                               │
    engines (pure functions of lines + Rules):

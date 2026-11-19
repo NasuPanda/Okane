@@ -41,6 +41,12 @@ export function stamp(value: string | null | undefined): string {
   });
 }
 
+/** A local date-time from the backend (no time zone), as "Mon 23 Nov". */
+export function dueDay(value: string | null | undefined): string {
+  if (!value) return "–";
+  return new Date(value).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+}
+
 export function monthLabel(value: string): string {
   const [y, m] = value.split("-").map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString("en-GB", { month: "short", year: "2-digit" });

@@ -132,3 +132,29 @@ def app_env(tmp_path: Path, synthetic_dir: Path, monkeypatch: pytest.MonkeyPatch
     get_settings.cache_clear()
     yield tmp_path
     get_settings.cache_clear()
+
+
+def rewrite_workbook(
+    src: Path,
+    dest: Path,
+    *,
+    drop_last_rows: int = 0,
+    drop_sheets: tuple[str, ...] = (),
+    drop_column: str | None = None,
+) -> Path:
+    """A changed copy of a synthetic workbook (new hash): fewer rows, sheets or columns."""
+    from app.ingest import STRING_COLUMNS
+
+    sheets = pd.read_excel(
+        src, sheet_name=None, engine="calamine", dtype=dict.fromkeys(STRING_COLUMNS, str)
+    )
+    with pd.ExcelWriter(dest, engine="xlsxwriter") as writer:
+        for name, frame in sheets.items():
+            if name in drop_sheets:
+                continue
+            if drop_last_rows and name != "Summary":
+                frame = frame.iloc[: len(frame) - drop_last_rows]
+            if drop_column and drop_column in frame.columns:
+                frame = frame.drop(columns=[drop_column])
+            frame.to_excel(writer, sheet_name=name, index=False)
+    return dest

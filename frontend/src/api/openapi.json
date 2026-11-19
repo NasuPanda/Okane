@@ -146,6 +146,76 @@
         }
       }
     },
+    "/api/uploads": {
+      "post": {
+        "tags": [
+          "uploads"
+        ],
+        "summary": "Upload Extract",
+        "description": "Check an uploaded Payroll or Fixed assets extract, store a copy and start a run.",
+        "operationId": "upload_extract_api_uploads_post",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
+            }
+          },
+          {
+            "name": "uploaded_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Uploaded By"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/exceptions": {
       "get": {
         "tags": [
@@ -1539,6 +1609,109 @@
         "title": "ExposureResponse",
         "description": "GET /api/exposure/payroll: the old report next to the real exposure."
       },
+      "ExtractSource": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Payroll",
+              "Fixed assets"
+            ],
+            "title": "Kind"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "file_hash": {
+            "type": "string",
+            "title": "File Hash"
+          },
+          "extract_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extract Date"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "upload",
+                  "watcher",
+                  "schedule",
+                  "startup",
+                  "manual"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route"
+          },
+          "received_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received By"
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At"
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows",
+            "default": 0
+          },
+          "late": {
+            "type": "boolean",
+            "title": "Late",
+            "default": false
+          },
+          "next_due": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Due"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "file_name",
+          "file_hash"
+        ],
+        "title": "ExtractSource",
+        "description": "ADDITION (#24, A38): one workbook a run read, with where it came from."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2125,7 +2298,8 @@
               "watcher",
               "schedule",
               "startup",
-              "rules_change"
+              "rules_change",
+              "upload"
             ],
             "title": "Trigger"
           },
@@ -2202,6 +2376,13 @@
               }
             ],
             "title": "Error"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ExtractSource"
+            },
+            "type": "array",
+            "title": "Sources"
           }
         },
         "type": "object",
@@ -2271,6 +2452,50 @@
         ],
         "title": "TimelinePoint",
         "description": "Gap chart point: month-end balance, expected balance and gap (brief section 8)."
+      },
+      "UploadResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "accepted",
+            "title": "Status"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Payroll",
+              "Fixed assets"
+            ],
+            "title": "Kind"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Run"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "kind",
+          "file_name",
+          "message"
+        ],
+        "title": "UploadResult",
+        "description": "ADDITION (#24, A38): answer to POST /api/uploads."
       },
       "ValidationError": {
         "properties": {

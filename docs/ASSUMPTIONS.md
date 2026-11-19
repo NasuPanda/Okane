@@ -33,7 +33,7 @@ so nobody re-investigates).
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
 | A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
 | A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
-| A38 | How the weekly extract reaches Okane | Decide | Decided (#23): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive; build #24 |
+| A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
 
 ## Data and ingestion
 
@@ -70,16 +70,15 @@ payroll netting, Pulse and lead time. On the real Payroll plus Fixed assets work
 exactly the brief's 185 hits / 12 person-posted (Payroll alone 183 / 11; Fixed assets P20 adds
 2 / 1), and netting and Pulse give the same figures as on Payroll alone. Owner: team.
 
-**A20. Inbox and sample data.** *Info.* A run reads the newest Payroll and the newest Fixed
-assets workbook in `data/inbox/`. If the inbox has none, it reads `data/sample/` (synthetic)
-and marks the run `synthetic`. Decided in #23 (A38): the run will read Okane's own store
-(`data/extracts/`), filled by the intake step from an upload or the watched folder; the
-synthetic fallback stays. Until #24 builds it, the current behaviour applies. Owner: team.
+**A20. Inbox and sample data.** *Info (built in #24, A38).* A run reads the current Payroll and
+Fixed assets extract from Okane's store (`data/extracts/`), filled by the intake step from an
+upload or the watched folder (`OKANE_INBOX_DIR`, default `data/inbox/`). If the store has none,
+it reads `data/sample/` (synthetic) and marks the run `synthetic`. Owner: team.
 
-**A21. Analysis date.** *Info.* Engines use `OKANE_AS_OF` if set, otherwise today. Golden tests
-use 18 Nov 2026 so "the September 2026 batch is expected by 21 Nov 2026" is not yet late.
-Decided in #23 (A38): the analysis date becomes the day the Payroll extract was taken;
-`OKANE_AS_OF` still overrides. Until #24 builds it, the current behaviour applies. Owner: team.
+**A21. Analysis date.** *Info (built in #24, A38).* A run uses `OKANE_AS_OF` if set, otherwise
+the day the Payroll extract was taken, otherwise today. Golden tests pin 18 Nov 2026 so "the
+September 2026 batch is expected by 21 Nov 2026" is not yet late; one golden test measures the
+real figures at the extract date (A38). Owner: team.
 
 **A38. How the weekly extract reaches Okane.** *Decided (#23, 19 Nov 2026; mentor question 9
 had no answer by its due date, so its default applies, which is also the team's choice).* Built
@@ -111,18 +110,43 @@ in #24.
   worked out from the data as posting date + ageing days. On the real files this gives
   23 Oct 2026 for Payroll and 2 Oct 2026 for Fixed assets (the ageing dates in brief section 6).
   Each workbook's own extract date is shown on the data-source line. ASSUMPTION: when a sheet's
-  lines give different dates, the most common one is used and ingest warns; when none can be
+  lines give different dates, the most common one is used and the run warns; when none can be
   worked out, the run date is used. `OKANE_AS_OF` still overrides.
   - Why: with the run date, a payment made after the extract looks missing until the next
     extract arrives.
-  - Consequence: the real-data figures quoted as of 18 Nov 2026 (A8's median, A15's 21
-    missing-payment alerts, A9's 89.4) are re-measured when #24 builds this; golden tests keep
-    pinning `as_of`. On-screen counts no longer change with the calendar day (helps #25).
+  - Re-measured in #24 (real Payroll, aggregates, as of 23 Oct 2026 instead of 18 Nov, with
+    the 12-month missing-payment limit from #20, which counts back from the analysis date): 6
+    missing-payment alerts instead of 7 (C242's October 2026 batch is expected by 13 Nov,
+    after the extract, so it is not yet due), so 45 findings and 36 with a date; the C192 gap
+    still ranks first at 89.4; 4 exposure groups stay above 500K; the lead-time median stays
+    11 days (daily 16.5, was 17); blind spots stay 9.
+    Golden test: `test_real_figures_at_the_extract_date`. Other golden tests keep pinning
+    18 Nov. On-screen counts no longer change with the calendar day (helps #25).
+  - On the real Payroll BPP sheet, 395 lines (nearly all pension-type accounts) give a date one
+    day later: those accounts count ageing days one day differently. ASSUMPTION (#24): a line
+    within one day of the most common date agrees, so the real files give no warning.
 - Late: an extract is late when no new file (new hash) of that kind has arrived since the
   previous Monday 06:00 run. That Monday run still goes ahead on last week's file, and the
   Inbox says "No new extract since <date>".
 - Archive: replaced extracts are kept in `data/archive/`, so a past week can be re-run; a run
   still reads the newest file per kind.
+- Built in #24, with these choices (each marked `# ASSUMPTION` in code):
+  - `app/intake.py` is the intake step; `POST /api/uploads?filename=` takes the workbook as
+    the raw request body (no multipart dependency); 422 for a wrong file, 409 for a duplicate,
+    413 above `OKANE_UPLOAD_MAX_MB` (50). The store keeps one folder per kind; the `extracts`
+    table records every arrival (route, who, when, rows) as an audit trail.
+  - A workbook must carry both its P20 and its BPP sheet.
+  - The newest arrival wins, even if its extract date is earlier; the Inbox shows the extract
+    date, so a person sees it. A folder scan only loads the newest file per kind, never an
+    older one over a newer one.
+  - A trigger that arrives during a run (an upload, a file event) is remembered and runs
+    once when the current run ends.
+  - A refused file in the watched folder becomes a run warning once, and is not re-read
+    until it changes.
+  - `OKANE_SCHEDULE_DAY_OF_WEEK` as a list or range ("mon-fri") counts its first day for the
+    late rule.
+  - The Inbox shows a data-source line per workbook: file name, extract date, how and by whom
+    it arrived, lines read, when the next extract is due, and a warning when it is late.
 - Rejected: folder only, with no upload page (the demo would not show a pipeline anyone could
   use); the run date as the analysis date (false missing payments between extracts); "late
   after 7 days" with old files overwritten (no re-run of a past week).
@@ -179,6 +203,8 @@ not recognise (quarterly CFE and GARP payments or another ERP), not left unpaid.
 - Synthetic sample: June 2026 on C192 is also left unpaid, so the demo keeps one missing
   payment (May and June 2025 are past the limit and only drive the gap).
 - Mentor question 4: a "yes, some are paid quarterly" answer needs no change.
+- Since #24 the 12 months count back from the analysis date, which is now the Payroll extract
+  date (A38): 6 alerts as of 23 Oct 2026, as C242's October 2026 batch is not yet due then.
 Owner: team.
 
 **A23. Gap alert.** *Info.* Fires when the latest |gap| is at or above materiality. Its first

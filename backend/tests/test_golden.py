@@ -526,3 +526,39 @@ def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
     top = output.records[0]
     assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
     assert output.counts["exposure_groups_above"] == 4
+
+
+# ----- extract date (A38) -------------------------------------------------------------------
+def test_real_extract_dates(real_payroll, real_fixed_assets) -> None:  # type: ignore[no-untyped-def]
+    """Brief section 6 ageing dates: Payroll 23 Oct 2026, Fixed assets 2 Oct 2026."""
+    from app.ingest import extract_dates
+
+    payroll = extract_dates(real_payroll.lines)["Payroll"]
+    fixed = extract_dates(real_fixed_assets.lines)["Fixed assets"]
+    assert payroll == (date(2026, 10, 23), 0)  # 395 BPP lines one day off are tolerated
+    assert fixed == (date(2026, 10, 2), 0)
+
+
+def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
+    """A38: a live run uses the Payroll extract date (23 Oct 2026), not the run date.
+
+    Aggregates only. With the 12-month missing-payment limit (A15, #20), which counts back from
+    the analysis date: 6 missing payments instead of 7 at 18 Nov. C242's October 2026 batch is
+    expected by 13 Nov, after the extract, so it is not yet due. 36 dated findings (37), median
+    still 11 days; the C192 gap still ranks first at 89.4 and 4 groups stay above 500K.
+    """
+    import statistics
+
+    from app.services.pipeline import run_engines
+
+    output = run_engines(real_lines, Rules(), date(2026, 10, 23))
+    records = output.records
+    missing = [r for r in records if r.type == "pulse_missing_payment"]
+    assert sorted(r.facts["batch_period"] for r in missing if r.entity == "C192") == [
+        "2026-04", "2026-05", "2026-06", "2026-07"]  # fmt: skip
+    assert sum(r.entity == "C242" for r in missing) == 2
+    assert (records[0].type, records[0].entity, round(records[0].score, 1)) == (
+        "pulse_gap", "C192", 89.4)  # fmt: skip
+    assert output.counts["exposure_groups_above"] == 4
+    leads = [r.lead_days for r in records if r.lead_days is not None]
+    assert (len(leads), statistics.median(leads)) == (36, 11)

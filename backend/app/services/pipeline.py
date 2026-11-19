@@ -1,8 +1,10 @@
 """Run orchestration (brief section 5, "Pipeline, per run").
 
-1. Pick the newest Payroll and Fixed assets workbooks in the inbox (or the synthetic sample
-   folder when the inbox is empty).
+1. Scan the watched folder through the intake step (A38), which copies a new extract into
+   Okane's store; then read the current Payroll and Fixed assets extracts from the store (or the
+   synthetic sample folder when the store is empty). Uploads reach the store the same way.
 2. Ingest them into a DuckDB snapshot keyed by the file hashes (reused if already ingested).
+   The analysis date is the day the Payroll extract was taken (A38), unless OKANE_AS_OF is set.
 3. Run the engines in the brief's order: pairs, pulse, sentinel, typos, miner, lead time,
    exposure and score.
 4. Attach cached AI comments; draft new ones for the top findings when a model is available.
@@ -35,8 +37,10 @@ from app.engines.pairs import paired_count
 from app.engines.pulse import run_pulse
 from app.engines.sentinel import run_sentinel
 from app.engines.typos import run_typos
-from app.ingest import IngestError, find_workbooks, ingest, load_rates
-from app.schemas import ExceptionRecord, Rules, Run, RunTrigger
+from app.ingest import IngestError, extract_dates, file_hash, find_workbooks, ingest, load_rates
+from app.intake import Intake
+from app.schemas import ExceptionRecord, ExtractRoute, ExtractSource, Rules, Run, RunTrigger
+from app.services import schedule
 
 log = logging.getLogger("okane.pipeline")
 
@@ -116,13 +120,16 @@ class Pipeline:
         self.db = db
         self.settings = settings
         self.bus = bus or EventBus()
+        self.intake = Intake(settings, db)
         self._lock = threading.Lock()
+        self._pending_lock = threading.Lock()
+        self._pending: RunTrigger | None = None
         self._lines_cache: dict[str, pd.DataFrame] = {}
 
     # -- inputs
     def workbooks(self) -> tuple[list[Path], bool]:
-        """Newest workbooks in the inbox; else the synthetic sample folder."""
-        paths = find_workbooks(self.settings.inbox_dir)
+        """The current extracts in Okane's store; else the synthetic sample folder."""
+        paths = self.intake.current_paths()
         if paths:
             return paths, False
         return find_workbooks(self.settings.sample_dir), True
@@ -132,15 +139,24 @@ class Pipeline:
             self._lines_cache = {snapshot_id: self.db.read_lines(snapshot_id)}
         return self._lines_cache[snapshot_id]
 
+    def _scan(self, trigger: RunTrigger) -> list[str]:
+        """Pick up new files in the watched folder (A38); returns warnings for refused files."""
+        route: ExtractRoute = "manual" if trigger in ("upload", "rules_change") else trigger
+        results = self.intake.scan_folder(self.settings.inbox_dir, route)
+        return [
+            f"{r.file_name} in the watched folder was not loaded: {r.message}"
+            for r in results
+            if r.status == "rejected"
+        ]
+
     def _snapshot(self) -> tuple[str, list[str], list[str], bool, list[str]]:
         paths, synthetic = self.workbooks()
         if not paths:
             raise IngestError(
                 f"No workbook found in {self.settings.inbox_dir} or {self.settings.sample_dir}. "
-                "Run `make generate-sample-data` or drop a workbook in data/inbox/."
+                "Upload an extract, drop one in the watched folder, or run "
+                "`make generate-sample-data`."
             )
-        from app.ingest import file_hash
-
         hashes = [file_hash(p) for p in paths]
         snapshot_id = hashlib.sha256("|".join(sorted(hashes)).encode()).hexdigest()[:16]
         if self.db.snapshot_exists(snapshot_id):
@@ -153,6 +169,57 @@ class Pipeline:
         )  # fmt: skip
         log.info("ingested snapshot %s (%d lines)", snapshot_id, len(result.lines))
         return snapshot_id, result.files, result.hashes, synthetic, result.warnings
+
+    def sources(
+        self, lines: pd.DataFrame, files: list[str], hashes: list[str]
+    ) -> tuple[list[ExtractSource], list[str]]:
+        """Where each workbook of the run came from, its extract date and whether it is late."""
+        dates = extract_dates(lines)
+        rows = lines.groupby("workbook").size().to_dict()
+        stored = {e["file_hash"]: e for e in self.db.current_extracts()}
+        weekday = schedule.weekday_index(self.settings.schedule_day_of_week)
+        now = schedule.local_now()
+        sources: list[ExtractSource] = []
+        warnings: list[str] = []
+        for name, digest in zip(files, hashes, strict=False):
+            entry = stored.get(digest) or self.db.get_extract(digest)
+            kind = entry["kind"] if entry else _kind_of(name, lines, dates)
+            if kind is None:
+                continue
+            taken, disagree = dates.get(kind, (None, 0))
+            if disagree:
+                warnings.append(
+                    f"{disagree} {kind} line(s) give a different extract date than {taken}; "
+                    f"{taken} is used."
+                )
+            source = ExtractSource(
+                kind=kind, file_name=name, file_hash=digest, extract_date=taken,
+                rows=int(rows.get(kind, 0)),
+            )  # fmt: skip
+            if entry:
+                received = schedule.utc_to_local(entry["received_at"])
+                late, due = schedule.extract_status(
+                    received, now, weekday, self.settings.schedule_hour,
+                    self.settings.schedule_minute,
+                )  # fmt: skip
+                source = source.model_copy(
+                    update={"route": entry["route"], "received_by": entry["received_by"],
+                            "received_at": entry["received_at"], "late": late, "next_due": due}
+                )  # fmt: skip
+                if late:
+                    warnings.append(
+                        f"No new {kind} extract since {received:%d %b %Y}. This check used the "
+                        "last extract received."
+                    )
+            sources.append(source)
+        return sorted(sources, key=lambda s: s.kind, reverse=True), warnings
+
+    def analysis_date(self, sources: list[ExtractSource]) -> Any:
+        """OKANE_AS_OF, else the Payroll extract date, else today (A38)."""
+        if self.settings.as_of is not None:
+            return self.settings.as_of
+        payroll = next((s for s in sources if s.kind == "Payroll" and s.extract_date), None)
+        return payroll.extract_date if payroll else self.settings.today()
 
     # -- runs
     def start(self, trigger: RunTrigger, reuse_snapshot: bool = False) -> Run:
@@ -169,7 +236,8 @@ class Pipeline:
                 source_files=previous.source_files if previous else [],
                 file_hashes=previous.file_hashes if previous else [],
                 synthetic=previous.synthetic if previous else False,
-                as_of=self.settings.today(),
+                as_of=previous.as_of if previous else self.settings.today(),
+                sources=previous.sources if previous else [],
                 started_at=utcnow(),
             )
             self.db.save_run(run)
@@ -192,16 +260,30 @@ class Pipeline:
         finally:
             self._lock.release()
         self.bus.publish("run_finished", run.model_dump(mode="json"))
+        self._run_pending()
         return run
 
+    def _run_pending(self) -> None:
+        with self._pending_lock:
+            pending, self._pending = self._pending, None
+        if pending is not None:
+            log.info("running the %s trigger that arrived during the last run", pending)
+            self.trigger(pending)
+
     def _execute(self, run: Run) -> Run:
-        warnings: list[str] = []
+        warnings: list[str] = list(run.warnings) if run.snapshot_id else []
         if not run.snapshot_id:
-            snapshot_id, files, hashes, synthetic, warnings = self._snapshot()
+            warnings = self._scan(run.trigger)
+            snapshot_id, files, hashes, synthetic, ingest_warnings = self._snapshot()
+            lines = self.lines(snapshot_id)
+            sources, source_warnings = self.sources(lines, files, hashes)
+            warnings += ingest_warnings + source_warnings
             run = run.model_copy(
                 update={"snapshot_id": snapshot_id, "source_files": files,
-                        "file_hashes": hashes, "synthetic": synthetic}
+                        "file_hashes": hashes, "synthetic": synthetic, "sources": sources,
+                        "as_of": self.analysis_date(sources)}
             )  # fmt: skip
+            self.db.save_run(run)
         lines = self.lines(run.snapshot_id)
         rules = self.db.get_rules()
         output = run_engines(lines, rules, run.as_of)
@@ -246,9 +328,32 @@ class Pipeline:
         threading.Thread(target=self.execute, args=(run,), daemon=True, name="okane-run").start()
         return run
 
-    def trigger(self, trigger: RunTrigger) -> None:
-        """Fire-and-forget entry point for jobs; a busy pipeline skips the trigger."""
+    def trigger(self, trigger: RunTrigger) -> Run | None:
+        """Fire-and-forget entry point for jobs and uploads.
+
+        A busy pipeline remembers the trigger and runs it when the current run ends.
+        """
         try:
-            self.run_in_background(trigger)
+            return self.run_in_background(trigger)
         except RunInProgressError:
-            log.info("skipped %s trigger: a run is in progress", trigger)
+            with self._pending_lock:
+                self._pending = trigger  # ASSUMPTION (A38): run once more when this one ends
+            log.info("%s trigger queued: a run is in progress", trigger)
+            return None
+
+
+def _kind_of(name: str, lines: pd.DataFrame, dates: dict[str, tuple[Any, int]]) -> str | None:
+    """Kind of a workbook not in the store (the synthetic sample): by elimination or name.
+
+    ASSUMPTION (A38): only the synthetic sample folder reaches this; real extracts get their
+    kind from the intake step, which reads the sheets.
+    """
+    kinds = sorted(dates)
+    if len(kinds) == 1:
+        return kinds[0]
+    lowered = name.lower()
+    if "payroll" in lowered and "Payroll" in kinds:
+        return "Payroll"
+    if ("fixed" in lowered or "asset" in lowered) and "Fixed assets" in kinds:
+        return "Fixed assets"
+    return None

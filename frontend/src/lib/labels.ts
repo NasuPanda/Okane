@@ -159,6 +159,15 @@ const FACT_LABEL: Record<string, string> = {
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 /** Rules.weekly_run_weekday (0 = Monday) as a day name, for "the weekly Monday run". */
+/** How an extract reached Okane (A38), as a verb phrase: "uploaded by …". */
+export const ROUTE_LABEL: Record<string, string> = {
+  upload: "uploaded",
+  watcher: "picked up from the watched folder",
+  schedule: "picked up by the Monday check",
+  startup: "picked up from the watched folder",
+  manual: "picked up from the watched folder",
+};
+
 export function weekdayName(day: number | null | undefined): string {
   return WEEKDAYS[day ?? 0] ?? WEEKDAYS[0];
 }

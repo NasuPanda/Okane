@@ -101,7 +101,7 @@ def test_rates_file_missing(tmp_path: Path) -> None:
         load_rates(tmp_path / "nope.csv")
 
 
-def test_find_workbooks_picks_newest_per_kind(tmp_path: Path) -> None:
+def test_find_workbooks_lists_newest_first_without_lock_files(tmp_path: Path) -> None:
     import os
 
     for i, name in enumerate(["Payroll_old.xlsx", "Payroll_new.xlsx", "Fixed_assets.xlsx"]):
@@ -109,8 +109,10 @@ def test_find_workbooks_picks_newest_per_kind(tmp_path: Path) -> None:
         p.write_bytes(b"x")
         os.utime(p, (1_000_000 + i, 1_000_000 + i))
     (tmp_path / "~$Payroll_new.xlsx").write_bytes(b"lock")
+    (tmp_path / "notes.txt").write_bytes(b"x")
     names = [p.name for p in find_workbooks(tmp_path)]
-    assert names == ["Fixed_assets.xlsx", "Payroll_new.xlsx"]
+    # The kind is read from the sheets by the intake step (A38), never guessed from the name.
+    assert names == ["Fixed_assets.xlsx", "Payroll_new.xlsx", "Payroll_old.xlsx"]
 
 
 def test_snapshot_round_trip(tmp_path: Path, rates: dict[str, float]) -> None:

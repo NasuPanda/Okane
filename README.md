@@ -30,9 +30,9 @@ make generate-sample-data  # synthetic workbooks into data/sample/ (git-ignored)
 make dev                   # API on :8000, UI on http://localhost:5173
 ```
 
-The first start runs the pipeline on the newest workbooks. With an empty `data/inbox/` it uses
-`data/sample/` and the UI marks the run "synthetic sample". Click **Run now** in the dock at the
-bottom to run again.
+The first start runs the pipeline on the newest workbooks. With no extract loaded and an empty
+`data/inbox/` it uses `data/sample/` and the UI marks the run "practice data". Click **Check now** in the dock at
+the bottom to run again.
 
 Optional AI comments: `ollama pull qwen2.5:7b-instruct` and keep `ollama serve` running. Without
 Ollama everything works; comments are a clearly labelled template.
@@ -42,19 +42,32 @@ synthetic JSON in `fixtures/`.
 
 ## Using the real workbooks (locally only)
 
-1. Copy the Payroll and Fixed assets workbooks into `data/inbox/`. Everything under `data/` and
-   every `*.xlsx` is git-ignored; CI fails if one is ever tracked.
+1. Bring in the Payroll and Fixed assets workbooks: click **Upload extract** in the dock (or
+   drop a file anywhere on the page), or copy them into the watched folder `data/inbox/`. Both
+   routes go through one intake step (ASSUMPTIONS A38): it checks the sheets and columns,
+   refuses a wrong file or one already loaded, keeps a copy in `data/extracts/` and moves the
+   extract it replaces to `data/archive/`. Your file is never changed. Everything under
+   `data/` and every `*.xlsx` is git-ignored; CI fails if one is ever tracked.
 2. Check `data/rates.csv` (units per EUR). The Fixed assets rates in the sample are placeholders
    until the team confirms them (ASSUMPTIONS A11).
-3. With `make dev` running, the folder watcher starts a run as soon as a workbook lands; a
-   toast shows it starting and finishing. A weekly run fires every Monday at 06:00.
+3. With `make dev` running, an upload or a new file in the watched folder starts a run; a toast
+   shows it starting and finishing. A weekly run fires every Monday at 06:00, also scans the
+   folder, and flags an extract as late when none arrived since the previous Monday run.
+4. The analysis date is the day the Payroll extract was taken (worked out from the posting
+   date and ageing days), so a payment made after the extract never looks missing.
+   `OKANE_AS_OF` overrides it.
+
+**A shared folder instead of uploads.** Set `OKANE_INBOX_DIR` in `backend/.env` to a synced
+SharePoint, OneDrive or Teams folder the preparer already uses; no code change. Okane only reads
+and copies from it. Keep real data out of cloud folders unless the mentor allows it (A38).
 
 Never paste real figures, document numbers or names into issues, PRs, commits or fixtures.
 
 ## Demo path (the 3-minute video)
 
 1. **Exposure**: the old report, 145.7M "overdue" on 5,475 lines.
-2. Drop a new extract into `data/inbox/`: the run toast starts and finishes.
+2. Click **Upload extract** (or drop the workbook on the page): the run toast starts and
+   finishes, and the Inbox shows where the extract came from and the day it was taken.
 3. **Show real exposure**: matched accounts fold away; 4 remain at 500K materiality.
 4. Open the top finding, **C192 social security**: gap chart, a "you may have made a mistake"
    prompt on a wrong period label, and the comment with its figures ticked green.

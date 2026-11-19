@@ -9,6 +9,8 @@ One file (``data/okane.duckdb``). Tables:
   trail. Decisions are joined onto every later run's exceptions.
 - ``rules`` / ``rule_changes``: current rules and the append-only change log.
 - ``ai_cache``: AI comments keyed by exception id plus facts hash.
+- ``extracts``: every workbook the intake step accepted (A38), with route, who and when; the
+  current file per kind is flagged. Also the audit trail of arrivals.
 
 All access goes through one connection guarded by a lock; DuckDB is fast enough that the
 prototype does not need a pool.
@@ -59,7 +61,17 @@ CREATE TABLE IF NOT EXISTS rules (id INTEGER PRIMARY KEY, payload JSON);
 CREATE SEQUENCE IF NOT EXISTS rule_seq;
 CREATE TABLE IF NOT EXISTS rule_changes (seq BIGINT, payload JSON);
 CREATE TABLE IF NOT EXISTS ai_cache (cache_key VARCHAR PRIMARY KEY, payload JSON);
+CREATE TABLE IF NOT EXISTS extracts (
+    file_hash VARCHAR PRIMARY KEY, kind VARCHAR, file_name VARCHAR, stored_path VARCHAR,
+    route VARCHAR, received_by VARCHAR, received_at TIMESTAMP, rows INTEGER, is_current BOOLEAN);
 """
+
+
+EXTRACT_FIELDS = (
+    "file_hash", "kind", "file_name", "stored_path", "route", "received_by", "received_at",
+    "rows", "is_current",
+)  # fmt: skip
+EXTRACT_COLUMNS = ", ".join(EXTRACT_FIELDS)
 
 
 def utcnow() -> datetime:
@@ -324,3 +336,39 @@ class Database:
         with self.cursor() as cur:
             cur.execute("DELETE FROM ai_cache WHERE cache_key = ?", [key])
             cur.execute("INSERT INTO ai_cache VALUES (?, ?)", [key, json.dumps(payload)])
+
+    # ----- extracts (A38) ------------------------------------------------------------------
+    def get_extract(self, file_hash: str) -> dict[str, Any] | None:
+        with self.cursor() as cur:
+            row = cur.execute(
+                f"SELECT {EXTRACT_COLUMNS} FROM extracts WHERE file_hash = ?", [file_hash]
+            ).fetchone()
+        return dict(zip(EXTRACT_FIELDS, row, strict=True)) if row else None
+
+    def current_extracts(self) -> list[dict[str, Any]]:
+        """The current extract per kind, ordered by kind."""
+        with self.cursor() as cur:
+            rows = cur.execute(
+                f"SELECT {EXTRACT_COLUMNS} FROM extracts WHERE is_current ORDER BY kind"
+            ).fetchall()
+        return [dict(zip(EXTRACT_FIELDS, r, strict=True)) for r in rows]
+
+    def add_extract(self, entry: dict[str, Any], archived_path: str | None) -> None:
+        """Make ``entry`` the current extract of its kind; the previous one is archived."""
+        with self.cursor() as cur:
+            cur.execute("BEGIN")
+            try:
+                cur.execute(
+                    "UPDATE extracts SET is_current = false, stored_path = coalesce(?, stored_path)"
+                    " WHERE kind = ? AND is_current",
+                    [archived_path, entry["kind"]],
+                )
+                values = [entry[f] for f in EXTRACT_FIELDS[:-1]]
+                marks = ", ".join("?" * len(values))
+                cur.execute(
+                    f"INSERT INTO extracts ({EXTRACT_COLUMNS}) VALUES ({marks}, true)", values
+                )
+                cur.execute("COMMIT")
+            except Exception:
+                cur.execute("ROLLBACK")
+                raise

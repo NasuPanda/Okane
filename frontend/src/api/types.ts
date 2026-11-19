@@ -19,6 +19,8 @@ export type TimelinePoint = S["TimelinePoint"];
 export type Rules = S["Rules"];
 export type RuleChange = S["RuleChange"];
 export type Run = S["Run"];
+export type ExtractSource = S["ExtractSource"];
+export type UploadResult = S["UploadResult"];
 export type Kpis = S["Kpis"];
 
 export type ExceptionFilters = {

@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import AppState, exceptions, exposure, kpis, pulse, rules, runs
+from app.api import AppState, exceptions, exposure, kpis, pulse, rules, runs, uploads
 from app.config import Settings, get_settings
 from app.database import Database
 from app.jobs import Jobs
@@ -66,7 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "PATCH"],
         allow_headers=["*"],
     )
-    for module in (runs, exceptions, exposure, pulse, rules, kpis):
+    for module in (runs, uploads, exceptions, exposure, pulse, rules, kpis):
         app.include_router(module.router)
 
     @app.get("/api/health", tags=["meta"])

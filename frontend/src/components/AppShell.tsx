@@ -1,11 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { FolderInput, Inbox, Layers, Loader2, Moon, Play, Radar, SlidersHorizontal, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { FileUp, FolderInput, Inbox, Layers, Loader2, Moon, Play, Radar, SlidersHorizontal, Sun } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { API_MODE, api } from "@/api/client";
-import { useKpis, useLatestRun, useStartRun } from "@/api/hooks";
+import { useKpis, useLatestRun, useStartRun, useUploadExtract } from "@/api/hooks";
 import { ExceptionDrawer } from "@/components/ExceptionDrawer";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
@@ -122,7 +122,8 @@ function RunDock() {
         if (event === "run_started") {
           setRunning(true);
           const why = {
-            watcher: "A new workbook just landed in the inbox folder",
+            upload: "A new extract was uploaded",
+            watcher: "A new workbook just landed in the watched folder",
             schedule: "It's Monday: the weekly check is running",
             rules_change: "Your rules changed, so everything is being re-ranked",
           }[String(data.trigger)];
@@ -168,18 +169,19 @@ function RunDock() {
                 )}
               </div>
               <div className="truncate text-xs text-white/50">
-                {latest.source_files.join(", ") || "no workbook"} · I watch the inbox folder and re-check every Monday at 06:00
+                {latest.source_files.join(", ") || "no workbook"} · Upload the weekly extract or drop it in the watched folder; I re-check every Monday at 06:00
                 {latest.synthetic && " · practice data"}
               </div>
             </>
           ) : (
-            <div className="text-white/70">Nothing checked yet. Drop a workbook into data/inbox, or press the button.</div>
+            <div className="text-white/70">Nothing checked yet. Upload this week's extract, or press Check now.</div>
           )}
         </div>
+        <UploadButton busy={busy} />
         <Button
           size="sm"
           variant="signal"
-          className="ml-2 h-10 rounded-xl px-4 text-[#0d0d0f]"
+          className="h-10 rounded-xl px-4 text-[#0d0d0f]"
           disabled={busy}
           onClick={() =>
             start.mutate(undefined, {
@@ -189,6 +191,107 @@ function RunDock() {
         >
           <Play className="size-3.5" /> Check now
         </Button>
+      </div>
+    </div>
+  );
+}
+
+const WORKBOOK = /\.(xlsx|xlsm|xls)$/i;
+
+/** Send one extract; refusals (wrong file, already loaded) come back as a plain message. */
+function useSendExtract() {
+  const upload = useUploadExtract();
+  const send = (file: File) =>
+    upload.mutate(file, {
+      onSuccess: (result) => toast.success("Extract received", { description: result.message }),
+      onError: (e) => toast.error("That file wasn't loaded", { description: String((e as Error).message) }),
+    });
+  return { send, pending: upload.isPending };
+}
+
+/** "Upload extract": a file picker for this week's Payroll or Fixed assets workbook (A38). */
+function UploadButton({ busy }: { busy: boolean }) {
+  const input = useRef<HTMLInputElement>(null);
+  const { send, pending } = useSendExtract();
+  return (
+    <>
+      <input
+        ref={input}
+        type="file"
+        accept=".xlsx,.xlsm,.xls"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) send(file);
+        }}
+      />
+      <Button
+        size="sm"
+        variant="ghost"
+        className="ml-2 h-10 rounded-xl px-4 text-white hover:bg-dock-raised hover:text-white"
+        disabled={busy || pending}
+        onClick={() => input.current?.click()}
+      >
+        <FileUp className="size-3.5" /> Upload extract
+      </Button>
+    </>
+  );
+}
+
+/** Drop a workbook anywhere on the page to upload it. */
+function DropZone() {
+  const [over, setOver] = useState(false);
+  const { send } = useSendExtract();
+  const sendRef = useRef(send);
+  sendRef.current = send; // the window listeners below are added once
+  useEffect(() => {
+    let depth = 0;
+    const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
+    const enter = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      depth += 1;
+      setOver(true);
+    };
+    const leave = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      depth = Math.max(0, depth - 1);
+      if (depth === 0) setOver(false);
+    };
+    const overHandler = (e: DragEvent) => {
+      if (hasFiles(e)) e.preventDefault();
+    };
+    const drop = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      depth = 0;
+      setOver(false);
+      const files = Array.from(e.dataTransfer?.files ?? []);
+      const workbooks = files.filter((f) => WORKBOOK.test(f.name));
+      if (!workbooks.length) {
+        toast.error("That file wasn't loaded", { description: "Drop a Payroll or Fixed assets workbook (.xlsx, .xlsm or .xls)." });
+        return;
+      }
+      workbooks.forEach((file) => sendRef.current(file));
+    };
+    window.addEventListener("dragenter", enter);
+    window.addEventListener("dragleave", leave);
+    window.addEventListener("dragover", overHandler);
+    window.addEventListener("drop", drop);
+    return () => {
+      window.removeEventListener("dragenter", enter);
+      window.removeEventListener("dragleave", leave);
+      window.removeEventListener("dragover", overHandler);
+      window.removeEventListener("drop", drop);
+    };
+  }, []);
+  if (!over) return null;
+  return (
+    <div className="pointer-events-none fixed inset-0 z-50 grid place-items-center bg-background/70 backdrop-blur-sm">
+      <div className="rounded-3xl border-2 border-dashed border-signal bg-card px-10 py-8 text-center shadow-2xl">
+        <FileUp className="mx-auto mb-3 size-8 text-signal" />
+        <div className="text-lg font-medium">Drop this week's extract to check it</div>
+        <div className="mt-1 text-sm text-muted-foreground">Payroll or Fixed assets workbook. Okane keeps a copy; your file is not changed.</div>
       </div>
     </div>
   );
@@ -215,6 +318,7 @@ export function AppShell() {
         </main>
       </div>
       <RunDock />
+      <DropZone />
       <ExceptionDrawer
         id={finding}
         onClose={() => {
