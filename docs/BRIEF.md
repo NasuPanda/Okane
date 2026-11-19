@@ -373,7 +373,7 @@ Decided in #3 (18 Nov 2026): the original's rules, minus Intercompany, are the d
 | Typo prompts                      | Spelling or period-label errors produce a "you may have made a mistake" prompt; rapidfuzz for fuzzy matches | #12; build #13           | A6          |
 | Recurring-Correction Miner (CC06) | Finds the root cause behind repeated manual fixes; one card in the demo                                     | #14 (decided); build #15 | A7          |
 | Lead time                         | Per exception: first signal date, today's detection date, lead days; badge "N days before the close review" | #16 (decided); build #17 | A8          |
-| Risk score                        | Weights in Rules (exposure 40, days past expected 20, penalty account 20, error type 10, repeats 10)        | #18; build #19           | A9          |
+| Risk score                        | Weights in Rules (exposure 40, days past expected 20, penalty account 20, error type 10, repeats 10)        | #18 (decided); build #19 | A9          |
 | AI layer                          | Ollama, JSON output validated by pydantic, masking, cache, verifier                                         | #28; build #29           | A10, A28    |
 | Screens                           | Inbox, Exposure, Sentinel, Rules; detail drawer with gap chart, AI comment, lead-time badge                 | Built to UI reference    | A16         |
 | Extract intake, analysis date     | How the weekly extract reaches Okane, the analysis date, when an extract is late, archive of past weeks     | #23 (decided); built #24 | A38         |

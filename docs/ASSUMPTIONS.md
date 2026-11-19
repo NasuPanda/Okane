@@ -21,7 +21,7 @@ so nobody re-investigates).
 | A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12), built (#13): one letter from a word 20x as common, Text and header, allow-list |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
-| A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
+| A9 | Risk score scaling | Decide | Decided (#18): exposure / (5 x materiality); repeats = Miner pattern in 3+ months; penalty C192 279006 pending mentor Q6 |
 | A10 | AI prompt contract and model | Decide | `{"comment": str}`, qwen2.5 7B instruct, temperature 0 |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
@@ -348,13 +348,30 @@ is pending mentor question 2).*
   (overstates what a Monday run delivers by up to 6 days).
 Owner: team.
 
-**A9. Risk score.** *Decide.* Weights come from Rules (40/20/20/10/10). Each component is scaled
-to 0..1: exposure = |exposure| / (5 x materiality), capped; days past expected = days / 90,
-capped (a gap counts from its first month above materiality); penalty account = 1 if the
-account is in `Rules.penalty_accounts` (default C192 279006, social security); error type =
-`Rules.error_type_severity`; repeats = (same type on the same account - 1) / 5, capped (a Miner
-cluster counts its months, a gap its months above materiality). With these, the C192 gap ranks
-first on real data (89.4), as the demo needs. Owner: team.
+**A9. Risk score.** *Decided (#18, 19 Nov 2026; the penalty-account list is pending mentor
+question 6).* Weights come from Rules (40/20/20/10/10); each component is scaled to 0..1,
+multiplied by its weight and rounded to 0.1 point, and the score is the sum of those points, so
+the breakdown adds up to the score.
+- Exposure = |exposure| / (`Rules.exposure_cap_multiple` (5) x materiality), capped at 1.
+  Departs from the original rule (/ materiality, capped): with that, every finding at or above
+  materiality takes the full 40 points, the top of the list becomes ties, and the C192 gap leads
+  by 1 point on real data instead of 9.6.
+- Days past expected = days / `Rules.days_past_expected_cap` (90), capped (the original rule; a
+  gap counts from its first month-end above materiality).
+- Penalty account = 1 if the account is in `Rules.penalty_accounts`. Default C192 279006 (social
+  security), the recorded default of mentor question 6, until the mentor names the tax and
+  social-security accounts. Adding 279006 in the other P20 entities changes no ranking.
+- Error type = `Rules.error_type_severity` per finding type (the original rule).
+- Repeats = 1 when a Miner pattern (A7) on the same ERP, account and company code has at least
+  `Rules.repeats_min_months` (3) months, read from the Miner's `months` fact; otherwise 0. A
+  Miner card scores its own pattern. The original rule; replaces the earlier count of same-type
+  findings per account (which let missing payments on one account lift each other) and retires
+  `Rules.repeats_cap`.
+- Real Payroll (aggregates, as of 18 Nov 2026): the C192 gap ranks first at 79.4, ahead of 69.8;
+  at 100K it ranks first at 90, ahead of 89. Synthetic: first at 90, ahead of 65. Measured
+  alternatives, all keeping the gap first: the earlier rule 89.4 vs 75.8; the full original
+  (/ materiality) 90 vs 89.
+Owner: team.
 
 **A27. Suggested class.** *Info (confirmed 18 Nov 2026, #5).* Code (never the model) suggests:
 gap, outliers, S2, S3 = Required Adjustment Item; missing payment = Timing item if at most 30
@@ -459,7 +476,7 @@ Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default
 | 3 | Group closing rates for the run date, or ECB reference rates | #8 | drafted, not yet sent | ECB euro reference rates on each workbook's ageing date (public and reproducible), A11 | | |
 | 4 | Is the cross-ERP posting text on C192's payment lines a known route, and are some C192 batches paid quarterly? | #20 | drafted, not yet sent | Decided in #20 without waiting: missing payments only for batches due in the last 12 months (A15); a "quarterly" answer needs no change | | |
 | 5 | What repeated manual corrections on payroll and fixed-asset accounts usually fix (replaces the CC06 question) | #14 (then #15, #31) | drafted, not yet sent | The original Miner rule: person-posted lines with a header text, score = distinct entities x distinct months; the card is labelled a hypothesis and not called CC06 (A7) | | |
-| 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as built (A9) | | |
+| 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as decided in #18 (A9) | | |
 | 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |
 | 8 | May the video and deck show the real (scaled) data, or must they use the synthetic sample? | #25 (then #26, #37, #38) | drafted, not yet sent | Synthetic sample on screen; real figures only as the aggregates the brief quotes | | |
 | 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | no answer, default applied | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | Default applied in #23 (A38); revisit A38 if the mentor answers, especially on cloud folders | 19 Nov 2026 |
