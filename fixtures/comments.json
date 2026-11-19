@@ -92,8 +92,8 @@
    "failed_figures": [],
    "cached": false
   },
-  "364325a3d446129c": {
-   "exception_id": "364325a3d446129c",
+  "d00346a86e3ca1d6": {
+   "exception_id": "d00346a86e3ca1d6",
    "comment": "Standard note (no AI was used): Repeated manual posting: 6 months. Rule: The same manual posting by one person scores at least 12 (entities x months) in 3+ months. Review the evidence documents.",
    "source": "template",
    "verifier": "not_run",
