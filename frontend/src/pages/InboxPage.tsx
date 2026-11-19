@@ -31,6 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { GROUP_LABEL, GROUP_TONE, ROUTE_LABEL, TYPE_GROUP, greeting, weekdayName, type TypeGroup } from "@/lib/labels";
+import { PeriodPicker, inPeriod, usePeriod } from "@/lib/period";
 import { cn, day, dueDay, eur, shortEur, stamp } from "@/lib/utils";
 
 const column = createColumnHelper<ExceptionRecord>();
@@ -40,7 +41,7 @@ function DataSources({ run }: { run: Run | null | undefined }) {
   const sources = run?.sources ?? [];
   if (!run || !sources.length) return null;
   return (
-    <Card className="space-y-2 py-3.5 text-sm">
+    <Card className="space-y-2 border border-[#c6f560] py-3.5 text-sm">
       {sources.map((s) => (
         <div key={s.file_hash} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
           <FileSpreadsheet className="size-4 text-foreground" />
@@ -134,30 +135,41 @@ export function InboxPage() {
   const [workgroup, setWorkgroup] = useState<"all" | "Payroll" | "Fixed assets">("all");
   const [status, setStatus] = useState<StatusFilter>("open");
   const [sorting, setSorting] = useState<SortingState>([{ id: "score", desc: true }]);
+  const period = usePeriod();
+  // Every figure below counts only the findings in the chosen period (the shared report period).
+  const scoped = useMemo(() => (all.data ?? []).filter((r) => inPeriod(r, period.range)), [all.data, period.range]);
 
   const records = useMemo(
     () =>
-      (all.data ?? []).filter(
+      scoped.filter(
         (r) =>
           (view === "all" || r.inbox_view === view) &&
           (workgroup === "all" || r.workgroup === workgroup) &&
           (status === "all" || (status === "open" ? OPEN.includes(r.status) : !OPEN.includes(r.status))),
       ),
-    [all.data, view, workgroup, status],
+    [scoped, view, workgroup, status],
   );
   const counts = useMemo(() => {
     const out: Record<string, number> = { all: 0 };
-    for (const r of all.data ?? []) {
+    for (const r of scoped) {
       if (!OPEN.includes(r.status)) continue;
       out.all += 1;
       out[TYPE_GROUP[r.type]] = (out[TYPE_GROUP[r.type]] ?? 0) + 1;
       if (r.inbox_view) out[r.inbox_view] = (out[r.inbox_view] ?? 0) + 1;
     }
     return out;
-  }, [all.data]);
+  }, [scoped]);
   const attention = counts.attention ?? 0;
   const limit = rules.data ? shortEur(rules.data.materiality_eur) : "materiality";
-  const decided = (all.data ?? []).filter((r) => !OPEN.includes(r.status)).length;
+  const decided = scoped.filter((r) => !OPEN.includes(r.status)).length;
+  const leads = scoped.flatMap((r) => (r.lead_days === null ? [] : [r.lead_days])).sort((a, b) => a - b);
+  const median = leads.length
+    ? leads.length % 2
+      ? leads[(leads.length - 1) / 2]
+      : (leads[leads.length / 2 - 1] + leads[leads.length / 2]) / 2
+    : null;
+  const blind = scoped.filter((r) => r.today_detection === null).length;
+  const scope = period.range ? `${period.grain === "day" ? "on" : "in"} ${period.range.label}` : "overall";
 
   const table = useReactTable({
     data: records,
@@ -190,7 +202,14 @@ export function InboxPage() {
         }
       />
 
-      <DataSources run={run.data} />
+      <div className="rise flex flex-wrap items-center justify-between gap-3">
+        <PeriodPicker />
+        <span className="text-xs text-muted-foreground">
+          {period.range
+            ? `Findings posted or first seen ${period.grain === "day" ? "on" : "in"} ${period.range.label}`
+            : "Every finding in the latest check"}
+        </span>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -207,23 +226,23 @@ export function InboxPage() {
         <StatCard
           index={1}
           label="Spotted earlier by"
-          value={k?.median_days_earlier ?? "–"}
+          value={all.data ? (median ?? "–") : "–"}
           unit="days"
-          note={`median, counted from the weekly ${weekdayName(rules.data?.weekly_run_weekday)} run`}
+          note={`median ${scope}, counted from the weekly ${weekdayName(rules.data?.weekly_run_weekday)} run`}
           icon={Sparkles}
           color="var(--pulse)"
           soft="var(--pulse-soft)"
-          bars={Math.min(k?.median_days_earlier ?? 0, 48)}
+          bars={Math.min(median ?? 0, 48)}
         />
         <StatCard
           index={2}
           label="Today's report misses"
-          value={k?.blind_spots ?? "–"}
-          note="findings no current check would ever catch"
+          value={all.data ? blind : "–"}
+          note={`findings ${scope} no current check would ever catch`}
           icon={EyeOff}
           color="var(--hot)"
           soft="var(--hot-soft)"
-          bars={k ? (k.blind_spots / Math.max(k.exceptions, 1)) * 48 : 0}
+          bars={(blind / Math.max(scoped.length, 1)) * 48}
         />
         <StatCard
           index={3}
@@ -250,12 +269,14 @@ export function InboxPage() {
           </p>
         </Card>
         <Card className="flex flex-col items-center justify-center gap-2" style={stagger(5, 70)}>
-          <Gauge value={decided} total={(all.data ?? []).length} label="reviewed so far" />
+          <Gauge value={decided} total={scoped.length} label="reviewed so far" />
           <span className="text-xs text-muted-foreground">
             {decided === 0 ? "Open a finding to get started" : "Nice progress, keep going"}
           </span>
         </Card>
       </div>
+
+      <DataSources run={run.data} />
 
       <div className="rise flex flex-wrap items-center justify-between gap-4" style={stagger(6, 70)}>
         <div className="flex flex-wrap items-center gap-2">

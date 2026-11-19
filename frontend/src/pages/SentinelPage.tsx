@@ -7,6 +7,7 @@ import { useOpenFinding } from "@/components/AppShell";
 import { Card, Chip, Empty, LeadBadge, PageHeader, StatCard, StatusPill, TypeIcon, TypeLabel, stagger } from "@/components/okane";
 import { Skeleton } from "@/components/ui/skeleton";
 import { factLabel, isAmountFact, promptOf, toneOf } from "@/lib/labels";
+import { PeriodPicker, inPeriod, usePeriod } from "@/lib/period";
 import { cn, eur, monthLabel } from "@/lib/utils";
 
 type Feed = "all" | "outliers" | "currencies" | "mistakes";
@@ -172,16 +173,19 @@ export function SentinelPage() {
   const all = useExceptions();
   const open = useOpenFinding();
   const [feed, setFeed] = useState<Feed>("all");
+  const period = usePeriod();
+  // The shared report period (linked with the Inbox): only findings posted or first seen in it.
+  const scoped = useMemo(() => (all.data ?? []).filter((r) => inPeriod(r, period.range)), [all.data, period.range]);
 
   const items = useMemo(
     () =>
-      (all.data ?? [])
+      scoped
         .filter((r) => FEED_TYPES[feed].includes(r.type))
         .sort((a, b) => String(b.facts.posting_date ?? b.first_signal).localeCompare(String(a.facts.posting_date ?? a.first_signal))),
-    [all.data, feed],
+    [scoped, feed],
   );
-  const miner = useMemo(() => (all.data ?? []).filter((r) => r.type === "miner_cluster"), [all.data]);
-  const count = (f: Feed) => (all.data ?? []).filter((r) => FEED_TYPES[f].includes(r.type)).length;
+  const miner = useMemo(() => scoped.filter((r) => r.type === "miner_cluster"), [scoped]);
+  const count = (f: Feed) => scoped.filter((r) => FEED_TYPES[f].includes(r.type)).length;
 
   return (
     <div className="space-y-8">
@@ -190,6 +194,8 @@ export function SentinelPage() {
         trail={["Posting-day checks"]}
         subtitle="Small slips caught on the day they're posted, instead of at the month-end review: odd amounts, currency mix-ups and typos."
       />
+
+      <PeriodPicker className="rise" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard index={0} label="Unusually large amounts" value={count("outliers")} note="far above what the account normally sees"
@@ -219,7 +225,9 @@ export function SentinelPage() {
           {all.isLoading ? (
             Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28" />)
           ) : items.length === 0 ? (
-            <Empty title="Nothing slipped through 🎉">No posting-day finding in this check.</Empty>
+            <Empty title="Nothing slipped through 🎉">
+              {period.range ? `No posting-day finding ${period.grain === "day" ? "on" : "in"} ${period.range.label}.` : "No posting-day finding in this check."}
+            </Empty>
           ) : (
             items.map((r, i) => <FeedItem key={r.id} record={r} index={i} onOpen={() => open(r.id)} />)
           )}
