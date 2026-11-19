@@ -2,8 +2,8 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261119T120051_eb926d",
-  "snapshot_id": "939230a98ca7e555",
+  "run_id": "run_20261119T120806_94024f",
+  "snapshot_id": "b15a06d0dc15c016",
   "trigger": "manual",
   "status": "finished",
   "source_files": [
@@ -11,17 +11,17 @@
    "Payroll_sample.xlsx"
   ],
   "file_hashes": [
-   "e35c07f3a55f2993a17eb6c0b54cde22fa2224004a986daa50df8810b590d7ca",
-   "049f7f4754252754d79b101d3ff3da164e1b6d29809953d9aafd8a6ea7dde8c9"
+   "150f7f0cfe3082d3ab1ed888c5602d98a193f5925a3efd87e56614912eb6320e",
+   "1b487fc4b1fb58ead7a4883af9b3cce88eb5ed9ccc098b023144fb543af3f5f6"
   ],
   "synthetic": false,
   "as_of": "2026-11-18",
-  "started_at": "2026-11-19T12:00:51.123799",
-  "finished_at": "2026-11-19T12:00:51.407218",
+  "started_at": "2026-11-19T12:08:06.128623",
+  "finished_at": "2026-11-19T12:08:06.401270",
   "counts": {
    "lines": 246,
    "paired_lines": 42,
-   "exceptions": 16,
+   "exceptions": 15,
    "old_rule_lines": 72,
    "exposure_groups_above": 3,
    "type:label_mismatch": 1,
@@ -33,7 +33,7 @@
    "type:sentinel_currency_code": 2,
    "type:sentinel_outlier": 2,
    "type:sentinel_two_currencies": 2,
-   "type:typo": 3
+   "type:typo": 2
   },
   "warnings": [],
   "error": null

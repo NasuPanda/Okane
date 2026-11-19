@@ -178,10 +178,16 @@ class Rules(BaseModel):
     # ADDITION (#10, docs/ASSUMPTIONS.md A4): Sentinel S2 ignores amounts below this, in the
     # document currency (the figure as typed).
     sentinel_s2_min_amount: float = 1_000
-    # ADDITION / ASSUMPTION: typo prompts.
-    typo_min_similarity: float = 80.0
-    typo_dictionary_min_count: int = 5
-    typo_rarity_ratio: float = 2.5  # the common spelling is used at least this many times more
+    # ADDITION (#12, docs/ASSUMPTIONS.md A6): typo prompts. A word seen at most
+    # typo_max_rare_count times, typo_max_edits letters (Levenshtein) away from a word seen at
+    # least typo_common_ratio times as often, is flagged unless it is on the allow-list.
+    typo_max_rare_count: int = 3
+    typo_common_ratio: float = 20.0
+    typo_max_edits: int = 1
+    # known abbreviations and foreign words that are never typos (compared lower-case)
+    typo_allow_list: list[str] = Field(
+        default_factory=lambda: ["alloc", "avance", "recov", "reverse"]
+    )
     # ADDITION / ASSUMPTION: Recurring-Correction Miner.
     miner_min_repeats: int = 3
     # ADDITION (#14, docs/ASSUMPTIONS.md A7): a repeated manual posting reaches the Inbox when

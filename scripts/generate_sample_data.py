@@ -10,9 +10,13 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
 - C192 P20 279006 (payment profile 1): monthly "PayrollYYYYMM" batches Jan 2025 - Sep 2026,
   paid ~30 days after period end; Aug 2025 has no batch (missing batch); May and Jun 2025 are
   never paid (missing payments, gap); Aug 2026 is a 4x spike; the Feb 2026 payment is labelled
-  "Jan'2026" (label mismatch); one payment text says "URSAAF" (typo).
+  "Jan'2026" (label mismatch); one payment text says "URSAAF" (typo; payment headers say
+  "URSSAF payment").
 - C242 BPP 34900015 (payment profile 2): monthly GX batches "Auszahl. Rente_MM.YYYY" from
-  BOT_UPLOAD_002, settled by 3-4 bank (TX) lines within 14 days; one text misspelt "Auzahl.".
+  BOT_UPLOAD_002, settled by 3-4 bank (TX) lines within 14 days; one text misspelt "Auzahl."
+  (not a typo prompt: "Auszahl" is not 20 times as common).
+- Typo prompts (A6): "URSAAF" and a C172 batch text "Pauroll"; the swapped letters in Fixed
+  assets "trnasit" are two edits, so they are not flagged.
 - Exact offsetting pairs on C192 279014 and in Fixed assets.
 - Sentinel: a person-posted outlier (USER_901) and a bot-posted outlier; the same amount
   posted in EUR and RWF on one day in Payroll (C132) and in EUR and PLN on one day in Fixed
@@ -195,7 +199,8 @@ def build_c192(p20: PayrollSheet, docs: DocCounter) -> None:
         pay_doc = docs.next(paid_on.year)
         payment = round(amount * 0.997, 2)
         for item, part in enumerate(_split(payment, 2), start=1):
-            p20.add(cocd, account, name, pay_doc, item, "P1", paid_on, part, "BOT_RPA_003", label)
+            p20.add(cocd, account, name, pay_doc, item, "P1", paid_on, part, "BOT_RPA_003", label,
+                    header="URSSAF payment")  # fmt: skip
     # a few old unexplained debits on the same account (counted by the old ageing rule)
     for i, amount in enumerate([1_250.0, 880.5, 2_400.0]):
         p20.add(cocd, account, name, docs.next(2023), 1, "SA", date(2023, 3 + i, 10), amount,
@@ -255,10 +260,12 @@ def build_payroll_p20(docs: DocCounter) -> PayrollSheet:
                 date(2022, 2 + i, 28), -(80_000.0 + i), "BOT_UPLOAD_001", "Pension accrual",
                 allowed=NO_OVERDUE)  # fmt: skip
     # HUF entity with an aged balance between 100K and 500K EUR.
+    # One batch text misspelt "Pauroll" (typo: one letter from "Payroll", used ~90 times).
     for i in range(4):
+        word = "Pauroll" if i == 3 else "Payroll"
         p20.add("C172", "279006", "Social security liabilities", docs.next(2024), 1, "P0",
                 date(2024, 2 + i, 28), -(40_000.0 * 366.2 + i), "BOT_UPLOAD_001",
-                f"Payroll2024{2 + i:02d}", lcurr="HUF")  # fmt: skip
+                f"{word}2024{2 + i:02d}", lcurr="HUF")  # fmt: skip
     # S2: the same amount posted in EUR and in RWF on one day (equal in whole units only).
     p20.add("C132", "279006", "Social security liabilities", docs.next(2026), 1, "SA",
             date(2026, 9, 14), -4_200.40, "USER_077", "Social charges RW")  # fmt: skip

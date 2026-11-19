@@ -18,7 +18,7 @@ so nobody re-investigates).
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
-| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Per-account dictionary, similarity 80, rarity 2.5x |
+| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12): one letter from a word 20x as common, Text and header, allow-list |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
@@ -173,13 +173,22 @@ none. Golden test: `test_real_sentinel_s3`. Built in #48 (#11). Synthetic plants
 **A26. S5 reversal mismatch.** *Info.* P1; not built. The type exists in the schema.
 Owner: team.
 
-**A6. Typo prompts.** *Decide.* (1) Spelling: per account, words of 5+ letters used at least
-`typo_dictionary_min_count` (5) times form a dictionary; a word at least `typo_min_similarity`
-(80) similar to a dictionary word used `typo_rarity_ratio` (2.5) times as often is flagged;
-prefix pairs (plurals, longer forms) are skipped; NAME placeholders are ignored. (2) Period
-label: a line whose text names a different period than most lines of its document. Real data:
-22 prompts (15 spelling, including "Auzahl" for "Auszahl" and "URSAAF" for "URSSAF"; 7 period
-labels). Owner: team.
+**A6. Typo prompts.** *Decided (#12).* (1) Spelling: words of 5+ letters are counted over
+Text and Doc.Header Text of every line in the run (Payroll and Fixed assets together, case
+ignored, NAME placeholders removed). A word seen at most `Rules.typo_max_rare_count` (3) times
+that is `typo_max_edits` (1) letter away (Levenshtein: one letter added, removed or replaced)
+from a word seen at least `typo_common_ratio` (20) times as often is flagged. Plurals and
+shortened forms (one word starts with the other) are skipped. Known abbreviations and foreign
+words go on `typo_allow_list` (default alloc, avance, recov, reverse), which controllers edit
+on the Rules page; the model check of each candidate is #30. Two swapped letters count as two
+edits, so "Langrf" or "recalss" are not flagged (chosen to keep the agreed rule; OSA distance
+would add 3 such words on real data). (2) Period label (unchanged; demo step 4): a line whose
+text names a different period than most lines of its document. Real data: 11 prompts, all
+Payroll; Fixed assets has none. Spelling: Adjustmnt, retirment, SwissLlife, URSAAF (6 before
+the allow-list, which removes Alloc and recov); period labels: 7. The previous per-account rule
+(similarity 80, rarity 2.5x, Text only) gave 15 spelling prompts, several false ("Advance" for
+"avance", "Auszahlung" for "Barzahlung"); it found "Auzahl", which the new rule does not, as
+"Auszahl" is not 20 times as common. Golden test: `test_real_typo_prompts`. Owner: team.
 
 **A7. Recurring-Correction Miner.** *Decided (#14, 19 Nov 2026; the original rule per A37,
 pending mentor question 5).* The CC06 cluster was in the removed Intercompany workbook, so
@@ -233,9 +242,10 @@ is pending mentor question 2).*
   kept in the facts and shown in the badge's tooltip. `daily` switches back.
 - Badge: "Caught N days before the close review" or "Caught N days before the 365-day ageing
   rule" (the account's own allowed age); "Seen N days after ..." when negative.
-- Real Payroll (aggregates, as of 18 Nov 2026): 62 findings with a date, 9 blind spots;
-  median 17.5 days earlier (weekly, 5th working day), against 21 daily and 19 under the
-  earlier rule (month end + 5 calendar days, daily).
+- Real Payroll (aggregates, as of 18 Nov 2026, with the typo rule A6 from #12): 51 findings
+  with a date, 9 blind spots; median 25 days earlier (weekly, 5th working day), against 29
+  daily. Before #12 cut the typo prompts from 22 to 11: 62 findings, median 17.5 (21 daily);
+  under the earlier lead-time rule (month end + 5 calendar days, daily) it was 19.
 - Rejected: month end + 5 calendar days (it can fall on a weekend); a daily-only badge
   (overstates what a Monday run delivers by up to 6 days).
 Owner: team.

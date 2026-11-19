@@ -5,7 +5,7 @@
   "b80b0b905e1fe118": {
    "exception": {
     "id": "b80b0b905e1fe118",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "pulse_gap",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -535,7 +535,7 @@
   "c52c3931a9d01b05": {
    "exception": {
     "id": "c52c3931a9d01b05",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "pulse_spike",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -983,7 +983,7 @@
   "5b2756df8b78173c": {
    "exception": {
     "id": "5b2756df8b78173c",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1434,7 +1434,7 @@
   "7bbbe9271b0a2e1d": {
    "exception": {
     "id": "7bbbe9271b0a2e1d",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1885,7 +1885,7 @@
   "532032f4fe383650": {
    "exception": {
     "id": "532032f4fe383650",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "sentinel_outlier",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1953,7 +1953,7 @@
   "5cb790939c58a948": {
    "exception": {
     "id": "5cb790939c58a948",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "sentinel_outlier",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -2018,138 +2018,10 @@
    "timeline": null,
    "decisions": []
   },
-  "2bfb780a3f72d9bf": {
-   "exception": {
-    "id": "2bfb780a3f72d9bf",
-    "run_id": "run_20261119T120051_eb926d",
-    "type": "typo",
-    "workgroup": "Payroll",
-    "erp": "BPP",
-    "entity": "C242",
-    "account": "34900015",
-    "account_name": "Accrued payroll",
-    "title": "You may have made a mistake: 'Auzahl' looks like 'Auszahl'",
-    "exposure_eur": -4091302.21,
-    "facts": {
-     "rule": "Rare word close to a word this account uses often",
-     "found": "Auzahl",
-     "suggestion": "Auszahl",
-     "similarity_pct": 92.3,
-     "occurrences": 3.0,
-     "dictionary_count": 9.0,
-     "posting_date": "2026-07-25",
-     "prompt": "You may have made a mistake: 'Auzahl' looks like 'Auszahl', which this account uses 9 times.",
-     "today_detection_basis": "month-end close review",
-     "lead_days": 11.0,
-     "lead_days_daily": 13.0,
-     "lead_days_weekly": 11.0,
-     "okane_run_date": "2026-07-27",
-     "lead_view": "weekly",
-     "lead_badge": "Caught 11 days before the close review"
-    },
-    "evidence": [
-     "7900000005/2026"
-    ],
-    "first_signal": "2026-07-25",
-    "today_detection": "2026-08-07",
-    "lead_days": 11,
-    "expected_by": null,
-    "suggested_class": null,
-    "score": 42.0,
-    "score_breakdown": {
-     "exposure": 40.0,
-     "days_past_expected": 0.0,
-     "penalty_account": 0.0,
-     "error_type": 2.0,
-     "repeats": 0.0
-    },
-    "ai_comment": null,
-    "verifier": "not_run",
-    "status": "new",
-    "decision_reason": null,
-    "decided_class": null,
-    "edited_comment": null
-   },
-   "evidence_lines": [
-    {
-     "document": "7900000005/2026",
-     "posting_date": "2026-07-25",
-     "doc_type": "GX",
-     "user_name": "BOT_UPLOAD_002",
-     "text": "Auzahl. Rente_07.2026",
-     "amount_eur": -1818356.54,
-     "currency_dc": "EUR",
-     "amount_dc": -1818356.54
-    },
-    {
-     "document": "7900000005/2026",
-     "posting_date": "2026-07-25",
-     "doc_type": "GX",
-     "user_name": "BOT_UPLOAD_002",
-     "text": "Auzahl. Rente_07.2026",
-     "amount_eur": -1363767.4,
-     "currency_dc": "EUR",
-     "amount_dc": -1363767.4
-    },
-    {
-     "document": "7900000005/2026",
-     "posting_date": "2026-07-25",
-     "doc_type": "GX",
-     "user_name": "BOT_UPLOAD_002",
-     "text": "Auzahl. Rente_07.2026",
-     "amount_eur": -909178.27,
-     "currency_dc": "EUR",
-     "amount_dc": -909178.27
-    }
-   ],
-   "timeline": [
-    {
-     "month": "2026-06",
-     "balance": -2271359.69,
-     "expected": -4088120.4,
-     "gap": 1816760.71,
-     "batch_eur": -4088120.4,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-07",
-     "balance": -909905.29,
-     "expected": -4091302.21,
-     "gap": 3181396.92,
-     "batch_eur": -4091302.21,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-08",
-     "balance": -1231870.11,
-     "expected": -4102550.0,
-     "gap": 2870679.89,
-     "batch_eur": -4102550.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-09",
-     "balance": -2276228.19,
-     "expected": -4095000.0,
-     "gap": 1818771.81,
-     "batch_eur": -4095000.0,
-     "batch_matched": true
-    },
-    {
-     "month": "2026-10",
-     "balance": -1228.19,
-     "expected": 0.0,
-     "gap": -1228.19,
-     "batch_eur": null,
-     "batch_matched": null
-    }
-   ],
-   "decisions": []
-  },
   "ca26141f45d62ffe": {
    "exception": {
     "id": "ca26141f45d62ffe",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "label_mismatch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2620,7 +2492,7 @@
   "3267f451b8da112e": {
    "exception": {
     "id": "3267f451b8da112e",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2630,14 +2502,14 @@
     "title": "You may have made a mistake: 'URSAAF' looks like 'URSSAF'",
     "exposure_eur": 626515.4,
     "facts": {
-     "rule": "Rare word close to a word this account uses often",
+     "rule": "Rare word one letter away from a word used often",
      "found": "URSAAF",
      "suggestion": "URSSAF",
-     "similarity_pct": 83.3,
+     "edits": 1.0,
      "occurrences": 2.0,
-     "dictionary_count": 32.0,
+     "dictionary_count": 66.0,
      "posting_date": "2026-05-01",
-     "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which this account uses 32 times.",
+     "prompt": "You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 66 times.",
      "today_detection_basis": "month-end close review",
      "lead_days": 32.0,
      "lead_days_daily": 35.0,
@@ -3050,7 +2922,7 @@
   "0c7228820c2b5ca8": {
    "exception": {
     "id": "0c7228820c2b5ca8",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "pulse_missing_batch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3448,7 +3320,7 @@
   "d00346a86e3ca1d6": {
    "exception": {
     "id": "d00346a86e3ca1d6",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "miner_cluster",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3534,7 +3406,7 @@
   "f5cb477294a2b6ac": {
    "exception": {
     "id": "f5cb477294a2b6ac",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "sentinel_currency_code",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3600,7 +3472,7 @@
   "f04ae2adff34c19c": {
    "exception": {
     "id": "f04ae2adff34c19c",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "sentinel_currency_code",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3667,7 +3539,7 @@
   "6c91062e6c599fb8": {
    "exception": {
     "id": "6c91062e6c599fb8",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "sentinel_two_currencies",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3743,7 +3615,7 @@
   "0c33474c40046521": {
    "exception": {
     "id": "0c33474c40046521",
-    "run_id": "run_20261119T120051_eb926d",
+    "run_id": "run_20261119T120806_94024f",
     "type": "sentinel_two_currencies",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3816,46 +3688,46 @@
    "timeline": null,
    "decisions": []
   },
-  "2853e8b1894ed623": {
+  "f4d7086d081a2e09": {
    "exception": {
-    "id": "2853e8b1894ed623",
-    "run_id": "run_20261119T120051_eb926d",
+    "id": "f4d7086d081a2e09",
+    "run_id": "run_20261119T120806_94024f",
     "type": "typo",
-    "workgroup": "Fixed assets",
-    "erp": "BPP",
-    "entity": "C250",
-    "account": "1190010",
-    "account_name": "Assets under construction",
-    "title": "You may have made a mistake: 'trnasit' looks like 'transit'",
-    "exposure_eur": 14000.0,
+    "workgroup": "Payroll",
+    "erp": "P20",
+    "entity": "C172",
+    "account": "279006",
+    "account_name": "Social security liabilities",
+    "title": "You may have made a mistake: 'Pauroll' looks like 'Payroll'",
+    "exposure_eur": -40000.01,
     "facts": {
-     "rule": "Rare word close to a word this account uses often",
-     "found": "trnasit",
-     "suggestion": "transit",
-     "similarity_pct": 85.7,
+     "rule": "Rare word one letter away from a word used often",
+     "found": "Pauroll",
+     "suggestion": "Payroll",
+     "edits": 1.0,
      "occurrences": 1.0,
-     "dictionary_count": 16.0,
-     "posting_date": "2019-05-02",
-     "prompt": "You may have made a mistake: 'trnasit' looks like 'transit', which this account uses 16 times.",
+     "dictionary_count": 92.0,
+     "posting_date": "2024-05-28",
+     "prompt": "You may have made a mistake: 'Pauroll' looks like 'Payroll', which is used 92 times.",
      "today_detection_basis": "month-end close review",
-     "lead_days": 32.0,
-     "lead_days_daily": 36.0,
-     "lead_days_weekly": 32.0,
-     "okane_run_date": "2019-05-06",
+     "lead_days": 4.0,
+     "lead_days_daily": 10.0,
+     "lead_days_weekly": 4.0,
+     "okane_run_date": "2024-06-03",
      "lead_view": "weekly",
-     "lead_badge": "Caught 32 days before the close review"
+     "lead_badge": "Caught 4 days before the close review"
     },
     "evidence": [
-     "4900000001/2019"
+     "0000000016/2024"
     ],
-    "first_signal": "2019-05-02",
-    "today_detection": "2019-06-07",
-    "lead_days": 32,
+    "first_signal": "2024-05-28",
+    "today_detection": "2024-06-07",
+    "lead_days": 4,
     "expected_by": null,
     "suggested_class": null,
-    "score": 2.2,
+    "score": 2.6,
     "score_breakdown": {
-     "exposure": 0.2,
+     "exposure": 0.6,
      "days_past_expected": 0.0,
      "penalty_account": 0.0,
      "error_type": 2.0,
@@ -3870,14 +3742,14 @@
    },
    "evidence_lines": [
     {
-     "document": "4900000001/2019",
-     "posting_date": "2019-05-02",
-     "doc_type": "AA",
-     "user_name": "USER_902",
-     "text": "Asset in trnasit",
-     "amount_eur": 14000.0,
-     "currency_dc": "EUR",
-     "amount_dc": 14000.0
+     "document": "0000000016/2024",
+     "posting_date": "2024-05-28",
+     "doc_type": "P0",
+     "user_name": "BOT_UPLOAD_001",
+     "text": "Pauroll202405",
+     "amount_eur": -40000.01,
+     "currency_dc": "HUF",
+     "amount_dc": -14648003.0
     }
    ],
    "timeline": null,

@@ -42,6 +42,7 @@ const FIELD_LABEL: Record<string, string> = {
   miner_min_score: "Repeated postings: smallest repeat strength",
   miner_min_repeats: "Repeated postings: fewest months",
   miner_by_user: "Repeated postings: same person only",
+  typo_allow_list: "Words that are never typos",
 };
 
 function fieldLabel(field: string) {
@@ -74,6 +75,47 @@ function NumberField({
         value={Number.isFinite(value) ? value : ""}
         onChange={(e) => onChange(e.target.valueAsNumber)}
         className="num text-right"
+      />
+    </label>
+  );
+}
+
+function parseWords(text: string): string[] {
+  return text
+    .split(",")
+    .map((w) => w.trim().toLowerCase())
+    .filter((w, i, all) => w && all.indexOf(w) === i);
+}
+
+function WordListField({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const joined = value.join(", ");
+  const [text, setText] = useState(joined);
+  // keep the typed text (with a trailing comma) unless the list changed elsewhere, e.g. Undo
+  useEffect(() => {
+    setText((current) => (parseWords(current).join(", ") === joined ? current : joined));
+  }, [joined]);
+  return (
+    <label className="grid gap-2 border-b border-dashed py-3">
+      <span>
+        <span className="block text-sm">{label}</span>
+        <span className="block text-xs text-muted-foreground">{hint}</span>
+      </span>
+      <Input
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          onChange(parseWords(e.target.value));
+        }}
       />
     </label>
   );
@@ -267,6 +309,12 @@ export function RulesPage() {
                 step={100}
                 value={draft.sentinel_s2_min_amount ?? 0}
                 onChange={(v) => set("sentinel_s2_min_amount", v)}
+              />
+              <WordListField
+                label="Words that are never typos"
+                hint="Abbreviations and foreign words, separated by commas; no typo prompt is raised for them"
+                value={draft.typo_allow_list ?? []}
+                onChange={(v) => set("typo_allow_list", v)}
               />
             </Card>
 
