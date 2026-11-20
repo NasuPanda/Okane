@@ -103,6 +103,7 @@ Build only what the demo path shows. Every engine emits the same Exception recor
 
 - Sentinel S5 (reversal mismatch)
 - A dedicated Sentinel feed page and a KPI header with median days earlier
+- Tutorial mode: a read-only guided tour of every page by a mascot, Mr. Kentaro (requested by the team on 20 Nov; A39)
 
 **Out of scope (deck or finals only)**
 
@@ -378,6 +379,7 @@ Decided in #3 (18 Nov 2026): the original's rules, minus Intercompany, are the d
 | Screens                           | Inbox, Exposure, Sentinel, Rules; detail drawer with gap chart, AI comment, lead-time badge                 | Built to UI reference    | A16         |
 | Extract intake, analysis date     | How the weekly extract reaches Okane, the analysis date, when an extract is late, archive of past weeks     | #23 (decided); built #24 | A38         |
 | Mentor questions                  | Nine questions drafted; none depends on Intercompany or WHT                                                  | #2                       | A36         |
+| Tutorial mode                     | Guided tour of every page with a mascot; highlights and blur; worked examples; never changes data           | Requested 20 Nov         | A39         |
 
 ## 10. Changes in the Intercompany revision, and open items
 
