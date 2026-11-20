@@ -82,3 +82,10 @@ The OpenAPI schema is the contract: `make types` regenerates the frontend types 
 `frontend/src/api/client.ts` exposes one interface with two sources selected by
 `VITE_API_MODE` (`live` or `fixtures`). Pages: Inbox, Exposure, Sentinel, Rules; the exception
 drawer opens from anywhere via `?finding=<id>`. Design tokens live in `src/index.css`.
+
+Tutorial mode (A39) lives in `src/tutorial/`: `TutorialProvider` (state, page moves, the finding
+it opens), `steps.tsx` (the cards, in order, and the sections each highlights), `Spotlight`
+(the blur, the rings and the layer that takes every click), `TutorialCard` and `Kentaro` (the
+mascot, an inline SVG). Sections the tour explains carry `data-tour="key"`; the provider wraps
+`AppShell`, so the Tutorial button sits in the top bar of every page. The tour is read-only:
+it only navigates and reads.

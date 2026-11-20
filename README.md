@@ -34,6 +34,9 @@ The first start runs the pipeline on the newest workbooks. With no extract loade
 `data/inbox/` it uses `data/sample/` and the UI marks the run "practice data". Click **Check now** in the dock at
 the bottom to run again.
 
+New here? Press **Tutorial** in the top bar for a guided tour of every page by Mr. Kentaro. It
+only shows and explains; it never changes data (A39).
+
 Optional AI comments: `ollama pull qwen2.5:7b-instruct` and keep `ollama serve` running. Without
 Ollama everything works; comments are a clearly labelled template.
 
