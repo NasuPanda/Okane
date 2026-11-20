@@ -286,7 +286,13 @@ const fixtureApi: Api = {
     return later((await loadStore()).log);
   },
   async kpis() {
-    return later((await loadStore()).kpis);
+    const s = await loadStore();
+    // Like /api/kpis: the inbox tab counts cover the findings still to review, so a decision
+    // made here moves them too.
+    const toReview = s.exceptions.filter((r) => r.status === "new" || r.status === "escalated");
+    const views: Record<string, number> = { attention: 0, prompts: 0, repeats: 0, other: 0, all: toReview.length };
+    for (const r of toReview) if (r.inbox_view) views[r.inbox_view] += 1;
+    return later({ ...s.kpis, inbox_views: views });
   },
   subscribe(handler) {
     listeners.add(handler);
