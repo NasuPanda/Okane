@@ -206,7 +206,7 @@ export function InboxPage() {
         <PeriodPicker />
         <span className="text-xs text-muted-foreground">
           {period.range
-            ? `Findings posted or first seen ${period.grain === "day" ? "on" : "in"} ${period.range.label}`
+            ? `Findings posted or first seen ${period.grain === "day" ? "on" : "in"} ${period.range.label}, plus every balance still open`
             : "Every finding in the latest check"}
         </span>
       </div>
