@@ -9,8 +9,8 @@ Safety (#26):
 - Nothing changes without ``--yes``; the plan (what is deleted, moved and created) is printed
   first.
 - The synthetic reset deletes only the demo folder's own entries, and refuses a folder that
-  holds anything else, a workbook not marked synthetic, the repository or the real ``data/``
-  folder, or a ``.git`` or ``.env``.
+  holds anything else, a workbook not marked synthetic, a link (symlink), the repository or the
+  real ``data/`` folder, or a ``.git`` or ``.env``. Every check runs before anything changes.
 - ``--real`` never deletes: it moves the app's real database and extract store into
   ``data/archive/reset-<time>/``. It never touches ``data/inbox`` (the watched folder is only
   read, A38) or ``.env``.
@@ -98,8 +98,12 @@ def synthetic_plan(target: Path = DEMO_DIR) -> Plan:
     for entry in sorted(target.iterdir()):
         if entry.name not in DEMO_ENTRIES:
             raise RefusedError(f"{entry} is not part of a demo folder; nothing was changed")
+        if entry.is_symlink():
+            raise RefusedError(f"{entry} is a link; nothing was changed")
         inside = sorted(entry.rglob("*")) if entry.is_dir() else []
         for path in inside:
+            if path.is_symlink():
+                raise RefusedError(f"{path} is a link; nothing was changed")
             if path.name == ".git" or path.name.startswith(".env"):
                 raise RefusedError(f"{path} must not be deleted; nothing was changed")
             workbook = path.suffix.lower() in WORKBOOK_SUFFIXES

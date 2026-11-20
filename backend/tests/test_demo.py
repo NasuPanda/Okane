@@ -214,6 +214,28 @@ def test_reset_refuses_anything_that_is_not_the_demo(tmp_path: Path) -> None:
     assert main(["--dir", str(target), "--yes"]) == 2, "the command refuses too"
 
 
+@pytest.mark.parametrize("where", ["tmp", "inbox/elsewhere"])
+def test_reset_refuses_a_link_before_deleting_anything(tmp_path: Path, where: str) -> None:
+    from demo_reset import RefusedError, reset
+
+    target = tmp_path / "demo"
+    reset(target, yes=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("not the demo's")
+    link = target / where
+    try:
+        link.symlink_to(outside, target_is_directory=True)
+    except OSError:  # Windows without the right to create links
+        pytest.skip("cannot create a symlink here")
+    (target / "okane.duckdb").write_text("runs and decisions")
+    with pytest.raises(RefusedError, match="is a link"):
+        reset(target, yes=True)
+    assert (target / "okane.duckdb").read_text() == "runs and decisions", "nothing was deleted"
+    assert (target / "inbox" / "Fixed_assets_sample.xlsx").exists()
+    assert (outside / "keep.txt").exists() and link.is_symlink()
+
+
 def test_real_reset_moves_and_never_deletes(tmp_path: Path) -> None:
     from demo_reset import apply, real_plan
 
