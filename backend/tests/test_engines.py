@@ -792,6 +792,8 @@ GAP_FACTS: dict[str, float | str] = {
         ("Above materiality since June 2025.", False),
         ("Two payments of 7 days.", False),  # invented figure
         ("Check the batch for C192 and the Payroll202609 lines.", True),  # identifiers
+        ("Clear it within 21 days.", False),  # the day of a fact date is not a figure
+        ("The 2026 accruals are open.", False),  # nor is its year
         ("No numbers here at all.", True),
     ],
 )
@@ -830,15 +832,127 @@ def test_every_template_comment_passes_the_verifier(synthetic_lines: pd.DataFram
         assert outcome.result == "passed", (record.type, outcome.failed)
 
 
-def test_prompt_masks_names_and_hides_documents(synthetic_lines: pd.DataFrame) -> None:
+def test_prompt_masks_names_hides_documents_and_titles(synthetic_lines: pd.DataFrame) -> None:
     from app.ai.prompts import user_prompt
+    from app.services.pipeline import run_engines
 
-    records = run_miner(synthetic_lines, Rules()) + run_sentinel(synthetic_lines, Rules())
+    records = run_engines(synthetic_lines, Rules(), AS_OF).records
     for record in records:
         prompt = user_prompt(record)
         assert not re.search(r"NAME\d+", prompt, re.IGNORECASE)
+        if "prompt" not in record.facts:  # a mistake prompt repeats its own wording
+            assert record.title not in prompt  # titles carry rounded amounts (#45)
+        assert '"miner_score"' not in prompt  # the comment may not give a score (A10)
         for document in record.evidence:
             assert document.split("/")[0] not in prompt
+
+
+@pytest.mark.parametrize(
+    ("key", "value", "shown"),
+    [
+        ("gap_eur", 1_838_461.53, "1,838,462 EUR"),
+        ("expected_eur", -513_823.36, "-513,823 EUR"),
+        ("amount_lc", 12_500_000.0, "12,500,000 JPY"),
+        ("amount_dc", 1_000.0, "1,000"),  # no document currency in these facts
+        ("diff_pct", -0.29, "-0.29%"),
+        ("multiple", 4.1, "4.1x"),
+        ("lines", 3.0, "3"),
+        ("lag_p90_days", 12.5, "12.5"),
+        ("expected_by", "2026-11-21", "21 Nov 2026"),
+        ("since_month", "2025-05", "May 2025"),
+    ],
+)
+def test_display_formats_each_kind(key: str, value: float | str, shown: str) -> None:
+    from app.ai.prompts import display
+
+    assert display(key, value, {"currency_lc": "JPY"}) == shown
+
+
+def test_every_displayed_figure_passes_the_verifier(synthetic_lines: pd.DataFrame) -> None:
+    from app.ai.prompts import figures
+    from app.ai.verifier import verify
+    from app.services.pipeline import run_engines
+
+    for record in run_engines(synthetic_lines, Rules(), AS_OF).records:
+        for name, figure in figures(record).items():
+            outcome = verify(figure["value"], record.facts, [record.entity, record.account])
+            assert outcome.result == "passed", (record.type, name, outcome.failed)
+
+
+def test_render_fills_slots_and_reports_unknown_names() -> None:
+    from app.ai.prompts import render
+
+    figs = {"gap_eur": {"value": "1,838,462 EUR", "means": "the gap"}}
+    text, unknown = render("A gap of {gap_eur}, not { gap_eur }; see {balance}.", figs)
+    assert text == "A gap of 1,838,462 EUR, not 1,838,462 EUR; see {balance}."
+    assert unknown == ["balance"]
+
+
+@pytest.mark.parametrize(
+    ("draft", "shown"),
+    [
+        ("It is {multiple}x the median.", "It is 4.1x the median."),
+        ("It is {multiple} × the median.", "It is 4.1x the median."),
+        ("A gap of {gap_eur} EUR.", "A gap of 1,838,462 EUR."),
+        ("Posted as {amount_dc} in DEM.", "Posted as 12,000 DEM."),
+        ("Off by {diff_pct} percent.", "Off by -0.29%."),
+        ("A gap of {gap_eur} away from plan.", "A gap of 1,838,462 EUR away from plan."),
+        ("Seen {lines} lines in {entity}.", "Seen 3 lines in C192."),
+        ("It is {multiple} the median.", "It is 4.1x the median."),
+        ("It is {multiple} times the median.", "It is 4.1x the median."),
+        ("A gap of {gap_eur} euros.", "A gap of 1,838,462 EUR."),
+        ("A gap of EUR {gap_eur}.", "A gap of 1,838,462 EUR."),
+        ("A gap of € {gap_eur}.", "A gap of 1,838,462 EUR."),
+        ("Posted as DEM {amount_dc}.", "Posted as 12,000 DEM."),
+        ("Paid in HUF {gap_eur}.", "Paid in HUF 1,838,462 EUR."),  # a different code stays
+        ("A gap of {{gap_eur}}.", "A gap of 1,838,462 EUR."),
+    ],
+)
+def test_render_drops_a_repeated_unit(draft: str, shown: str) -> None:
+    from app.ai.prompts import render
+
+    figs = {
+        key: {"value": value, "means": ""}
+        for key, value in {
+            "multiple": "4.1x", "gap_eur": "1,838,462 EUR", "amount_dc": "12,000 DEM",
+            "diff_pct": "-0.29%", "lines": "3", "entity": "C192",
+        }.items()
+    }  # fmt: skip
+    assert render(draft, figs) == (shown, [])
+
+
+@pytest.mark.parametrize(
+    ("comment", "issue"),
+    [
+        (" ".join(["word"] * 60), None),
+        (" ".join(["word"] * 61), "Longer than 60 words (61)"),
+        ("The gap is open because the payment was late.", "States a cause"),
+        ("The gap is due to a late payment.", "States a cause"),
+        ("A possible cause is a late payment.", None),
+        ("The gap may be because the payment was late.", None),
+        ("The amount due to employees is open.", None),  # "due to" as a payable, not a cause
+        ("This is a Timing item.", "Names a classification"),
+        ("This is a high-risk item.", "Gives a risk level"),
+        ("The risk level is high.", "Gives a risk level"),
+        ("Clear it before the deadline.", "Sets a deadline"),
+        ("Check the unmatched batches listed as evidence.", None),
+        ("Check the cause of the gap.", None),  # names a cause, does not state one
+        ("Find the reason for the difference.", None),
+        ("The cause is a late payment.", "States a cause"),
+        ("The likely reason was a late payment.", "States a cause"),
+        ("Clear it within 21 days.", "Sets a deadline"),
+        ("Clear it by the end of {latest_month}.", "Sets a deadline"),
+        ("It is usually paid within {lag_p90_days} days.", None),  # a figure, not a deadline
+    ],
+)
+def test_wording_issues(comment: str, issue: str | None) -> None:
+    from app.ai.verifier import wording_issues
+
+    issues = wording_issues(comment)
+    if issue is None:
+        assert issues == []
+    else:
+        assert len(issues) == 1 and issues[0].startswith(issue), issues
 
 
 def _record(synthetic_lines: pd.DataFrame):  # type: ignore[no-untyped-def]
@@ -846,49 +960,129 @@ def _record(synthetic_lines: pd.DataFrame):  # type: ignore[no-untyped-def]
                 if r.type == "pulse_gap")  # fmt: skip
 
 
-def _mock_ollama(replies: list[str], calls: list[int]):  # type: ignore[no-untyped-def]
+def _mock_ollama(replies: list[str], calls: list[dict]):  # type: ignore[no-untyped-def,type-arg]
+    """Ollama stand-in: answers ``replies`` in order and records each request body."""
+    import json as jsonlib
+
     import httpx
 
     def handler(request: httpx.Request) -> httpx.Response:
-        calls.append(1)
+        calls.append(jsonlib.loads(request.content))
         content = replies[min(len(calls), len(replies)) - 1]
         return httpx.Response(200, json={"message": {"role": "assistant", "content": content}})
 
     return httpx.Client(transport=httpx.MockTransport(handler))
 
 
-def test_client_verifies_caches_and_retries(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+def _reply(text: str) -> str:
     import json as jsonlib
 
-    from app.ai.client import draft_comment
+    return jsonlib.dumps({"comment": text})
+
+
+GOOD_SLOTS = (
+    "The month-end balance of {entity} for {latest_month} is {balance_eur}, a gap of {gap_eur} "
+    "from the expected {expected_eur}. Check the unmatched accrual batches listed as evidence."
+)
+BAD_FIGURE = "The gap is 9,999,999 EUR above the expected balance."
+
+
+def test_client_renders_slots_verifies_and_caches(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from app.ai.client import cache_key, draft_comment
+    from app.ai.prompts import display
     from app.config import Settings
     from app.database import Database
 
     db = Database(tmp_path / "ai.duckdb")
     settings = Settings(ai_enabled=True)
     record = _record(synthetic_lines)
-    gap = abs(float(record.facts["gap_eur"]))
-    good = jsonlib.dumps({"comment": f"The liability is {gap:,.0f} away from the expected level."})
-    bad = jsonlib.dumps({"comment": "The liability is 9,999,999 away from the expected level."})
+    gap = display("gap_eur", record.facts["gap_eur"], record.facts)  # "1,234,568 EUR"
 
-    calls: list[int] = []
-    first = draft_comment(record, db, settings, http=_mock_ollama([bad, good], calls))
-    assert (first.source, first.verifier, len(calls)) == ("model", "passed", 2)
-    assert first.checked_figures == [f"{gap:,.0f}"]
-    again = draft_comment(record, db, settings, http=_mock_ollama([bad], calls))
-    assert again.cached and again.comment == first.comment and len(calls) == 2
+    calls: list[dict] = []  # type: ignore[type-arg]
+    first = draft_comment(record, db, settings, http=_mock_ollama([_reply(GOOD_SLOTS)], calls))
+    assert (first.source, first.verifier, len(calls)) == ("model", "passed", 1)
+    assert gap in first.comment and gap.removesuffix(" EUR") in first.checked_figures
+    assert "{" not in first.comment
+    assert calls[0]["options"]["temperature"] == 0
+    assert calls[0]["format"]["required"] == ["comment"]  # JSON schema, not just "json"
 
-    calls.clear()
-    failing = draft_comment(record, db, settings, refresh=True,
-                            http=_mock_ollama([bad, bad], calls))  # fmt: skip
-    assert (failing.verifier, failing.failed_figures, len(calls)) == ("failed", ["9,999,999"], 2)
+    again = draft_comment(record, db, settings, http=_mock_ollama([BAD_FIGURE], calls))
+    assert again.cached and again.comment == first.comment and len(calls) == 1
+
+    other_model = Settings(ai_enabled=True, ollama_model="llama3.1:8b")
+    assert cache_key(record, other_model) != cache_key(record, settings)
+    db.close()
+
+
+def test_client_retries_with_feedback(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from app.ai.client import draft_comment
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    record = _record(synthetic_lines)
+    calls: list[dict] = []  # type: ignore[type-arg]
+    http = _mock_ollama([_reply(BAD_FIGURE), _reply(GOOD_SLOTS)], calls)
+    result = draft_comment(record, db, Settings(ai_enabled=True), http=http)
+
+    assert (result.source, result.verifier, len(calls)) == ("model", "passed", 2)
+    retry = calls[1]["messages"]
+    assert [m["role"] for m in retry] == ["system", "user", "assistant", "user"]
+    assert "9,999,999" in retry[2]["content"]  # the failed draft is shown back
+    assert "'9,999,999' doesn't match" in retry[3]["content"]
+    assert "{gap_eur}" in retry[3]["content"]  # with the names it may use
+    db.close()
+
+
+def test_client_rejects_wording_and_unknown_names(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from app.ai.client import check, draft_comment
+    from app.ai.prompts import figures
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    record = _record(synthetic_lines)
+    calls: list[dict] = []  # type: ignore[type-arg]
+    cause = _reply("The gap of {gap_eur} is open because a payment was missed.")
+    unknown = _reply("The liability of {liability_eur} is above the expected balance.")
+    result = draft_comment(record, db, Settings(ai_enabled=True),
+                           http=_mock_ollama([cause, unknown], calls))  # fmt: skip
+    assert "States a cause" in calls[1]["messages"][3]["content"]
+    assert result.source == "template" and result.rejected_draft is not None
+    assert result.rejected_reasons == ["Refers to a figure Okane doesn't have"]  # no slot names
+    # the model, on the other hand, is told the exact name it got wrong
+    attempt = check("The liability of {liability_eur} is open.", record, figures(record))
+    assert attempt.reasons == ["Uses a figure name we don't have: {liability_eur}"]
+    db.close()
+
+
+def test_client_twice_rejected_returns_template_with_draft(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from app.ai.client import draft_comment
+    from app.ai.prompts import TEMPLATE_LABEL
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    record = _record(synthetic_lines)
+    calls: list[dict] = []  # type: ignore[type-arg]
+    result = draft_comment(record, db, settings, http=_mock_ollama([_reply(BAD_FIGURE)], calls))
+
+    assert len(calls) == 2
+    assert (result.source, result.verifier) == ("template", "not_run")
+    assert result.comment.startswith(TEMPLATE_LABEL) and "9,999,999" not in result.comment
+    assert result.rejected_draft == BAD_FIGURE
+    assert result.rejected_reasons == ["'9,999,999' doesn't match any of our figures"]
+
+    cached = draft_comment(record, db, settings, http=_mock_ollama([_reply(GOOD_SLOTS)], calls))
+    assert cached.cached and cached.rejected_draft == BAD_FIGURE and len(calls) == 2
     db.close()
 
 
 def test_client_falls_back_to_labelled_template(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
     import httpx
 
-    from app.ai.client import draft_comment, ollama_available
+    from app.ai.client import cached_comment, draft_comment, ollama_available
     from app.config import Settings
     from app.database import Database
 
@@ -902,13 +1096,166 @@ def test_client_falls_back_to_labelled_template(tmp_path, synthetic_lines) -> No
     settings = Settings(ai_enabled=True)
     result = draft_comment(record, db, settings, http=down)
     assert (result.source, result.verifier) == ("template", "not_run")
-    assert result.comment.startswith("Standard note")
+    assert result.comment.startswith("Standard note") and result.rejected_draft is None
     assert not ollama_available(settings, http=down)
-    assert db.cache_get(f"{record.id}:x") is None
+    assert cached_comment(record, db, settings) is None  # an outage is not cached
 
-    calls: list[int] = []
+    calls: list[dict] = []  # type: ignore[type-arg]
     junk = _mock_ollama(["not json", '{"text": "wrong field"}'], calls)
     assert draft_comment(record, db, settings, http=junk).source == "template"
     disabled = draft_comment(record, db, Settings(ai_enabled=False))
     assert disabled.source == "template"
     db.close()
+
+
+# ----- AI typo check (#30) -------------------------------------------------------------------
+def _spelling(synthetic_lines: pd.DataFrame) -> list[ExceptionRecord]:
+    from app.ai.typo_check import spelling_prompts
+
+    return spelling_prompts(run_typos(synthetic_lines, Rules()))
+
+
+def test_typo_samples_are_scoped_and_masked(synthetic_lines: pd.DataFrame) -> None:
+    from app.engines.typos import typo_samples
+
+    records = _spelling(synthetic_lines)
+    assert records
+    for record in records:
+        samples = typo_samples(synthetic_lines, record)
+        assert 1 <= len(samples) <= 3 and len(set(samples)) == len(samples)
+        found = str(record.facts["found"]).lower()
+        assert all(found in s.lower() for s in samples)
+        assert not any(re.search(r"NAME\d+", s, re.IGNORECASE) for s in samples)
+
+
+@pytest.mark.parametrize(
+    ("is_typo", "suggestion", "kept"),
+    [
+        (False, "URSSAF", None),
+        (True, "URSSAF", "URSSAF"),
+        (True, "urssaf", "URSSAF"),  # the rule's casing
+        (True, None, "URSSAF"),
+        (True, "URSAAF", "URSSAF"),  # the flagged word itself
+        (True, "ursaff", "ursaff"),  # common in the run and one letter away
+        (True, "urssat", "URSSAF"),  # in the run but rare
+        (True, "payroll", "URSSAF"),  # common but not close
+        (True, "Unedic", "URSSAF"),  # not a word of the run
+    ],
+)
+def test_typo_suggestion_must_be_a_common_run_word(
+    synthetic_lines: pd.DataFrame, is_typo: bool, suggestion: str | None, kept: str | None
+) -> None:
+    from collections import Counter
+
+    from app.ai.typo_check import TypoVerdict, accepted_suggestion
+
+    record = _spelling(synthetic_lines)[0]
+    record = record.model_copy(update={"facts": {**record.facts, "found": "URSAAF",
+                                                 "suggestion": "URSSAF"}})  # fmt: skip
+    vocabulary = Counter({"urssaf": 62, "ursaaf": 1, "ursaff": 40, "urssat": 1, "payroll": 90})
+    verdict = TypoVerdict(is_typo=is_typo, suggestion=suggestion)
+    assert accepted_suggestion(verdict, record, vocabulary, Rules()) == kept
+
+
+def test_typo_check_is_advisory_and_cached(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from app.ai.typo_check import annotate_typos
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    records = run_typos(synthetic_lines, Rules())
+    spelling = _spelling(synthetic_lines)
+    calls: list[dict] = []  # type: ignore[type-arg]
+    reply = '{"is_typo": false, "suggestion": null}'
+    http = _mock_ollama([reply], calls)
+
+    checked = annotate_typos(records, synthetic_lines, Rules(), db, settings, True, http)
+    assert len(calls) == len(spelling)
+    # both keys required: Ollama may skip an optional key (#62 review)
+    assert calls[0]["format"]["required"] == ["is_typo", "suggestion"]
+    assert not any(re.search(r"NAME\d+", str(c["messages"]), re.IGNORECASE) for c in calls)
+    for before, after in zip(records, checked, strict=True):
+        # the verdict never hides a prompt or changes what code decided
+        assert before.model_dump(exclude={"ai_check"}) == after.model_dump(exclude={"ai_check"})
+        if before in spelling:
+            assert after.ai_check is not None and after.ai_check.verdict == "not_a_typo"
+            assert after.ai_check.suggestion is None
+        else:
+            assert after.ai_check is None  # period-label prompts are not checked
+
+    again = annotate_typos(records, synthetic_lines, Rules(), db, settings, False)
+    assert [r.ai_check for r in again] == [r.ai_check for r in checked]
+    assert len(calls) == len(spelling)  # served from the cache
+    db.close()
+
+
+def test_typo_check_without_a_model_changes_nothing(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    import httpx
+
+    from app.ai.typo_check import annotate_typos
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    records = run_typos(synthetic_lines, Rules())
+    assert annotate_typos(records, synthetic_lines, Rules(), db, settings, False) == records
+
+    attempts: list[int] = []
+
+    def refuse(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        raise httpx.ConnectError("connection refused")
+
+    down = httpx.Client(transport=httpx.MockTransport(refuse))
+    assert annotate_typos(records, synthetic_lines, Rules(), db, settings, True, down) == records
+    assert len(attempts) == 1  # stops asking after the first failure
+    db.close()
+
+
+def test_cached_typo_verdict_follows_todays_rules(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from collections import Counter
+
+    from app.ai.typo_check import check_typo
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    record = _spelling(synthetic_lines)[0]
+    record = record.model_copy(update={"facts": {**record.facts, "found": "URSAAF",
+                                                 "suggestion": "URSSAF"}})  # fmt: skip
+    vocabulary = Counter({"urssaf": 62, "ursaaf": 1, "ursaff": 40})
+    calls: list[dict] = []  # type: ignore[type-arg]
+    http = _mock_ollama(['{"is_typo": true, "suggestion": "ursaff"}'], calls)
+
+    first = check_typo(record, ["URSAAF contribution"], vocabulary, Rules(), db, settings, http)
+    assert first is not None and first.suggestion == "ursaff"  # 40 >= 20 x 1
+    # the controller raises the ratio: the cached answer is checked again, without the model
+    stricter = Rules(typo_common_ratio=50)
+    again = check_typo(record, ["URSAAF contribution"], vocabulary, stricter, db, settings, None)
+    assert again is not None and again.suggestion == "URSSAF" and len(calls) == 1
+    db.close()
+
+
+def test_typo_prompt_masks_names_and_long_numbers(synthetic_lines: pd.DataFrame) -> None:
+    from app.ai.typo_check import typo_prompt
+
+    record = _spelling(synthetic_lines)[0]
+    prompt = typo_prompt(record, ["Retirment top-up NAME12 ref 1900012345, 2 lines"])
+    assert "NAME12" not in prompt and "1900012345" not in prompt
+    assert "[name]" in prompt and "[number]" in prompt and "2 lines" in prompt
+
+
+def test_model_errors_do_not_carry_the_models_text() -> None:
+    from app.ai.client import ModelUnavailableError, chat
+    from app.ai.typo_check import TypoVerdict
+    from app.config import Settings
+
+    calls: list[dict] = []  # type: ignore[type-arg]
+    reply = '{"is_typo": "maybe", "suggestion": "Retirement top-up 4,812.50"}'
+    with pytest.raises(ModelUnavailableError) as failure:
+        chat([], TypoVerdict, Settings(ai_enabled=True), _mock_ollama([reply], calls))
+    assert "4,812.50" not in str(failure.value) and "Retirement" not in str(failure.value)
+    assert "ValidationError" in str(failure.value)

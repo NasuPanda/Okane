@@ -1,6 +1,6 @@
 // The report period shared by the Inbox and Sentinel pages: day, week, month, year or overall,
 // counted back from the analysis date (the day the extract was taken, A38). Changing it on one
-// page changes it on the others; the chosen grain is remembered in this browser.
+// page changes it on the others; the chosen grain is remembered in this browser (A40).
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
@@ -93,8 +93,18 @@ export function periodRange(grain: Grain, anchor: string, offset: number): Perio
 /** The day a finding belongs to: its posting date when it has one, else when it was first seen. */
 export const findingDate = (r: ExceptionRecord) => String(r.facts.posting_date ?? r.first_signal).slice(0, 10);
 
+// ASSUMPTION (A40): these findings describe a balance still open on the analysis date, not
+// something that happened on one day, so every period shows them. A gap first seen in June is
+// still real exposure this week. An unusually big month (pulse_spike) is a one-month event and
+// follows the period like every other finding.
+export const OPEN_BALANCE_TYPES: readonly ExceptionRecord["type"][] = [
+  "pulse_gap",
+  "pulse_missing_batch",
+  "pulse_missing_payment",
+];
+
 export function inPeriod(r: ExceptionRecord, range: PeriodRange): boolean {
-  if (!range) return true;
+  if (!range || OPEN_BALANCE_TYPES.includes(r.type)) return true;
   const d = findingDate(r);
   return d >= range.start && d <= range.end;
 }

@@ -41,7 +41,7 @@ function DataSources({ run }: { run: Run | null | undefined }) {
   const sources = run?.sources ?? [];
   if (!run || !sources.length) return null;
   return (
-    <Card data-tour="inbox-datasources" className="space-y-2 border border-[#c6f560] py-3.5 text-sm">
+    <Card data-tour="inbox-datasources" className="space-y-2 border border-signal py-3.5 text-sm">
       {sources.map((s) => (
         <div key={s.file_hash} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
           <FileSpreadsheet className="size-4 text-foreground" />
@@ -159,7 +159,11 @@ export function InboxPage() {
     }
     return out;
   }, [scoped]);
-  const attention = counts.attention ?? 0;
+  // The header and "Waiting for you" speak for the whole check, like "accounts really open",
+  // so they read the server's counts (/api/kpis inbox_views, A25); the tabs follow the period.
+  const k = kpis.data;
+  const attention = k?.inbox_views?.attention ?? 0;
+  const toReview = k?.inbox_views?.all ?? 0;
   const limit = rules.data ? shortEur(rules.data.materiality_eur) : "materiality";
   const decided = scoped.filter((r) => !OPEN.includes(r.status)).length;
   const leads = scoped.flatMap((r) => (r.lead_days === null ? [] : [r.lead_days])).sort((a, b) => a - b);
@@ -180,7 +184,6 @@ export function InboxPage() {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const k = kpis.data;
   return (
     <div className="space-y-8">
       <PageHeader
@@ -207,7 +210,7 @@ export function InboxPage() {
         <PeriodPicker />
         <span className="text-xs text-muted-foreground">
           {period.range
-            ? `Findings posted or first seen ${period.grain === "day" ? "on" : "in"} ${period.range.label}`
+            ? `Findings posted or first seen ${period.grain === "day" ? "on" : "in"} ${period.range.label}, plus every balance still open`
             : "Every finding in the latest check"}
         </span>
       </div>
@@ -218,12 +221,12 @@ export function InboxPage() {
           index={0}
           tour="inbox-card-waiting"
           label="Waiting for you"
-          value={all.data ? attention : "–"}
-          note={`at or above ${limit}; ${counts.all} to review in all`}
+          value={k ? attention : "–"}
+          note={`at or above ${limit}; ${toReview} to review in the whole check`}
           icon={BellRing}
           color="var(--signal)"
           soft="var(--dock-raised)"
-          bars={(attention / Math.max(counts.all, 1)) * 48}
+          bars={(attention / Math.max(toReview, 1)) * 48}
         />
         <StatCard
           index={1}

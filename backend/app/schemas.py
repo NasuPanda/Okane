@@ -35,6 +35,17 @@ VerifierResult = Literal["passed", "failed", "not_run"]
 InboxView = Literal["attention", "prompts", "repeats", "other"]
 
 
+class TypoCheck(BaseModel):
+    """ADDITION (#30, A6): the assistant's reading of a spelling prompt.
+
+    Advisory only: it never changes the record's id, score, status, class or exposure, and a
+    "not_a_typo" verdict never hides the prompt. The controller can allow-list the word.
+    """
+
+    verdict: Literal["typo", "not_a_typo"]
+    suggestion: str | None = None  # a word from the run's own dictionary, or None
+
+
 class ExceptionRecord(BaseModel):
     """One finding. Every engine emits this shape (brief section 7)."""
 
@@ -67,6 +78,8 @@ class ExceptionRecord(BaseModel):
     edited_comment: str | None = None
     # ADDITION (#21, A25): the inbox tab, set by the pipeline from the run's Rules.
     inbox_view: InboxView | None = None
+    # ADDITION (#30, A6): the assistant's check of a spelling prompt; None when no model ran.
+    ai_check: TypoCheck | None = None
 
 
 class PaymentProfile(BaseModel):
@@ -430,6 +443,10 @@ class Comment(BaseModel):
     checked_figures: list[str]
     failed_figures: list[str]
     cached: bool
+    # ADDITION (#45, A10): when both model drafts were rejected, the labelled template is the
+    # comment and the last rejected draft is kept here with the reasons, one click away.
+    rejected_draft: str | None = None
+    rejected_reasons: list[str] = Field(default_factory=list)
 
 
 class ExceptionDetail(BaseModel):

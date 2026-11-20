@@ -18,11 +18,11 @@ so nobody re-investigates).
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
-| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12), built (#13): one letter from a word 20x as common, Text and header, allow-list |
+| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12), built (#13): one letter from a word 20x as common, Text and header, allow-list; model check built (#30), advisory only |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
 | A9 | Risk score scaling | Decide | Decided (#18): exposure / (5 x materiality); repeats = Miner pattern in 3+ months; penalty C192 279006 pending mentor Q6 |
-| A10 | AI prompt contract and model | Decide | `{"comment": str}`, qwen2.5 7B instruct, temperature 0 |
+| A10 | AI prompt contract and model | Decide | Decided (#28, #45), built (#29): comment and typo check; the model names figures and code fills them in; retry with feedback; template if rejected twice; qwen2.5 7B, local |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
 | A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
@@ -36,6 +36,7 @@ so nobody re-investigates).
 | A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
+| A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 
 ## Data and ingestion
 
@@ -262,7 +263,8 @@ links to the highest-scored finding on its account). The inbox now says so.
   Each tab shows its count of findings still to review.
 - Header: "Today's report calls 5,475 lines overdue. After matching what was paid, 4 accounts
   are really open, and N findings at or above 500K need a look first." The "Waiting for you"
-  card counts the open findings in the default view. The Exposure page keeps counting accounts.
+  card counts the open findings in the default view. Both count the whole check, whatever the
+  report period (A40). The Exposure page keeps counting accounts.
 - Demo: step 3 reads "4 accounts remain"; at 100K the accounts grow from 4 to 7 (step 6) and the
   default view grows with the same limit.
 - Real Payroll (aggregates, as of 18 Nov 2026): 46 findings; default view 19 at 500K (24 at
@@ -272,6 +274,25 @@ links to the highest-scored finding on its account). The inbox now says so.
   (Issue #21 counted 147 before the typo rule, the Miner and the missing-payment limit.)
 - Rejected: a priority-score threshold (6 at 500K; a number accountants would need explained);
   one row per account (3 of the 7 accounts at 100K have no finding to open); no filter (46 rows).
+Owner: team.
+
+**A40. Report period on the Inbox and Sentinel pages.** *Decided (review of PR #65, 20 Nov
+2026; added without an issue, recorded here).* A Daily, Weekly, Monthly, Yearly or Overall
+selector, shared by both pages, with arrows back through earlier periods.
+- Periods are calendar days, Monday-to-Sunday weeks, months and years, counted back from the
+  analysis date (the extract date, A38). Overall is the default and shows every finding.
+- A finding belongs to the day of its posting date, or the day it was first seen when it has
+  no posting date.
+- A gap, a missing batch and a missing payment are shown in every period: each is a balance
+  still open on the analysis date, and hiding it would hide real exposure (the C192 gap was
+  first seen months before the analysis date). An unusually big month follows the period.
+- The Inbox tabs, table, split bar, gauge and the lead-time and "report misses" cards follow
+  the period. The header sentence and "Waiting for you" count the whole check (from
+  `/api/kpis`, A25), next to the accounts really open, which do not depend on a period either.
+  The Sentinel feed and its cards follow the period.
+- The chosen grain is remembered in the browser; the step back is not.
+- Rejected: hiding open balances by their first-seen date (the review found the demo header
+  then read "0 findings ... need a look" next to "4 accounts are really open").
 Owner: team.
 
 ## Sentinel, typos, Miner
@@ -297,8 +318,9 @@ screen is pending mentor question 8).*
   report to show and step 2 uploads this week's. The script is `docs/DEMO.md`; a test walks it.
 - Reset (#26): `make demo-reset` rebuilds `data/demo/` only (a demo folder of its own, so the
   real `data/inbox`, database and `.env` are never touched); it prints its plan, needs
-  `--yes`, and refuses anything that is not the demo's own synthetic files. `--real` moves the
-  real database and extract store aside, never deletes, and leaves the watched folder alone
+  `--yes`, and refuses anything that is not the demo's own synthetic files (links included,
+  checked before anything is deleted). `--real` moves the database and extract store named in
+  the app's settings aside, never deletes, and leaves the watched folder alone
   (A38), so #26's "take the newest extract out of the inbox" is left to the person.
 - Real data: with `people_only` the top hit is Payroll BPP C242 48900002 document 7910008634
   (2019, USER_120, about 57,769x the account median). With the lead-time rule (A8, decided in
@@ -343,7 +365,7 @@ that is `typo_max_edits` (1) letter away (Levenshtein: one letter added, removed
 from a word seen at least `typo_common_ratio` (20) times as often is flagged. Plurals and
 shortened forms (one word starts with the other) are skipped. Known abbreviations and foreign
 words go on `typo_allow_list` (default alloc, avance, recov, reverse), which controllers edit
-on the Rules page; the model check of each candidate is #30. Two swapped letters count as two
+on the Rules page. Each spelling candidate also gets a model check (#30, below). Two swapped letters count as two
 edits, so "Langrf" or "recalss" are not flagged (chosen to keep the agreed rule; OSA distance
 would add 3 such words on real data). (2) Period label (unchanged; demo step 4): a line whose
 text names a different period than most lines of its document. ASSUMPTION (#13): only
@@ -356,6 +378,26 @@ the allow-list, which removes Alloc and recov); period labels: 7. The previous p
 (similarity 80, rarity 2.5x, Text only) gave 15 spelling prompts, several false ("Advance" for
 "avance", "Auszahlung" for "Barzahlung"); it found "Auzahl", which the new rule does not, as
 "Auszahl" is not 20 times as common. Golden test: `test_real_typo_prompts`. Owner: team.
+
+*Model check (#30, built 19 Nov 2026).* For each spelling prompt the local model (A10) reads the
+flagged word, the common word, how often each is written and up to three line texts of that
+account that contain the word (names and numbers of 6 digits or more masked). It answers
+`{"is_typo", "suggestion"}`, both required (Ollama may skip an optional key). No reason is
+asked for: an optional one was always skipped, and a required one, written first, gave worse
+verdicts on real data (SwissLlife read as a name, recov as a typo), so it was dropped in the
+#62 review. The verdict is advisory: it is shown under the prompt ("The
+assistant reads this as a typo of ..." or "... as a real word, not a typo. You decide.") and
+never removes the prompt or changes its id, score, status or class. For a "real word" verdict
+the drawer offers "Add the word to the allow-list", which saves the Rules with a logged reason
+and re-runs (A33). A suggestion is kept only if it is a word of the run's own dictionary, at most
+`typo_max_edits` letters from the flagged word and at least `typo_common_ratio` times as common;
+otherwise the rule's suggestion stands. The cache holds the model's own answer, keyed by the
+prompt version, system prompt, output schema and prompt, and this suggestion rule is applied
+each time it is read, so a Rules change takes effect without asking the model again.
+Period-label prompts are not checked. Without a model nothing is added; cached verdicts are
+reused. Real data (qwen2.5 7B, 19 Nov 2026, after the review): Adjustmnt, retirment, SwissLlife
+and URSAAF are confirmed with the rule's suggestion; with an empty allow-list Alloc is read as a
+real word and recov as a typo of recon (the allow-list keeps recov out by default). Owner: team.
 
 **A7. Recurring-Correction Miner.** *Decided (#14, 19 Nov 2026; the original rule per A37,
 pending mentor question 5).* The CC06 cluster was in the removed Intercompany workbook, so
@@ -386,7 +428,8 @@ the name "CC06" is dropped.
 - Card (#31, static part): what is corrected (document type, account), how often (lines,
   documents, first and last month), where (company codes), who (one colleague or several,
   by hand) and what fixing the source would remove, all read from the record's facts and
-  labelled a hypothesis. The model-written text (A10) follows once #61 and #62 are merged.
+  labelled a hypothesis. The model-written text (A10, contract merged in #61 and #62) is
+  still to be built.
 Owner: team.
 
 ## Lead time and score
@@ -457,22 +500,59 @@ moves into `Rules` (no behaviour change at the default). Owner: team.
 
 ## AI layer
 
-**A10. Prompt contract.** *Decide.* The model receives a system prompt and one JSON message with
-the masked title, type, workgroup, entity and `facts`; never document numbers, user ids or raw
-lines. It must answer `{"comment": "..."}` (pydantic-validated, 10 to 1,200 characters). Default
-model `qwen2.5:7b-instruct` (any 7 to 9B instruct model works; set `OKANE_OLLAMA_MODEL`),
-temperature 0, one retry when the verifier fails. Only model output is cached (key: exception
-id + hash of title, facts and prompt version). The top 3 findings are pre-drafted during a run
-when Ollama is reachable. Owner: team.
+**A10. Prompt contract.** *Decided (#28 and #45, 19 Nov 2026; built in #29).*
+- Tasks: the comment draft (#29) and the typo check (#30). The Miner card (#31) uses the same
+  client. Key extraction is dropped (it was for the Intercompany keys, which are removed).
+- Local only: Ollama, default `qwen2.5:7b-instruct` (any 7 to 9B instruct model works; set
+  `OKANE_OLLAMA_MODEL`), temperature 0, 60-second timeout, JSON output passed to Ollama as a
+  JSON schema and validated with pydantic (`{"comment": "..."}`, 10 to 1,200 characters).
+- What the model sees: a sentence about the finding type written by code, each number and date
+  fact as a named figure already formatted by code (`gap_eur`: "1,838,462 EUR", "the gap: month-end
+  balance minus the expected balance"), the remaining text facts masked, the entity and the
+  check to suggest. It never sees the title (it carries rounded amounts the model re-expanded
+  wrongly, #45), document numbers, user ids or raw lines. The Miner score is not shown either,
+  as the comment may not give a score.
+- Figures by name: the model writes `{gap_eur}` instead of a number, and code fills in the exact
+  value, so code writes every figure in the comment. A unit the model repeats next to a name
+  ("{multiple} times", "EUR {gap_eur}") is dropped, and `{{name}}` counts as `{name}`. A number
+  the model types itself is still checked by the verifier (A28).
+- Wording rules: at most 60 words, two or three sentences; a cause only as "a possible cause"
+  (naming a cause to check, "check the cause of the gap", is fine); no deadline, due date,
+  "by the end of" or "within N days"; no class, risk level or score. Code checks these as well
+  (`verifier.wording_issues`).
+- Retry with feedback: a rejected draft goes back to the model once, as its own earlier reply,
+  followed by the reasons and the figure names it may use. (At temperature 0 a plain retry
+  returned the same text, #45.)
+- Rejected twice: the comment is the labelled template (A29), and the last draft is kept with
+  its reasons behind "Show the assistant's draft". The reasons shown to the person are in plain
+  words (no figure names in braces; those go to the model only). A draft with an unconfirmed
+  figure is never the note the preparer sees.
+- Cache: every model outcome (a passed draft, or the template after two rejections) is cached by
+  task, model, exception id and a hash of the prompt version, system prompt, output schema and
+  prompt. Changing the model or any prompt text therefore drafts again; an outage is not cached.
+  `PROMPT_VERSION` is `v3` (the checks changed in the #61 review).
+- Logs and errors never carry the model's text, which can quote line texts or amounts (rule 3):
+  a failed call logs only the kind of error.
+- The top 3 findings (`ai_predraft_top`) are pre-drafted during a run when Ollama is reachable.
 
-**A28. Verifier rule.** *Info.* Every number and date in a comment must equal a fact at the
-precision shown (1,838,461.53 may appear as 1,838,462, 1.84M or 1.8M, not 1.85M); percentages
-may be a percent fact or a fraction fact x 100; signs are ignored; entity and account codes are
-allowed; dates must match a fact date (day precision when a day is given). Owner: team.
+Owner: team.
 
-**A29. Template fallback.** *Info.* Without Ollama, comments start with "Standard note (no AI
-was used):" and carry `verifier = "not_run"`. Every template is tested to pass the
-verifier anyway. Owner: team.
+**A28. Verifier rule.** *Info (updated in #29).* The verifier runs on the comment after the
+figures are filled in. Every number and date in it must equal a fact at the precision shown
+(1,838,461.53 may appear as 1,838,462, 1.84M or 1.8M, not 1.85M); percentages may be a percent
+fact or a fraction fact x 100; signs are ignored; entity and account codes are allowed; dates
+must match a fact date (day precision when a day is given). The parts of a fact date (year,
+month, day) are not numbers on their own, so "within 21 days" fails even when a fact date falls
+on the 21st (#61 review). A small number that happens to equal a count fact (3 lines) still
+passes; the wording rules catch the deadline forms of it. A name in braces that is not a
+figure rejects the draft, and so does a wording rule from A10. Known limit: the verifier cannot
+prove that a figure is described correctly ("the liability" for the gap). Naming each figure
+with its meaning reduces this, and the preparer still reads the draft. Owner: team.
+
+**A29. Template fallback.** *Info (updated in #29).* Without Ollama, or after two rejected
+drafts, the comment starts with "Standard note (no AI was used):" and carries
+`verifier = "not_run"`. Templates use the same named figures and formatter as the model, end
+with the same suggested check, and are tested to pass the verifier. Owner: team.
 
 ## API and governance
 

@@ -364,6 +364,10 @@ export interface components {
             failed_figures: string[];
             /** Cached */
             cached: boolean;
+            /** Rejected Draft */
+            rejected_draft?: string | null;
+            /** Rejected Reasons */
+            rejected_reasons?: string[];
         };
         /**
          * DecisionEntry
@@ -521,6 +525,7 @@ export interface components {
             edited_comment?: string | null;
             /** Inbox View */
             inbox_view?: ("attention" | "prompts" | "repeats" | "other") | null;
+            ai_check?: components["schemas"]["TypoCheck"] | null;
         };
         /**
          * ExposureGroup
@@ -1024,6 +1029,22 @@ export interface components {
             batch_eur: number | null;
             /** Batch Matched */
             batch_matched: boolean | null;
+        };
+        /**
+         * TypoCheck
+         * @description ADDITION (#30, A6): the assistant's reading of a spelling prompt.
+         *
+         *     Advisory only: it never changes the record's id, score, status, class or exposure, and a
+         *     "not_a_typo" verdict never hides the prompt. The controller can allow-list the word.
+         */
+        TypoCheck: {
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "typo" | "not_a_typo";
+            /** Suggestion */
+            suggestion?: string | null;
         };
         /**
          * UploadResult
