@@ -60,6 +60,7 @@ function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: 
   const share = group.overdue_abs ? Math.min(Math.abs(group.net_eur) / group.overdue_abs, 1) : 0;
   return (
     <div
+      data-tour={`group-${group.erp}-${group.entity}-${group.account}`}
       className={cn(
         "grid overflow-hidden transition-all duration-500 ease-out",
         folded ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100",
@@ -138,6 +139,7 @@ export function ExposurePage() {
       <PageHeader
         title="Exposure"
         trail={["Payroll", "What's really still owed"]}
+        tour="exposure-header"
         subtitle="The old report counts every line older than a year as overdue. Okane first matches each accrual to the payment that settled it, so you only see what's really still open."
         actions={
           view === "old" ? (
@@ -152,7 +154,7 @@ export function ExposurePage() {
         }
       />
 
-      <Card className="space-y-6 p-7" style={stagger(1, 80)}>
+      <Card data-tour="exposure-headline" className="space-y-6 p-7" style={stagger(1, 80)}>
         <div className="flex flex-wrap items-center justify-between gap-6">
           <Segmented
             value={view}
@@ -205,6 +207,7 @@ export function ExposurePage() {
 
       <div className="grid gap-6 lg:grid-cols-[330px_1fr]">
         <section
+          data-tour="exposure-materiality"
           className="rise h-fit space-y-5 rounded-2xl bg-forest p-6 text-white dark:bg-forest-soft"
           style={stagger(2, 80)}
         >
@@ -239,7 +242,7 @@ export function ExposurePage() {
           </p>
         </section>
 
-        <Card className="p-0" style={stagger(3, 80)}>
+        <Card data-tour="exposure-accounts" className="p-0" style={stagger(3, 80)}>
           <div className="grid grid-cols-[minmax(0,1fr)_100px_150px_190px_24px] gap-4 border-b px-4 py-3">
             <span className="eyebrow">Account</span>
             <span className="eyebrow text-right">Overdue lines</span>

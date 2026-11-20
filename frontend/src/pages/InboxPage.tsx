@@ -41,7 +41,7 @@ function DataSources({ run }: { run: Run | null | undefined }) {
   const sources = run?.sources ?? [];
   if (!run || !sources.length) return null;
   return (
-    <Card className="space-y-2 border border-[#c6f560] py-3.5 text-sm">
+    <Card data-tour="inbox-datasources" className="space-y-2 border border-[#c6f560] py-3.5 text-sm">
       {sources.map((s) => (
         <div key={s.file_hash} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
           <FileSpreadsheet className="size-4 text-foreground" />
@@ -186,6 +186,7 @@ export function InboxPage() {
       <PageHeader
         title={`${greeting()} 👋`}
         trail={["Inbox", "Sorted by your priorities"]}
+        tour="inbox-header"
         subtitle={
           k ? (
             <>
@@ -202,7 +203,7 @@ export function InboxPage() {
         }
       />
 
-      <div className="rise flex flex-wrap items-center justify-between gap-3">
+      <div data-tour="inbox-period" className="rise flex flex-wrap items-center justify-between gap-3">
         <PeriodPicker />
         <span className="text-xs text-muted-foreground">
           {period.range
@@ -215,6 +216,7 @@ export function InboxPage() {
         <StatCard
           dark
           index={0}
+          tour="inbox-card-waiting"
           label="Waiting for you"
           value={all.data ? attention : "–"}
           note={`at or above ${limit}; ${counts.all} to review in all`}
@@ -225,6 +227,7 @@ export function InboxPage() {
         />
         <StatCard
           index={1}
+          tour="inbox-card-earlier"
           label="Spotted earlier by"
           value={all.data ? (median ?? "–") : "–"}
           unit="days"
@@ -236,6 +239,7 @@ export function InboxPage() {
         />
         <StatCard
           index={2}
+          tour="inbox-card-misses"
           label="Today's report misses"
           value={all.data ? blind : "–"}
           note={`findings ${scope} no current check would ever catch`}
@@ -246,6 +250,7 @@ export function InboxPage() {
         />
         <StatCard
           index={3}
+          tour="inbox-card-old"
           label="Old report says overdue"
           value={k ? shortEur(k.old_rule_overdue_abs) : "–"}
           note={k ? `${k.old_rule_lines.toLocaleString("en-GB")} lines, mostly already paid` : ""}
@@ -257,7 +262,7 @@ export function InboxPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-        <Card className="space-y-4" style={stagger(4, 70)}>
+        <Card data-tour="inbox-mix" className="space-y-4" style={stagger(4, 70)}>
           <div className="flex items-center justify-between">
             <span className="eyebrow">Where today's findings come from</span>
             <span className="text-xs text-muted-foreground">open findings only</span>
@@ -268,7 +273,7 @@ export function InboxPage() {
             everything else are one tap away below. Click any row to see the evidence and make your call.
           </p>
         </Card>
-        <Card className="flex flex-col items-center justify-center gap-2" style={stagger(5, 70)}>
+        <Card data-tour="inbox-gauge" className="flex flex-col items-center justify-center gap-2" style={stagger(5, 70)}>
           <Gauge value={decided} total={scoped.length} label="reviewed so far" />
           <span className="text-xs text-muted-foreground">
             {decided === 0 ? "Open a finding to get started" : "Nice progress, keep going"}
@@ -279,14 +284,14 @@ export function InboxPage() {
       <DataSources run={run.data} />
 
       <div className="rise flex flex-wrap items-center justify-between gap-4" style={stagger(6, 70)}>
-        <div className="flex flex-wrap items-center gap-2">
+        <div data-tour="inbox-tabs" className="flex flex-wrap items-center gap-2">
           {VIEWS.map((v) => (
             <Chip key={v.value} active={view === v.value} onClick={() => setView(v.value)} count={counts[v.value] ?? 0} dot={v.dot}>
               {v.value === "attention" ? `Above ${limit}` : v.label}
             </Chip>
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div data-tour="inbox-filters" className="flex flex-wrap items-center gap-3">
           <Segmented
             value={workgroup}
             onChange={setWorkgroup}
@@ -323,7 +328,7 @@ export function InboxPage() {
           {status === "open" ? "No open finding matches these filters. Enjoy the quiet." : "No finding matches these filters."}
         </Empty>
       ) : (
-        <div className="rise rounded-2xl bg-card px-2 py-1" style={stagger(7, 70)}>
+        <div data-tour="inbox-table" className="rise rounded-2xl bg-card px-2 py-1" style={stagger(7, 70)}>
           <Table className="table-fixed">
             <colgroup>
               <col className="w-32" />
@@ -357,6 +362,7 @@ export function InboxPage() {
               {table.getRowModel().rows.map((row, i) => (
                 <TableRow
                   key={row.id}
+                  data-tour={`finding-${row.original.id}`}
                   className="rise group cursor-pointer transition-colors hover:bg-secondary"
                   style={stagger(i, 35, 700)}
                   onClick={() => open(row.original.id)}

@@ -36,6 +36,7 @@ function FeedItem({ record, index, onOpen }: { record: ExceptionRecord; index: n
   return (
     <button
       onClick={onOpen}
+      data-tour={`finding-${record.id}`}
       className="rise group flex w-full gap-5 rounded-2xl bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg"
       style={stagger(index, 60)}
     >
@@ -88,7 +89,7 @@ function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (i
   const top = ranked[0];
   if (!top) return null;
   return (
-    <section className="rise space-y-4 overflow-hidden rounded-2xl bg-dock p-6 text-white" style={stagger(2, 80)}>
+    <section data-tour="sentinel-miner" className="rise space-y-4 overflow-hidden rounded-2xl bg-dock p-6 text-white" style={stagger(2, 80)}>
       <div className="flex items-center justify-between">
         <span className="eyebrow flex items-center gap-1.5 !text-white/60">
           <Repeat2 className="size-3.5 text-miner" /> Repeated manual posting
@@ -192,12 +193,15 @@ export function SentinelPage() {
       <PageHeader
         title="Sentinel"
         trail={["Posting-day checks"]}
+        tour="sentinel-header"
         subtitle="Small slips caught on the day they're posted, instead of at the month-end review: odd amounts, currency mix-ups and typos."
       />
 
-      <PeriodPicker className="rise" />
+      <div data-tour="sentinel-period">
+        <PeriodPicker className="rise" />
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div data-tour="sentinel-stats" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard index={0} label="Unusually large amounts" value={count("outliers")} note="far above what the account normally sees"
           icon={AlertTriangle} color="var(--sentinel)" soft="var(--sentinel-soft)" bars={count("outliers") * 6} />
         <StatCard index={1} label="Currency mix-ups" value={count("currencies")} note="mixed or unconverted currencies"
@@ -207,8 +211,8 @@ export function SentinelPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-4">
-          <div className="rise flex flex-wrap gap-2" style={stagger(3, 70)}>
+        <div data-tour="sentinel-feed" className="space-y-4">
+          <div data-tour="sentinel-chips" className="rise flex flex-wrap gap-2" style={stagger(3, 70)}>
             <Chip active={feed === "all"} onClick={() => setFeed("all")} count={count("all")}>
               Everything
             </Chip>
@@ -234,7 +238,7 @@ export function SentinelPage() {
         </div>
         <div className="space-y-4">
           <MinerCard records={miner} onOpen={open} />
-          <Card className="space-y-2 text-sm" style={stagger(3, 80)}>
+          <Card data-tour="sentinel-explainer" className="space-y-2 text-sm" style={stagger(3, 80)}>
             <div className="eyebrow">What "caught earlier" means</div>
             <p className="text-muted-foreground">
               Okane flags a slip on the day it's posted. Today it would only surface at the month-end review (a few

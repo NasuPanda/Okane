@@ -254,11 +254,105 @@
   animation: okane-float 3.2s ease-in-out infinite;
 }
 
+/* Tutorial mode (docs/ASSUMPTIONS.md A39): Mr. Kentaro's bob, the card's entrance, the glow
+   around highlighted sections and the blur fading in. */
+@keyframes kentaro-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(-1.5deg); }
+}
+@keyframes tour-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes tour-ring {
+  0%, 100% { box-shadow: 0 0 0 2px #c6f560, 0 0 18px 2px rgb(198 245 96 / 0.45); }
+  50% { box-shadow: 0 0 0 2px #c6f560, 0 0 30px 6px rgb(198 245 96 / 0.7); }
+}
+@keyframes tour-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.kentaro-bob {
+  animation: kentaro-bob 2.6s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+.tour-card-in {
+  animation: tour-card-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.tour-ring {
+  box-shadow: 0 0 0 2px #c6f560, 0 0 18px 2px rgb(198 245 96 / 0.45);
+  animation: tour-ring 2s ease-in-out infinite;
+}
+.tour-fade {
+  animation: tour-fade 0.3s ease-out both;
+}
+@keyframes tour-unfade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.tour-unfade {
+  animation: tour-unfade 0.9s ease-out forwards;
+}
+/* The card's text cross-fades while the card itself glides (left/top transition). */
+@keyframes tour-content-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.tour-content-in {
+  animation: tour-content-in 0.4s ease-out both;
+}
+/* The farewell: armour unfolds down from the helmet's rim, a gold flash, then Kentaro vanishes. */
+@keyframes armour-unfold {
+  from { transform: scaleY(0); opacity: 0; }
+  55% { opacity: 1; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+.armour-piece {
+  transform-box: view-box;
+  transform-origin: 70px 66px;
+  animation: armour-unfold 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes armour-flash {
+  from { transform: scale(0.45); opacity: 0.95; }
+  to { transform: scale(1.7); opacity: 0; }
+}
+.armour-flash {
+  transform-box: view-box;
+  transform-origin: 70px 50px;
+  animation: armour-flash 0.9s ease-out both;
+}
+@keyframes kentaro-vanish {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+  30% { transform: scale(1.14) rotate(-6deg); opacity: 1; filter: brightness(1.9); }
+  100% { transform: scale(0) rotate(30deg); opacity: 0; filter: brightness(2.4); }
+}
+.kentaro-vanish {
+  transform-origin: 50% 60%;
+  animation: kentaro-vanish 0.5s ease-in forwards;
+}
+@keyframes tour-card-out {
+  to { opacity: 0; transform: scale(0.92) translateY(10px); }
+}
+.tour-card-out {
+  animation: tour-card-out 0.55s ease-in 0.25s forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .grow,
   .grow-x,
-  .float {
+  .float,
+  .kentaro-bob,
+  .tour-card-in,
+  .tour-ring,
+  .tour-fade,
+  .tour-unfade,
+  .tour-content-in,
+  .armour-piece,
+  .armour-flash,
+  .kentaro-vanish,
+  .tour-card-out {
     animation: none !important;
   }
 }
