@@ -344,7 +344,9 @@ function Shell() {
             "radial-gradient(600px 220px at 12% 0%, var(--signal-soft), transparent 70%), radial-gradient(520px 200px at 88% 0%, var(--sentinel-soft), transparent 70%)",
         }}
       />
-      <div className="relative mx-auto max-w-[1320px] px-4 pb-40 sm:px-6 sm:pb-32 lg:px-8">
+      {/* On phones the tutorial card docks at the bottom; --tour-sheet (its height) leaves room so
+          the last section on a page can still scroll above it. */}
+      <div className="relative mx-auto max-w-[1320px] px-4 pb-[max(10rem,var(--tour-sheet,0px))] sm:px-6 sm:pb-32 lg:px-8">
         <TopBar />
         <main key={pathname} className="rise">
           <Outlet />

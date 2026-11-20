@@ -647,12 +647,18 @@ a desktop screen; reviewers and mentors also open the link on a phone. Every pag
 - Run dock: below 640px it spans the screen, shows one line of status, and puts Upload extract
   and Check now side by side underneath.
 - Inbox: below 1024px the priority, amount, "spotted" and status columns fold into a line under
-  each finding's title. Exposure: below 768px each account takes two lines (account, then lines,
+  each finding's title, and a "Sort by" control (priority, amount, spotted; largest first)
+  replaces the column headers. Exposure: below 768px each account takes two lines (account, then lines,
   old report and really open, each with its own label).
 - Forms (Rules, the finding's panel): label above the field, and choices stacked, below 640px.
+- Hover explanations (lead time, priority points, Exposure bars, finding types) open with a tap
+  on touch screens; a tap elsewhere closes them. In an Inbox row a tap on the lead-time badge
+  opens the finding instead, whose panel shows the same explanation.
 - Tutorial: below 640px the card docks at the bottom like a sheet, its arrows move to the
-  bottom row, and the explained section is scrolled into the top half of the screen. A finger
-  drag on the page scrolls it, as the mouse wheel does; nothing can be tapped. Still read-only.
+  bottom row, and the explained sections are scrolled above the card (the page gets room at its
+  end for that). A section fixed to the bottom of the screen (the run dock) cannot scroll, so for
+  it the card docks at the top instead. A finger drag on the page scrolls it, as the mouse wheel
+  does; nothing can be tapped. Still read-only.
 Owner: team.
 
 ## Mentor questions

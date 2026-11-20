@@ -3,14 +3,14 @@
 // full tour); each card sits right next to what it explains and glides from one place to the
 // next; a tutorial ends with a samurai farewell.
 import { Check, ChevronLeft, ChevronRight, GraduationCap, Inbox, Layers, Radar, SlidersHorizontal, X } from "lucide-react";
-import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router";
 
 import { cn } from "@/lib/utils";
 import { Kentaro, type Pose } from "@/tutorial/Kentaro";
 import { SakuraBurst } from "@/tutorial/SakuraBurst";
-import { GLIDE_MS, Spotlight, reducedMotion, useTargetBoxes, type Box } from "@/tutorial/Spotlight";
+import { GLIDE_MS, SHEET_BELOW, Spotlight, isPinned, reducedMotion, useTargetBoxes, type Box } from "@/tutorial/Spotlight";
 import {
   MODULES,
   PAGE_NAME,
@@ -29,8 +29,6 @@ const GAP = 18; // between the card and what it explains
 const EDGE = 16; // from the screen's edges
 const DOCK = 96; // the run dock at the bottom
 const DRAWER = 780; // a finding's details panel, on the right
-/** Narrower than this (phones), the card docks at the bottom of the screen like a sheet. */
-export const SHEET_BELOW = 640;
 const SHEET_EDGE = 8;
 const ARMOUR_MS = 1100; // the transformation, before Kentaro vanishes
 const SETTLE_MS = 120; // while the highlights keep moving (scrolling), the card waits this long
@@ -80,16 +78,29 @@ function union(boxes: Box[]): Box | null {
   return { x, y: top, w: right - x, h: end - top };
 }
 
+/** True when every highlighted section sits in a part of the page fixed to the screen. */
+function pinnedTargets(keys: string[]): boolean {
+  if (!keys.length) return false;
+  return keys.every((key) => Array.from(document.querySelectorAll(`[data-tour~="${key}"]`)).some(isPinned));
+}
+
 /** Right next to the highlights: below, above, right or left, whichever fits first. Null while
- *  the highlights are off screen: the card then stays where it is. */
-export function placeNear(boxes: Box[], card: Size, drawerOpen: boolean): Spot | null {
+ *  the highlights are off screen: the card then stays where it is. `pinned`: the highlights are
+ *  fixed to the screen (the run dock), so scrolling cannot move them out from under the card. */
+export function placeNear(boxes: Box[], card: Size, drawerOpen: boolean, pinned = false): Spot | null {
   const W = window.innerWidth;
   const H = window.innerHeight;
   const { w, h } = card;
   const clampX = (x: number) => Math.min(Math.max(x, EDGE), Math.max(EDGE, W - w - EDGE));
   const clampY = (y: number) => Math.min(Math.max(y, EDGE), Math.max(EDGE, H - h - DOCK));
-  // Phones: always docked at the bottom; the highlight is scrolled into the top part (Spotlight).
-  if (W < SHEET_BELOW) return { left: SHEET_EDGE, top: Math.max(SHEET_EDGE, H - h - SHEET_EDGE) };
+  // Phones: docked at the bottom; the highlight is scrolled above it (Spotlight). A highlight fixed
+  // to the bottom of the screen (the run dock) cannot be scrolled, so the card docks at the top.
+  if (W < SHEET_BELOW) {
+    const sheet = { left: SHEET_EDGE, top: Math.max(SHEET_EDGE, H - h - SHEET_EDGE) };
+    const u = pinned ? union(boxes) : null;
+    if (u && u.y + u.h > sheet.top && u.y >= h + 2 * SHEET_EDGE) return { left: SHEET_EDGE, top: SHEET_EDGE };
+    return sheet;
+  }
   if (!boxes.length) return { left: clampX((W - w) / 2), top: clampY((H - h) / 2) };
   const u = union(boxes);
   if (!u) return null;
@@ -244,23 +255,41 @@ export function TutorialLayer() {
   const finale = phase === "finale";
   const keys = active && !menu ? (typeof step.targets === "function" ? step.targets(ctx) : (step.targets ?? [])) : [];
   const stepKey = active ? stepId : -2;
-  const targets = useTargetBoxes(keys, stepKey);
+  // The height the docked card covers on phones, for scrolling the highlights clear of it.
+  const sheet = useRef(0);
+  const targets = useTargetBoxes(keys, stepKey, sheet);
   const settled = useSettled(targets);
+  // Checked again only when the highlights settle, not on every frame of a scroll.
+  const pinned = useMemo(
+    () => !menu && window.innerWidth < SHEET_BELOW && pinnedTargets(keys),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [menu, keys.join("|"), settled],
+  );
   const card = useRef<HTMLDivElement>(null);
   const kentaro = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<Size>({ w: 600, h: 220 });
   const [vanish, setVanish] = useState<{ x: number; y: number } | null>(null);
   const lastSpot = useRef<Spot | null>(null);
 
-  // Keep the card's real size, so it can be placed right next to its highlights.
+  // Keep the card's real size, so it can be placed right next to its highlights. On phones the
+  // page also gets that much room at its end (--tour-sheet, AppShell), so the last section on a
+  // page can still scroll above the docked card.
   useLayoutEffect(() => {
     const el = card.current;
     if (!el) return;
-    const measure = () => setSize({ w: el.offsetWidth, h: el.offsetHeight });
+    const root = document.documentElement;
+    const measure = () => {
+      setSize({ w: el.offsetWidth, h: el.offsetHeight });
+      sheet.current = el.offsetHeight + SHEET_EDGE + 16;
+      root.style.setProperty("--tour-sheet", `${sheet.current}px`);
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--tour-sheet");
+    };
   }, [active]);
 
   // Focus the card (or, in the menu, its suggested choice) so the keys work straight away.
@@ -287,7 +316,7 @@ export function TutorialLayer() {
   const last = index === total - 1;
   const moduleEnd = last && choice !== "full";
   const name = choice === "full" ? "Full tour" : `${MODULES.find((m) => m.id === choice)!.name} tutorial`;
-  const spot = placeNear(menu ? [] : settled, size, !menu && !!step.finding) ?? lastSpot.current ?? placeNear([], size, false)!;
+  const spot = placeNear(menu ? [] : settled, size, !menu && !!step.finding, pinned) ?? lastSpot.current ?? placeNear([], size, false)!;
   lastSpot.current = spot;
   const still = reducedMotion();
   return createPortal(
@@ -364,7 +393,7 @@ export function TutorialLayer() {
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs sm:mt-4 sm:flex-nowrap">
+          <div className="mt-3 flex items-center gap-2 text-xs sm:mt-4 sm:gap-3">
             {menu ? (
               <span className="opacity-70">Tab and Enter to choose · Esc to leave</span>
             ) : (
@@ -372,14 +401,15 @@ export function TutorialLayer() {
                 {phase === "tour" && (
                   <PhoneArrow side="left" label={index === 0 ? "Back to the tutorial menu" : "Previous card"} onClick={tour.prev} />
                 )}
-                <div className="h-1.5 min-w-16 flex-1 overflow-hidden rounded-full bg-black/15">
+                <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-black/15">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: finale ? "100%" : `${((index + 1) / total) * 100}%`, background: INK }}
                   />
                 </div>
                 <span className="num font-medium whitespace-nowrap">
-                  {index + 1} / {total} · {name}
+                  {index + 1} / {total}
+                  <span className="hidden sm:inline"> · {name}</span>
                 </span>
                 {phase === "tour" && !last && <span className="hidden opacity-70 lg:inline">← → · Esc</span>}
                 {phase === "tour" && !last && <PhoneArrow side="right" label="Next card" onClick={tour.next} />}

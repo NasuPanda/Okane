@@ -7,7 +7,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { AlertTriangle, ArrowDownUp, BellRing, EyeOff, FileSpreadsheet, Hourglass, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 
 import { useExceptions, useKpis, useLatestRun, useRules } from "@/api/hooks";
 import type { ExceptionRecord, InboxView, Run, Status } from "@/api/types";
@@ -26,7 +26,6 @@ import {
   StatusPill,
   TypeIcon,
   TypeLabel,
-  priorityTone,
   stagger,
 } from "@/components/okane";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,6 +35,19 @@ import { PeriodPicker, inPeriod, usePeriod } from "@/lib/period";
 import { cn, day, dueDay, eur, shortEur, stamp } from "@/lib/utils";
 
 const column = createColumnHelper<ExceptionRecord>();
+
+/** At `lg` (1024px) and wider the Inbox shows every column; narrower, they fold under the title. */
+const WIDE = "(min-width: 1024px)";
+function useWide(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const query = window.matchMedia(WIDE);
+      query.addEventListener("change", onChange);
+      return () => query.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(WIDE).matches,
+  );
+}
 
 /** Where this check's numbers come from: one line per workbook (A38). */
 function DataSources({ run }: { run: Run | null | undefined }) {
@@ -81,27 +93,30 @@ const columns = [
   column.accessor("title", {
     header: "What we found",
     enableSorting: false,
-    cell: ({ row: { original: r } }) => (
-      <div className="flex min-w-0 items-center gap-3">
-        <TypeIcon type={r.type} />
-        <div className="min-w-0 space-y-1">
-          <TypeLabel type={r.type} />
-          <div className="line-clamp-2 text-[15px] lg:truncate">{r.title}</div>
-          <div className="truncate text-xs text-muted-foreground">
-            {r.workgroup} · {r.entity} {r.account} {r.account_name}
-          </div>
-          {/* Below the full table width, the other columns fold into this line. */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1 lg:hidden">
-            <span className={cn("text-[11px] font-medium tracking-wide uppercase", priorityTone(r.score).text)}>
-              {priorityTone(r.score).label} · {r.score.toFixed(0)}
-            </span>
-            {r.exposure_eur ? <span className="num text-sm">{eur(r.exposure_eur)}</span> : null}
-            <LeadBadge record={r} />
-            <StatusPill status={r.status} />
+    cell: ({ row: { original: r }, table }) => {
+      const wide = (table.options.meta as { wide?: boolean } | undefined)?.wide ?? true;
+      return (
+        <div className="flex min-w-0 items-center gap-3">
+          <TypeIcon type={r.type} />
+          <div className="min-w-0 space-y-1">
+            <TypeLabel type={r.type} />
+            <div className={cn("text-[15px]", wide ? "truncate" : "line-clamp-2")}>{r.title}</div>
+            <div className="truncate text-xs text-muted-foreground">
+              {r.workgroup} · {r.entity} {r.account} {r.account_name}
+            </div>
+            {/* Below the full table width, the other columns fold into this line. */}
+            {!wide && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1">
+                <ScoreBar record={r} compact />
+                {r.exposure_eur ? <span className="num text-sm">{eur(r.exposure_eur)}</span> : null}
+                <LeadBadge record={r} tip={false} />
+                <StatusPill status={r.status} />
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    ),
+      );
+    },
   }),
   column.accessor((r) => Math.abs(r.exposure_eur), {
     id: "exposure",
@@ -123,8 +138,13 @@ const columns = [
 ];
 
 /** Columns folded into the "What we found" cell below the `lg` width (phones and tablets). */
-const WIDE_ONLY = new Set(["score", "exposure", "lead", "status"]);
-const wideOnly = (id: string) => (WIDE_ONLY.has(id) ? "hidden lg:table-cell" : undefined);
+const NARROW_HIDDEN = { score: false, exposure: false, lead: false, status: false };
+/** Below `lg` the sortable headers are hidden, so a "Sort by" control takes their place. */
+const SORTS: { value: string; label: string }[] = [
+  { value: "score", label: "Priority" },
+  { value: "exposure", label: "Amount" },
+  { value: "lead", label: "Spotted" },
+];
 
 type StatusFilter = "open" | "decided" | "all";
 const OPEN: Status[] = ["new", "escalated"];
@@ -149,6 +169,7 @@ export function InboxPage() {
   const [workgroup, setWorkgroup] = useState<"all" | "Payroll" | "Fixed assets">("all");
   const [status, setStatus] = useState<StatusFilter>("open");
   const [sorting, setSorting] = useState<SortingState>([{ id: "score", desc: true }]);
+  const wide = useWide();
   const period = usePeriod();
   // Every figure below counts only the findings in the chosen period (the shared report period).
   const scoped = useMemo(() => (all.data ?? []).filter((r) => inPeriod(r, period.range)), [all.data, period.range]);
@@ -192,7 +213,8 @@ export function InboxPage() {
   const table = useReactTable({
     data: records,
     columns,
-    state: { sorting },
+    state: { sorting, columnVisibility: wide ? {} : NARROW_HIDDEN },
+    meta: { wide },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -346,19 +368,31 @@ export function InboxPage() {
         </Empty>
       ) : (
         <div data-tour="inbox-table" className="rise rounded-2xl bg-card px-2 py-1" style={stagger(7, 70)}>
+          {!wide && (
+            <div className="flex flex-wrap items-center gap-2 px-2 pt-2 pb-1 text-xs text-muted-foreground">
+              Sort by
+              <Segmented
+                value={sorting[0]?.id ?? "score"}
+                onChange={(id) => setSorting([{ id, desc: true }])}
+                options={SORTS}
+              />
+            </div>
+          )}
           <Table className="table-fixed">
-            <colgroup>
-              <col className="hidden w-32 lg:table-column" />
-              <col />
-              <col className="hidden w-36 lg:table-column" />
-              <col className="hidden w-56 lg:table-column" />
-              <col className="hidden w-32 lg:table-column" />
-            </colgroup>
+            {wide && (
+              <colgroup>
+                <col className="w-32" />
+                <col />
+                <col className="w-36" />
+                <col className="w-56" />
+                <col className="w-32" />
+              </colgroup>
+            )}
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow key={hg.id} className="hover:bg-transparent">
                   {hg.headers.map((h) => (
-                    <TableHead key={h.id} className={cn(h.id === "exposure" && "text-right", wideOnly(h.id))}>
+                    <TableHead key={h.id} className={cn(h.id === "exposure" && "text-right")}>
                       {h.column.getCanSort() ? (
                         <button
                           className="inline-flex items-center gap-1 uppercase hover:text-foreground"
@@ -385,7 +419,7 @@ export function InboxPage() {
                   onClick={() => open(row.original.id)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={wideOnly(cell.column.id)}>
+                    <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
