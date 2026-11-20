@@ -26,6 +26,7 @@ import {
   StatusPill,
   TypeIcon,
   TypeLabel,
+  priorityTone,
   stagger,
 } from "@/components/okane";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,7 +47,7 @@ function DataSources({ run }: { run: Run | null | undefined }) {
         <div key={s.file_hash} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
           <FileSpreadsheet className="size-4 text-foreground" />
           <span className="font-medium text-foreground">{s.kind}</span>
-          <span>· {s.file_name}</span>
+          <span className="[overflow-wrap:anywhere]">· {s.file_name}</span>
           <span>· extract taken {day(s.extract_date)}</span>
           {s.route && (
             <span>
@@ -85,9 +86,18 @@ const columns = [
         <TypeIcon type={r.type} />
         <div className="min-w-0 space-y-1">
           <TypeLabel type={r.type} />
-          <div className="truncate text-[15px]">{r.title}</div>
+          <div className="line-clamp-2 text-[15px] lg:truncate">{r.title}</div>
           <div className="truncate text-xs text-muted-foreground">
             {r.workgroup} · {r.entity} {r.account} {r.account_name}
+          </div>
+          {/* Below the full table width, the other columns fold into this line. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1 lg:hidden">
+            <span className={cn("text-[11px] font-medium tracking-wide uppercase", priorityTone(r.score).text)}>
+              {priorityTone(r.score).label} · {r.score.toFixed(0)}
+            </span>
+            {r.exposure_eur ? <span className="num text-sm">{eur(r.exposure_eur)}</span> : null}
+            <LeadBadge record={r} />
+            <StatusPill status={r.status} />
           </div>
         </div>
       </div>
@@ -111,6 +121,10 @@ const columns = [
     cell: (c) => <StatusPill status={c.getValue()} />,
   }),
 ];
+
+/** Columns folded into the "What we found" cell below the `lg` width (phones and tablets). */
+const WIDE_ONLY = new Set(["score", "exposure", "lead", "status"]);
+const wideOnly = (id: string) => (WIDE_ONLY.has(id) ? "hidden lg:table-cell" : undefined);
 
 type StatusFilter = "open" | "decided" | "all";
 const OPEN: Status[] = ["new", "escalated"];
@@ -264,7 +278,7 @@ export function InboxPage() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
         <Card data-tour="inbox-mix" className="space-y-4" style={stagger(4, 70)}>
           <div className="flex items-center justify-between">
             <span className="eyebrow">Where today's findings come from</span>
@@ -334,17 +348,17 @@ export function InboxPage() {
         <div data-tour="inbox-table" className="rise rounded-2xl bg-card px-2 py-1" style={stagger(7, 70)}>
           <Table className="table-fixed">
             <colgroup>
-              <col className="w-32" />
+              <col className="hidden w-32 lg:table-column" />
               <col />
-              <col className="w-36" />
-              <col className="w-56" />
-              <col className="w-32" />
+              <col className="hidden w-36 lg:table-column" />
+              <col className="hidden w-56 lg:table-column" />
+              <col className="hidden w-32 lg:table-column" />
             </colgroup>
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow key={hg.id} className="hover:bg-transparent">
                   {hg.headers.map((h) => (
-                    <TableHead key={h.id} className={cn(h.id === "exposure" && "text-right")}>
+                    <TableHead key={h.id} className={cn(h.id === "exposure" && "text-right", wideOnly(h.id))}>
                       {h.column.getCanSort() ? (
                         <button
                           className="inline-flex items-center gap-1 uppercase hover:text-foreground"
@@ -371,7 +385,9 @@ export function InboxPage() {
                   onClick={() => open(row.original.id)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id} className={wideOnly(cell.column.id)}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))}

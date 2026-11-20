@@ -74,7 +74,7 @@ function NumberField({
   tour?: string;
 }) {
   return (
-    <label data-tour={tour} className="grid grid-cols-[1fr_140px] items-center gap-4 border-b border-dashed py-3">
+    <label data-tour={tour} className="grid grid-cols-1 items-center gap-2 border-b border-dashed py-3 sm:grid-cols-[1fr_140px] sm:gap-4">
       <span>
         <span className="block text-sm">{label}</span>
         <span className="block text-xs text-muted-foreground">{hint}</span>
@@ -183,13 +183,13 @@ export function RulesPage() {
         subtitle="You decide what counts as important. Okane never guesses: every finding is ranked with the numbers on this page, and every change is written to the log with your reason."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_420px]">
         {!draft ? (
           <Skeleton className="h-[600px]" />
         ) : (
           <div className="space-y-6">
             <Card data-tour="rules-materiality" className="space-y-5 p-6">
-              <div className="flex items-end justify-between gap-6">
+              <div className="flex flex-wrap items-end justify-between gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <div className="eyebrow">How big is "big"? · materiality</div>
                   <div className="num text-6xl leading-none font-light">{shortEur(draft.materiality_eur ?? 0)}</div>
@@ -254,7 +254,7 @@ export function RulesPage() {
                 value={draft.close_review_working_day ?? 5}
                 onChange={(v) => set("close_review_working_day", v)}
               />
-              <label data-tour="rules-holidays" className="grid grid-cols-[1fr_220px] items-center gap-4 border-b border-dashed py-3">
+              <label data-tour="rules-holidays" className="grid grid-cols-1 items-center gap-2 border-b border-dashed py-3 sm:grid-cols-[1fr_220px] sm:gap-4">
                 <span>
                   <span className="block text-sm">Close review: holidays</span>
                   <span className="block text-xs text-muted-foreground">
@@ -312,7 +312,7 @@ export function RulesPage() {
               />
               <div data-tour="rules-s1-scope" className="space-y-2">
                 <div className="text-sm">Check large amounts posted by</div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {SCOPES.map((s) => (
                     <button
                       key={s.value}
@@ -422,7 +422,7 @@ export function RulesPage() {
             </Card>
 
             <Card data-tour="rules-weights" className="space-y-3 p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="eyebrow">What matters most to you · priority weights</div>
                 <span className={cn("num text-xs", weightSum === 100 ? "text-muted-foreground" : "text-warn")}>
                   total {weightSum} of 100
@@ -438,8 +438,8 @@ export function RulesPage() {
                 ))}
               </div>
               {Object.entries(weights).map(([key, value]) => (
-                <div key={key} className="grid grid-cols-[180px_1fr_72px] items-center gap-4">
-                  <span className="flex items-center gap-2 text-sm">
+                <div key={key} className="grid grid-cols-[1fr_48px] items-center gap-x-4 gap-y-2 sm:grid-cols-[180px_1fr_72px] sm:gap-4">
+                  <span className="col-span-2 flex items-center gap-2 text-sm sm:col-span-1">
                     <span className="size-2.5 rounded-full" style={{ background: WEIGHT_COLOR[key] ?? "var(--chart-3)" }} />
                     {WEIGHT_LABEL[key] ?? key}
                   </span>
@@ -459,7 +459,7 @@ export function RulesPage() {
               data-tour="rules-save"
               className={cn(
                 "space-y-3 border p-5 transition-shadow",
-                changes > 0 && "sticky bottom-28 z-10 border-signal shadow-xl",
+                changes > 0 && "sticky bottom-40 z-10 border-signal shadow-xl sm:bottom-28",
               )}
             >
               <div className="flex items-center justify-between">

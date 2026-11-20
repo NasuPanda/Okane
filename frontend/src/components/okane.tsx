@@ -180,7 +180,10 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("inline-flex items-center gap-1 rounded-full border bg-secondary p-1", className)} role="tablist">
+    <div
+      className={cn("inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border bg-secondary p-1 [scrollbar-width:none]", className)}
+      role="tablist"
+    >
       {options.map((option) => (
         <button
           key={option.value}
@@ -188,7 +191,7 @@ export function Segmented<T extends string>({
           aria-selected={option.value === value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-sm transition-all",
+            "shrink-0 rounded-full px-2 py-1.5 text-[13px] whitespace-nowrap transition-all sm:px-3.5 sm:text-sm",
             option.value === value
               ? "bg-foreground text-background shadow-sm"
               : "text-muted-foreground hover:text-foreground",
@@ -257,7 +260,7 @@ export function PageHeader({
     <div data-tour={tour} className="rise flex flex-wrap items-end justify-between gap-4">
       <div className="space-y-2">
         <div className="flex items-baseline gap-5">
-          <h1 className="text-[2.1rem] leading-none font-light tracking-tight">{title}</h1>
+          <h1 className="text-[1.75rem] leading-none font-light tracking-tight sm:text-[2.1rem]">{title}</h1>
           {trail && (
             <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
               {trail.map((part, i) => (
@@ -271,7 +274,7 @@ export function PageHeader({
         </div>
         {subtitle && <p className="max-w-2xl text-[15px] text-muted-foreground">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
@@ -338,7 +341,7 @@ export function StatCard({
         </span>
       </div>
       <div className="space-y-1">
-        <div className="num text-[2.4rem] leading-none font-light">
+        <div className="num text-[2rem] leading-none font-light sm:text-[2.4rem]">
           {value}
           {unit && <span className={cn("ml-1.5 text-base", dark ? "text-white/50" : "text-muted-foreground")}>{unit}</span>}
         </div>

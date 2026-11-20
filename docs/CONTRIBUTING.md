@@ -55,6 +55,9 @@ If you changed a pydantic model or an endpoint: `make types` and commit the rege
 Write for accountants: open item, accrual, payment, exposure, expected by. No model or ML
 jargon, no unexplained scores. Label amounts "scaled".
 
+Every page must work on a phone (A42): check new UI at 360px wide, with no sideways scroll.
+Use Tailwind breakpoints (`sm`, `md`, `lg`) and keep the desktop layout as it is.
+
 ## Tutorial mode (A39)
 
 - When you add, move or rename a section the tutorial explains, keep its `data-tour="key"`

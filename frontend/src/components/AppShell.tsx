@@ -32,7 +32,7 @@ function Logo() {
       </svg>
       <div className="leading-none">
         <div className="text-[17px] font-medium tracking-tight">Okane</div>
-        <div className="mt-0.5 text-[10.5px] text-muted-foreground">reconciliation copilot</div>
+        <div className="mt-0.5 hidden text-[10.5px] text-muted-foreground sm:block">reconciliation copilot</div>
       </div>
     </div>
   );
@@ -77,9 +77,13 @@ function TutorialButton() {
 function TopBar() {
   const { pathname } = useLocation();
   return (
-    <header className="flex items-center justify-between gap-6 py-6">
+    <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-4 sm:py-6">
       <Logo />
-      <nav data-tour="tour-nav" className="flex items-center gap-2 rounded-2xl border bg-card/60 p-1.5 backdrop-blur" aria-label="Main">
+      <nav
+        data-tour="tour-nav"
+        className="order-last flex w-full items-center justify-around gap-2 rounded-2xl border bg-card/60 p-1.5 backdrop-blur md:order-none md:w-auto md:justify-start"
+        aria-label="Main"
+      >
         {NAV.map(({ to, label, icon: Icon, end }) => {
           // Radix asChild merges className as a string, so the active state is computed here.
           const active = end ? pathname === to : pathname.startsWith(to);
@@ -104,7 +108,7 @@ function TopBar() {
           );
         })}
       </nav>
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2 sm:gap-2.5">
         <span
           className={cn(
             "hidden rounded-full border px-3 py-1.5 text-[11px] lg:inline",
@@ -115,9 +119,9 @@ function TopBar() {
         </span>
         <TutorialButton />
         <ThemeToggle />
-        <div className="flex items-center gap-2.5 rounded-xl border bg-secondary py-1 pr-3 pl-1">
+        <div className="flex items-center gap-2.5 rounded-xl border bg-secondary py-1 pr-1 pl-1 lg:pr-3">
           <span className="grid size-8 place-items-center rounded-lg bg-signal text-xs font-semibold text-[#0d0d0f]">C</span>
-          <div className="leading-tight">
+          <div className="hidden leading-tight lg:block">
             <div className="text-xs font-medium">Controller</div>
             <div className="text-[11px] text-muted-foreground">Payroll · Fixed assets</div>
           </div>
@@ -168,12 +172,12 @@ function RunDock() {
   const busy = running || latest?.status === "running" || start.isPending;
   const open = kpis.data?.open_exceptions;
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center">
-      <div data-tour="tour-dock" className="rise pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/5 bg-dock/95 p-2 pr-2.5 text-white shadow-2xl backdrop-blur" style={{ "--d": "400ms" } as React.CSSProperties}>
+    <div className="pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-3 sm:bottom-5">
+      <div data-tour="tour-dock" className="rise pointer-events-auto flex w-full flex-wrap items-center gap-2 rounded-2xl border border-white/5 bg-dock/95 p-2 pr-2.5 text-white shadow-2xl backdrop-blur sm:w-auto sm:max-w-full sm:flex-nowrap sm:gap-3" style={{ "--d": "400ms" } as React.CSSProperties}>
         <span className={cn("grid size-10 place-items-center rounded-xl", busy ? "bg-dock-raised" : "bg-signal text-[#0d0d0f]")}>
           {busy ? <Loader2 className="size-5 animate-spin text-signal" /> : <FolderInput className="size-5" />}
         </span>
-        <div className="min-w-0 px-1 text-sm leading-tight">
+        <div className="min-w-0 flex-1 px-1 text-sm leading-tight sm:flex-initial">
           {busy ? (
             <div>Reading the extract and sorting findings…</div>
           ) : latest ? (
@@ -187,7 +191,7 @@ function RunDock() {
                   </>
                 )}
               </div>
-              <div className="truncate text-xs text-white/50">
+              <div className="hidden truncate text-xs text-white/50 sm:block">
                 {latest.source_files.join(", ") || "no workbook"} · Upload the weekly extract or drop it in the watched folder; I re-check every Monday at 06:00
                 {latest.synthetic && " · practice data"}
               </div>
@@ -196,20 +200,22 @@ function RunDock() {
             <div className="text-white/70">Nothing checked yet. Upload this week's extract, or press Check now.</div>
           )}
         </div>
-        <UploadButton busy={busy} />
-        <Button
-          size="sm"
-          variant="signal"
-          className="h-10 rounded-xl px-4 text-[#0d0d0f]"
-          disabled={busy}
-          onClick={() =>
-            start.mutate(undefined, {
-              onError: (e) => toast.error("Couldn't start a check", { description: String((e as Error).message) }),
-            })
-          }
-        >
-          <Play className="size-3.5" /> Check now
-        </Button>
+        <div className="flex w-full gap-2 sm:contents">
+          <UploadButton busy={busy} />
+          <Button
+            size="sm"
+            variant="signal"
+            className="h-10 flex-1 rounded-xl px-4 text-[#0d0d0f] sm:flex-none"
+            disabled={busy}
+            onClick={() =>
+              start.mutate(undefined, {
+                onError: (e) => toast.error("Couldn't start a check", { description: String((e as Error).message) }),
+              })
+            }
+          >
+            <Play className="size-3.5" /> Check now
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -248,7 +254,7 @@ function UploadButton({ busy }: { busy: boolean }) {
       <Button
         size="sm"
         variant="ghost"
-        className="ml-2 h-10 rounded-xl px-4 text-white hover:bg-dock-raised hover:text-white"
+        className="h-10 flex-1 rounded-xl bg-dock-raised px-4 text-white hover:bg-dock-raised hover:text-white sm:ml-2 sm:flex-none sm:bg-transparent"
         disabled={busy || pending}
         onClick={() => input.current?.click()}
       >
@@ -307,7 +313,7 @@ function DropZone() {
   if (!over) return null;
   return (
     <div className="pointer-events-none fixed inset-0 z-50 grid place-items-center bg-background/70 backdrop-blur-sm">
-      <div className="rounded-3xl border-2 border-dashed border-signal bg-card px-10 py-8 text-center shadow-2xl">
+      <div className="mx-4 rounded-3xl border-2 border-dashed border-signal bg-card px-6 py-8 text-center shadow-2xl sm:px-10">
         <FileUp className="mx-auto mb-3 size-8 text-signal" />
         <div className="text-lg font-medium">Drop this week's extract to check it</div>
         <div className="mt-1 text-sm text-muted-foreground">Payroll or Fixed assets workbook. Okane keeps a copy; your file is not changed.</div>
@@ -338,7 +344,7 @@ function Shell() {
             "radial-gradient(600px 220px at 12% 0%, var(--signal-soft), transparent 70%), radial-gradient(520px 200px at 88% 0%, var(--sentinel-soft), transparent 70%)",
         }}
       />
-      <div className="relative mx-auto max-w-[1320px] px-8 pb-32">
+      <div className="relative mx-auto max-w-[1320px] px-4 pb-40 sm:px-6 sm:pb-32 lg:px-8">
         <TopBar />
         <main key={pathname} className="rise">
           <Outlet />

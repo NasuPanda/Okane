@@ -22,8 +22,8 @@ const SUMMARY_FACTS = ["amount_lc", "multiple", "posted_by", "currencies", "paym
 function DateBlock({ value, type }: { value: string; type: ExceptionType }) {
   const d = new Date(`${value}T00:00:00`);
   return (
-    <div className={cn("w-16 shrink-0 rounded-2xl py-3 text-center", toneOf(type).soft)}>
-      <div className={cn("num text-3xl leading-none font-light", toneOf(type).ink)}>{d.getDate()}</div>
+    <div className={cn("w-14 shrink-0 rounded-2xl py-3 text-center sm:w-16", toneOf(type).soft)}>
+      <div className={cn("num text-2xl leading-none font-light sm:text-3xl", toneOf(type).ink)}>{d.getDate()}</div>
       <div className="eyebrow mt-1.5">{d.toLocaleDateString("en-GB", { month: "short" })}</div>
       <div className="num text-[11px] text-muted-foreground">{d.getFullYear()}</div>
     </div>
@@ -37,7 +37,7 @@ function FeedItem({ record, index, onOpen }: { record: ExceptionRecord; index: n
     <button
       onClick={onOpen}
       data-tour={`finding-${record.id}`}
-      className="rise group flex w-full gap-5 rounded-2xl bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg"
+      className="rise group flex w-full gap-3 rounded-2xl bg-card p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg sm:gap-5 sm:p-5"
       style={stagger(index, 60)}
     >
       <DateBlock value={posted} type={record.type} />
@@ -48,8 +48,11 @@ function FeedItem({ record, index, onOpen }: { record: ExceptionRecord; index: n
             <TypeLabel type={record.type} />
           </div>
           <LeadBadge record={record} />
+          <span className="sm:hidden">
+            <StatusPill status={record.status} />
+          </span>
         </div>
-        <div className="text-[17px] leading-snug">{record.title}</div>
+        <div className="text-base leading-snug sm:text-[17px]">{record.title}</div>
         {prompt && (
           <div className="rounded-xl bg-mistake-soft px-3 py-2 text-sm text-mistake">💡 {prompt}</div>
         )}
@@ -70,7 +73,7 @@ function FeedItem({ record, index, onOpen }: { record: ExceptionRecord; index: n
           })}
         </div>
       </div>
-      <div className="shrink-0 self-start">
+      <div className="hidden shrink-0 self-start sm:block">
         <StatusPill status={record.status} />
       </div>
     </button>
@@ -89,9 +92,9 @@ function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (i
   const top = ranked[0];
   if (!top) return null;
   return (
-    <section data-tour="sentinel-miner" className="rise space-y-4 overflow-hidden rounded-2xl bg-dock p-6 text-white" style={stagger(2, 80)}>
-      <div className="flex items-center justify-between">
-        <span className="eyebrow flex items-center gap-1.5 !text-white/60">
+    <section data-tour="sentinel-miner" className="rise space-y-4 overflow-hidden rounded-2xl bg-dock p-5 text-white sm:p-6" style={stagger(2, 80)}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="eyebrow flex flex-wrap items-center gap-1.5 !text-white/60">
           <Repeat2 className="size-3.5 text-miner" /> Repeated manual posting
           <span className="rounded-full border border-white/30 px-2 py-0.5 text-[10px] normal-case tracking-normal text-white/70">
             hypothesis
@@ -102,7 +105,7 @@ function MinerCard({ records, onOpen }: { records: ExceptionRecord[]; onOpen: (i
       <div className="text-2xl leading-snug font-light">
         The same posting was typed by hand in <span className="text-signal">{String(top.facts.months)} months</span>
       </div>
-      <div className="rounded-xl bg-dock-raised p-4 font-mono text-sm text-signal">“{String(top.facts.pattern)}”</div>
+      <div className="rounded-xl bg-dock-raised p-4 font-mono text-sm text-signal [overflow-wrap:anywhere]">“{String(top.facts.pattern)}”</div>
       <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
         {(["months", "entities", "lines", "total_abs_eur"] as const).map((k) => (
           <div key={k}>
@@ -210,7 +213,7 @@ export function SentinelPage() {
           icon={SpellCheck} color="var(--mistake)" soft="var(--mistake-soft)" bars={count("mistakes") * 4} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
         <div data-tour="sentinel-feed" className="space-y-4">
           <div data-tour="sentinel-chips" className="rise flex flex-wrap gap-2" style={stagger(3, 70)}>
             <Chip active={feed === "all"} onClick={() => setFeed("all")} count={count("all")}>

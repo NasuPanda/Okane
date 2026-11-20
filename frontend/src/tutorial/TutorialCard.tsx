@@ -29,6 +29,9 @@ const GAP = 18; // between the card and what it explains
 const EDGE = 16; // from the screen's edges
 const DOCK = 96; // the run dock at the bottom
 const DRAWER = 780; // a finding's details panel, on the right
+/** Narrower than this (phones), the card docks at the bottom of the screen like a sheet. */
+export const SHEET_BELOW = 640;
+const SHEET_EDGE = 8;
 const ARMOUR_MS = 1100; // the transformation, before Kentaro vanishes
 const SETTLE_MS = 120; // while the highlights keep moving (scrolling), the card waits this long
 const GLIDE = `${GLIDE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
@@ -85,6 +88,8 @@ export function placeNear(boxes: Box[], card: Size, drawerOpen: boolean): Spot |
   const { w, h } = card;
   const clampX = (x: number) => Math.min(Math.max(x, EDGE), Math.max(EDGE, W - w - EDGE));
   const clampY = (y: number) => Math.min(Math.max(y, EDGE), Math.max(EDGE, H - h - DOCK));
+  // Phones: always docked at the bottom; the highlight is scrolled into the top part (Spotlight).
+  if (W < SHEET_BELOW) return { left: SHEET_EDGE, top: Math.max(SHEET_EDGE, H - h - SHEET_EDGE) };
   if (!boxes.length) return { left: clampX((W - w) / 2), top: clampY((H - h) / 2) };
   const u = union(boxes);
   if (!u) return null;
@@ -115,7 +120,7 @@ function Arrow({ side, disabled, onClick, label }: { side: "left" | "right"; dis
       disabled={disabled}
       aria-label={label}
       className={cn(
-        "absolute top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full text-white shadow-lg ring-4 ring-white/70 transition hover:scale-110 disabled:pointer-events-none disabled:opacity-30",
+        "absolute top-1/2 hidden size-11 -translate-y-1/2 place-items-center rounded-full text-white shadow-lg ring-4 ring-white/70 transition hover:scale-110 disabled:pointer-events-none disabled:opacity-30 sm:grid",
         side === "left" ? "-left-5" : "-right-5",
       )}
       style={{ background: INK }}
@@ -125,9 +130,24 @@ function Arrow({ side, disabled, onClick, label }: { side: "left" | "right"; dis
   );
 }
 
+/** On phones the arrows sit in the card's bottom row instead of on its sides (no room there). */
+function PhoneArrow({ side, onClick, label }: { side: "left" | "right"; onClick: () => void; label: string }) {
+  const Icon = side === "left" ? ChevronLeft : ChevronRight;
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className="grid size-10 shrink-0 place-items-center rounded-full text-white shadow-md sm:hidden"
+      style={{ background: INK }}
+    >
+      <Icon className="size-5" />
+    </button>
+  );
+}
+
 /** Mr. Kentaro is only redrawn when his pose or armour changes, not while the card glides. */
 const Guide = memo(function Guide({ pose, armoured }: { pose: Pose; armoured: boolean }) {
-  return <Kentaro pose={pose} armoured={armoured} className="h-auto w-[104px]" />;
+  return <Kentaro pose={pose} armoured={armoured} className="h-auto w-14 sm:w-[104px]" />;
 });
 
 /** A card's words, built once per card (not on every frame of a glide). */
@@ -166,7 +186,7 @@ function TourMenu() {
         <button
           data-autofocus
           onClick={() => tour.choose(here)}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-white transition hover:scale-[1.01] focus-visible:ring-4 focus-visible:ring-white/70 focus-visible:outline-none"
+          className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-2xl px-4 py-3 text-left text-white transition hover:scale-[1.01] focus-visible:ring-4 focus-visible:ring-white/70 focus-visible:outline-none"
           style={{ background: INK }}
         >
           <span>
@@ -201,7 +221,7 @@ function TourMenu() {
         </div>
         <button
           onClick={() => tour.choose("full")}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-black/25 px-4 py-2.5 text-left transition hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:outline-none"
+          className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-2xl border-2 border-black/25 px-4 py-2.5 text-left transition hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:outline-none"
         >
           <span>
             <span className="block text-[15px] font-semibold">The full tour</span>
@@ -292,7 +312,7 @@ export function TutorialLayer() {
           aria-labelledby="tour-title"
           tabIndex={-1}
           className={cn(
-            "relative w-[min(600px,calc(100vw-48px))] rounded-3xl px-9 pt-5 pb-4 shadow-2xl outline-none",
+            "relative w-[calc(100vw-16px)] rounded-3xl px-4 pt-4 pb-3 shadow-2xl outline-none sm:w-[min(600px,calc(100vw-48px))] sm:px-9 sm:pt-5 sm:pb-4",
             vanish ? "tour-card-out" : "tour-card-in",
           )}
           style={{ background: color, color: INK, pointerEvents: "auto", transition: still ? undefined : `background-color ${GLIDE}` }}
@@ -311,11 +331,17 @@ export function TutorialLayer() {
             </>
           )}
 
-          <div className="grid grid-cols-[104px_1fr] items-center gap-4">
+          <div className="grid grid-cols-[56px_1fr] items-start gap-3 sm:grid-cols-[104px_1fr] sm:items-center sm:gap-4">
             <div ref={kentaro} className={vanish ? "kentaro-vanish" : "kentaro-bob"}>
               <Guide pose={menu ? "wave" : (step.pose ?? "point")} armoured={finale} />
             </div>
-            <div key={menu ? "menu" : finale ? "finale" : stepId} className="tour-content-in min-w-0">
+            <div
+              key={menu ? "menu" : finale ? "finale" : stepId}
+              className={cn(
+                "tour-content-in min-w-0 overflow-y-auto overscroll-contain sm:max-h-none sm:overflow-visible",
+                menu ? "max-h-[72vh]" : "max-h-[46vh]",
+              )}
+            >
               {menu ? (
                 <TourMenu />
               ) : finale ? (
@@ -338,12 +364,15 @@ export function TutorialLayer() {
             </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-3 text-xs">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs sm:mt-4 sm:flex-nowrap">
             {menu ? (
               <span className="opacity-70">Tab and Enter to choose · Esc to leave</span>
             ) : (
               <>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/15">
+                {phase === "tour" && (
+                  <PhoneArrow side="left" label={index === 0 ? "Back to the tutorial menu" : "Previous card"} onClick={tour.prev} />
+                )}
+                <div className="h-1.5 min-w-16 flex-1 overflow-hidden rounded-full bg-black/15">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: finale ? "100%" : `${((index + 1) / total) * 100}%`, background: INK }}
@@ -353,6 +382,7 @@ export function TutorialLayer() {
                   {index + 1} / {total} · {name}
                 </span>
                 {phase === "tour" && !last && <span className="hidden opacity-70 lg:inline">← → · Esc</span>}
+                {phase === "tour" && !last && <PhoneArrow side="right" label="Next card" onClick={tour.next} />}
                 {phase === "tour" && moduleEnd && (
                   <button onClick={tour.toMenu} className="rounded-full border border-black/30 px-3 py-1 font-semibold whitespace-nowrap hover:bg-white/40">
                     Another tutorial

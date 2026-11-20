@@ -70,9 +70,12 @@ export function useTargetBoxes(keys: string[], stepId: number): Box[] {
       if (!scrolled && shown.length && performance.now() - started > 180) {
         scrolled = true;
         const r = shown[0].getBoundingClientRect();
-        if (r.top < 90 || r.bottom > window.innerHeight - 150) {
+        // Phones: the card covers the bottom of the screen, so the section goes to the top part.
+        const phone = window.innerWidth < 640;
+        const bottom = phone ? window.innerHeight * 0.45 : window.innerHeight - 150;
+        if (r.top < (phone ? 16 : 90) || r.bottom > bottom) {
           shown[0].scrollIntoView({
-            block: r.height > window.innerHeight * 0.6 ? "start" : "center",
+            block: phone || r.height > window.innerHeight * 0.6 ? "start" : "center",
             behavior: reducedMotion() ? "auto" : "smooth",
           });
         }
@@ -122,20 +125,36 @@ function roundedRect(box: Box): string {
 
 /** Scroll whatever is under the pointer (the page, or the open finding's panel). */
 function forwardWheel(e: React.WheelEvent) {
-  for (const el of document.elementsFromPoint(e.clientX, e.clientY)) {
+  scrollUnder(e.clientX, e.clientY, e.deltaY);
+}
+
+/** Touch: a finger drag on the blocker scrolls what is under it, like the mouse wheel. */
+let touchY: number | null = null;
+function onTouchStart(e: React.TouchEvent) {
+  touchY = e.touches[0]?.clientY ?? null;
+}
+function onTouchMove(e: React.TouchEvent) {
+  const t = e.touches[0];
+  if (!t || touchY === null) return;
+  scrollUnder(t.clientX, t.clientY, touchY - t.clientY);
+  touchY = t.clientY;
+}
+
+function scrollUnder(x: number, y: number, deltaY: number) {
+  for (const el of document.elementsFromPoint(x, y)) {
     if ((el as HTMLElement).closest("[data-tutorial-layer]")) continue;
     let node: HTMLElement | null = el as HTMLElement;
     while (node && node !== document.body && node !== document.documentElement) {
       const style = getComputedStyle(node);
       if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1) {
-        node.scrollBy({ top: e.deltaY });
+        node.scrollBy({ top: deltaY });
         return;
       }
       node = node.parentElement;
     }
     break;
   }
-  window.scrollBy({ top: e.deltaY });
+  window.scrollBy({ top: deltaY });
 }
 
 /** The blur with sharp holes, the rings and the click blocker. On a new card the holes and rings
@@ -230,8 +249,10 @@ export function Spotlight({ target, stepId, leaving = false }: { target: Box[]; 
         data-tutorial-layer
         aria-hidden
         className="fixed inset-0 z-[62]"
-        style={{ pointerEvents: "auto" }}
+        style={{ pointerEvents: "auto", touchAction: "none" }}
         onWheel={forwardWheel}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
         onPointerDown={(e) => e.preventDefault()}
         onClick={(e) => e.preventDefault()}
         onContextMenu={(e) => e.preventDefault()}
