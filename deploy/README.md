@@ -4,38 +4,47 @@ Decision and limits: `docs/ASSUMPTIONS.md` A41 (issue #67).
 
 | Link | What it runs | Status |
 |---|---|---|
-| Cloudflare Pages (`<project>.pages.dev`) | The UI on the synthetic `fixtures/*.json` ("Practice data"), no backend | Main link for now |
+| Cloudflare Worker (`okane.<account>.workers.dev`) | The UI on the synthetic `fixtures/*.json` ("Practice data"), no backend | Main link for now |
 | Oracle Always Free VM | The full app with Ollama, on synthetic data, behind basic auth | Planned |
 
 **Synthetic data only, on every host.** The app has no login. Never upload a real workbook to a
 hosted copy, and never build the hosted UI from anything other than the committed fixtures.
 
-## Cloudflare Pages (practice-data UI)
+## Cloudflare (practice-data UI)
 
-Set up once in the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect to Git**,
-pick this repository, then:
+The dashboard no longer offers Pages, so the UI is a Worker that only serves static assets.
+`frontend/wrangler.jsonc` points it at `dist/` and sends unknown paths to `index.html`
+(`not_found_handling: single-page-application`), so the `/exposure`, `/sentinel` and `/rules`
+links work when opened directly.
 
-| Setting | Value |
+Set up once in the Cloudflare dashboard: **Workers & Pages → Create application → Import a
+repository**, connect GitHub (grant access to this repository only), pick it, then:
+
+| Field | Value |
 |---|---|
-| Production branch | `main` |
-| Framework preset | None |
-| Root directory | `frontend` |
+| Project name | `okane` (must equal `name` in `frontend/wrangler.jsonc`) |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
-| Environment variable | `VITE_API_MODE` = `fixtures` |
-| Environment variable | `NODE_VERSION` = `22` (Vite 7 needs Node 20.19 or later) |
+| Deploy command | `npx wrangler deploy` (default) |
+| Non-production branch deploy command | `npx wrangler versions upload` (default) |
+| Path | `frontend` |
+| API token | Let Cloudflare create one (default) |
+| Variable | `VITE_API_MODE` = `fixtures` |
+| Variable | `NODE_VERSION` = `22` (Vite 7 needs Node 20.19 or later) |
 
-Pages clones the whole repository, so the `@fixtures` alias (`../fixtures`) resolves during the
-build. With no `404.html` in the output, Pages serves `index.html` for any path, so the
-`/exposure`, `/sentinel` and `/rules` links work when opened directly.
+Both variables are build variables: Vite bakes `VITE_API_MODE` into the bundle, so the Worker
+needs no runtime variables. After creating it, check **Settings → Build**: the production branch
+is `main`, and both variables are listed. The build clones the whole repository, so the
+`@fixtures` alias (`../fixtures`) resolves.
 
-- **Redeploy:** every push to `main` deploys. Every other branch gets a preview link
-  (`<branch>.<project>.pages.dev`), useful to check a branch before merging.
+- **Redeploy:** every push to `main` deploys. Other branches upload a preview version with its
+  own preview URL (shown on the build and on the pull request), useful to check a branch before
+  merging.
 - **Keep the fixtures current:** after a change to `backend/app/schemas.py`, an engine or the
   fixture client (`frontend/src/api/client.ts`), run `make fixtures` and commit the result.
   A run with no other change only moves run ids, timestamps and file hashes.
 - **Try it locally first:**
-  `cd frontend && VITE_API_MODE=fixtures npm run build && npx vite preview`
+  `cd frontend && VITE_API_MODE=fixtures npm run build && npx wrangler dev` (serves `dist/` with the
+  same not-found rule as the hosted copy)
 
 ### Check after a deploy
 

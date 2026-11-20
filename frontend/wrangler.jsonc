@@ -1,0 +1,11 @@
+// Cloudflare Worker that serves the practice-data UI (ASSUMPTIONS A41, deploy/README.md).
+// Static assets only: no Worker script, nothing runs server-side.
+{
+  "name": "okane",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    // Unknown paths such as /exposure get index.html, so the app's own routes load directly.
+    "not_found_handling": "single-page-application"
+  }
+}
