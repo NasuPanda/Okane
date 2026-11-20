@@ -294,6 +294,9 @@ def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
     assert (top.erp, top.entity, top.account) == ("BPP", "C242", "48900002")
     assert (top.facts["miner_score"], top.facts["months"], top.facts["entities"]) == (42, 42, 1)
     assert top.facts["lines"] == 111
+    shown = ("pattern", "months", "entities", "lines", "total_abs_eur", "documents",
+             "first_month", "last_month", "entity_list", "people", "hint")  # fmt: skip
+    assert all(r.facts.get(k) not in (None, "") for r in records for k in shown), "#31 card"
     # No top pattern names a correction, so the card stays a hypothesis.
     assert not any("correction" in str(r.facts["pattern"]) for r in records)
 
@@ -404,7 +407,37 @@ def test_synthetic_miner_planted_pattern_and_near_miss(synthetic_lines: pd.DataF
     assert [r for r in lower if r.account == "279002"] == [], "no header text, no pattern"
 
 
+def test_synthetic_miner_card_has_every_fact_it_shows(synthetic_lines: pd.DataFrame) -> None:
+    """#31: the static Miner card (SentinelPage ``MinerCard`` and ``MinerStory``) reads only the
+    record's facts; the planted pattern carries each of them, so the card renders in full."""
+    top = run_miner(synthetic_lines, Rules())[0]
+    shown = ("pattern", "months", "entities", "lines", "total_abs_eur", "doc_type", "documents",
+             "first_month", "last_month", "entity_list", "people", "hint")  # fmt: skip
+    assert all(top.facts.get(k) not in (None, "") for k in shown), shown
+    assert (top.facts["lines"], top.facts["documents"], top.facts["people"]) == (8, 8, 1)
+    assert (top.facts["first_month"], top.facts["last_month"]) == ("2026-05", "2026-10")
+    assert top.account_name
+
+
 # ----- lead time (A8, decided in #16) -------------------------------------------------------
+def test_synthetic_c192_gap_ranks_first(synthetic_lines: pd.DataFrame) -> None:
+    """A9 (#18): the planted C192 gap ranks first at 500K and 100K; the planted Miner pattern on
+    C132/C192 279030 (6 months) earns the full repeats points; every breakdown adds up."""
+    from app.services.pipeline import run_engines
+
+    for materiality in (500_000, 100_000):
+        records = run_engines(synthetic_lines, Rules(materiality_eur=materiality), AS_OF).records
+        top = records[0]
+        assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
+        assert top.score > records[1].score
+        for r in records:
+            assert r.score == round(sum(r.score_breakdown.values()), 1)
+    records = run_engines(synthetic_lines, Rules(), AS_OF).records
+    assert (records[0].score, records[1].score) == (90.0, 65.0)
+    miner = next(r for r in records if r.type == "miner_cluster")
+    assert miner.score_breakdown["repeats"] == 10
+
+
 def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
     """Weekly view: from the Monday run on or after the first signal to today's detection."""
     import statistics
@@ -519,13 +552,42 @@ def test_real_s2_fixed_assets_lead_time(real_all_lines: pd.DataFrame) -> None:
 
 
 def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
-    """Demo step 4 opens the top exception: the C192 social security gap."""
+    """Demo step 4 opens the top exception: the C192 social security gap.
+
+    A9 (#18), aggregates only: first at 79.4 ahead of 69.8 at 500K; still first at 100K (demo
+    step 6), 90 ahead of 89. No Miner pattern sits on C192 279006, so its repeats points are 0.
+    """
     from app.services.pipeline import run_engines
 
     output = run_engines(real_lines, Rules(), AS_OF)
     top = output.records[0]
     assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
     assert output.counts["exposure_groups_above"] == 4
+    assert (top.score, output.records[1].score) == (79.4, 69.8)
+    assert top.score_breakdown["repeats"] == 0
+    assert top.score == round(sum(top.score_breakdown.values()), 1)
+
+    lower = run_engines(real_lines, Rules(materiality_eur=100_000), AS_OF).records
+    assert (lower[0].type, lower[0].entity, lower[0].account) == ("pulse_gap", "C192", "279006")
+    assert (lower[0].score, lower[1].score) == (90.0, 89.0)
+
+
+def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
+    """A25 (#21), aggregates only: 46 findings; the default view holds 19 at 500K (24 at 100K),
+    with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs."""
+    from collections import Counter
+
+    from app.services.pipeline import run_engines
+
+    for materiality, expected in ((500_000, 19), (100_000, 24)):
+        rules = Rules(materiality_eur=materiality)
+        records = run_engines(real_lines, rules, AS_OF).records
+        views = Counter(r.inbox_view for r in records)
+        assert views["attention"] == expected
+        assert (views["prompts"], views["repeats"]) == (17, 6)
+        first = next(r for r in records if r.inbox_view == "attention")
+        assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
+    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 46
 
 
 # ----- extract date (A38) -------------------------------------------------------------------
@@ -545,7 +607,7 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
     Aggregates only. With the 12-month missing-payment limit (A15, #20), which counts back from
     the analysis date: 6 missing payments instead of 7 at 18 Nov. C242's October 2026 batch is
     expected by 13 Nov, after the extract, so it is not yet due. 36 dated findings (37), median
-    still 11 days; the C192 gap still ranks first at 89.4 and 4 groups stay above 500K.
+    still 11 days; the C192 gap still ranks first at 79.4 (A9, #18) and 4 groups stay above 500K.
     """
     import statistics
 
@@ -558,7 +620,7 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
         "2026-04", "2026-05", "2026-06", "2026-07"]  # fmt: skip
     assert sum(r.entity == "C242" for r in missing) == 2
     assert (records[0].type, records[0].entity, round(records[0].score, 1)) == (
-        "pulse_gap", "C192", 89.4)  # fmt: skip
+        "pulse_gap", "C192", 79.4)  # fmt: skip
     assert output.counts["exposure_groups_above"] == 4
     leads = [r.lead_days for r in records if r.lead_days is not None]
     assert (len(leads), statistics.median(leads)) == (36, 11)

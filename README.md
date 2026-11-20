@@ -65,6 +65,9 @@ Never paste real figures, document numbers or names into issues, PRs, commits or
 
 ## Demo path (the 3-minute video)
 
+The full script, with the numbers each step must show and how to reset between takes
+(`make demo-reset`, then `make demo`), is in [docs/DEMO.md](docs/DEMO.md).
+
 1. **Exposure**: the old report, 145.7M "overdue" on 5,475 lines.
 2. Click **Upload extract** (or drop the workbook on the page): the run toast starts and
    finishes, and the Inbox shows where the extract came from and the day it was taken.

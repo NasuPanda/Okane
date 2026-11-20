@@ -8,6 +8,7 @@ export type ExceptionDetail = S["ExceptionDetail"];
 export type ExceptionType = ExceptionRecord["type"];
 export type ExceptionClass = NonNullable<ExceptionRecord["suggested_class"]>;
 export type Status = ExceptionRecord["status"];
+export type InboxView = NonNullable<ExceptionRecord["inbox_view"]>;
 export type DecisionUpdate = S["DecisionUpdate"];
 export type DecisionEntry = S["DecisionEntry"];
 export type EvidenceLine = S["EvidenceLine"];
@@ -29,6 +30,7 @@ export type ExceptionFilters = {
   entity?: string;
   min_exposure?: number;
   status?: Status;
+  view?: InboxView | "all";
 };
 
 export type RunEvent = { event: "run_started" | "run_finished"; data: Partial<Run> & { run_id: string } };

@@ -145,6 +145,46 @@ def test_exceptions_sorted_and_filtered(ran: TestClient) -> None:
     assert ran.get("/api/exceptions", params={"type": "nonsense"}).status_code == 422
 
 
+def test_inbox_default_view_and_show_all(ran: TestClient) -> None:
+    """A25 (#21): the default view holds findings at or above materiality plus missing batches,
+    C192 gap first; prompts and repeated postings have their own tabs; "all" shows everything."""
+    everything = ran.get("/api/exceptions").json()
+    assert ran.get("/api/exceptions", params={"view": "all"}).json() == everything
+    assert all(r["inbox_view"] for r in everything), "the pipeline stamps every finding"
+    tabs = {v: ran.get("/api/exceptions", params={"view": v}).json()
+            for v in ("attention", "prompts", "repeats", "other")}  # fmt: skip
+    ids = [r["id"] for tab in tabs.values() for r in tab]
+    assert sorted(ids) == sorted(r["id"] for r in everything), "every finding on exactly one tab"
+
+    attention = tabs["attention"]
+    assert (len(attention), len(everything)) == (6, 14)
+    top = attention[0]
+    assert (top["type"], top["entity"], top["account"]) == ("pulse_gap", "C192", "279006")
+    assert [r["score"] for r in attention] == sorted((r["score"] for r in attention), reverse=True)
+    for r in attention:
+        assert abs(r["exposure_eur"]) >= 500_000 or r["type"] == "pulse_missing_batch"
+    assert {r["type"] for r in tabs["prompts"]} <= {"typo", "label_mismatch"}
+    assert {r["type"] for r in tabs["repeats"]} == {"miner_cluster"}
+    assert all(abs(r["exposure_eur"]) < 500_000 for r in tabs["other"])
+    assert ran.get("/api/exceptions", params={"view": "nonsense"}).status_code == 422
+
+    kpis = ran.get("/api/kpis").json()
+    assert kpis["inbox_views"] == {"attention": 6, "prompts": len(tabs["prompts"]),
+                                   "repeats": len(tabs["repeats"]), "other": len(tabs["other"]),
+                                   "all": 14}  # fmt: skip
+    body = {"status": "dismissed", "decision_reason": "Known timing difference"}
+    ran.patch(f"/api/exceptions/{top['id']}", json=body)
+    kpis = ran.get("/api/kpis").json()
+    assert (kpis["inbox_views"]["attention"], kpis["inbox_views"]["all"]) == (5, 13), "to review"
+
+    rules = ran.get("/api/rules").json()
+    body = {"rules": {**rules, "inbox_always_types": []}, "reason": "Amounts only"}
+    assert ran.put("/api/rules", json=body).status_code == 200
+    wait_for_run(ran)
+    attention = ran.get("/api/exceptions", params={"view": "attention"}).json()
+    assert len(attention) == 5 and all(abs(r["exposure_eur"]) >= 500_000 for r in attention)
+
+
 def test_exception_detail(ran: TestClient) -> None:
     gap = by_type(ran, "pulse_gap")[0]
     detail = ran.get(f"/api/exceptions/{gap['id']}").json()
@@ -275,6 +315,30 @@ def test_saved_rules_from_before_17_load_without_a_phantom_change(tmp_path: Path
     with pytest.raises(ValidationError):
         Rules(close_review_working_day=0)
     assert Rules(close_review_working_day=1).close_review_working_day == 1
+
+
+def test_saved_rules_from_before_19_load_without_a_phantom_change(tmp_path: Path) -> None:
+    """Rules saved before #19 carry repeats_cap and lack repeats_min_months: they load with the
+    default (3) and saving them unchanged logs nothing (A9)."""
+    from pydantic import ValidationError
+
+    from app.api.rules import diff_rules
+    from app.database import Database
+    from app.schemas import Rules
+
+    old = json.loads(Rules().model_dump_json())
+    old.pop("repeats_min_months")
+    old["repeats_cap"] = 5
+    db = Database(tmp_path / "rules.duckdb")
+    with db.cursor() as cur:
+        cur.execute("INSERT INTO rules VALUES (1, ?)", [json.dumps(old)])
+    loaded = db.get_rules()
+    db.close()
+    assert loaded.repeats_min_months == 3
+    assert not hasattr(loaded, "repeats_cap")
+    assert diff_rules(loaded, Rules()) == [], "no phantom change-log entry"
+    with pytest.raises(ValidationError):
+        Rules(repeats_min_months=0)
 
 
 # ----- jobs ---------------------------------------------------------------------------------

@@ -98,6 +98,9 @@ export interface paths {
         /**
          * List Exceptions
          * @description Exceptions of the latest run, highest score first, with optional filters.
+         *
+         *     ``view`` picks an inbox tab (A25): ``attention`` is the inbox's default view; ``all``
+         *     (the default here, for the other pages) returns every finding.
          */
         get: operations["list_exceptions_api_exceptions_get"];
         put?: never;
@@ -520,6 +523,8 @@ export interface components {
             decided_class?: ("List component" | "Timing item" | "Required Adjustment Item") | null;
             /** Edited Comment */
             edited_comment?: string | null;
+            /** Inbox View */
+            inbox_view?: ("attention" | "prompts" | "repeats" | "other") | null;
             ai_check?: components["schemas"]["TypoCheck"] | null;
         };
         /**
@@ -636,6 +641,10 @@ export interface components {
             old_rule_overdue_abs: number;
             /** Exposure Groups Above */
             exposure_groups_above: number;
+            /** Inbox Views */
+            inbox_views?: {
+                [key: string]: number;
+            };
         };
         /**
          * PaymentProfile
@@ -918,10 +927,12 @@ export interface components {
              */
             days_past_expected_cap: number;
             /**
-             * Repeats Cap
-             * @default 5
+             * Repeats Min Months
+             * @default 3
              */
-            repeats_cap: number;
+            repeats_min_months: number;
+            /** Inbox Always Types */
+            inbox_always_types?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster")[];
             /**
              * Error Type Severity
              * @default {
@@ -1224,6 +1235,7 @@ export interface operations {
                 entity?: string | null;
                 min_exposure?: number | null;
                 status?: ("new" | "explained" | "dismissed" | "escalated") | null;
+                view?: ("attention" | "prompts" | "repeats" | "other") | "all";
             };
             header?: never;
             path?: never;

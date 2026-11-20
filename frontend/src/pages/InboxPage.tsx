@@ -10,7 +10,7 @@ import { AlertTriangle, ArrowDownUp, BellRing, EyeOff, FileSpreadsheet, Hourglas
 import { useMemo, useState } from "react";
 
 import { useExceptions, useKpis, useLatestRun, useRules } from "@/api/hooks";
-import type { ExceptionRecord, Run, Status } from "@/api/types";
+import type { ExceptionRecord, InboxView, Run, Status } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
 import {
   Card,
@@ -31,6 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { GROUP_LABEL, GROUP_TONE, ROUTE_LABEL, TYPE_GROUP, greeting, weekdayName, type TypeGroup } from "@/lib/labels";
+import { PeriodPicker, inPeriod, usePeriod } from "@/lib/period";
 import { cn, day, dueDay, eur, shortEur, stamp } from "@/lib/utils";
 
 const column = createColumnHelper<ExceptionRecord>();
@@ -40,7 +41,7 @@ function DataSources({ run }: { run: Run | null | undefined }) {
   const sources = run?.sources ?? [];
   if (!run || !sources.length) return null;
   return (
-    <Card className="space-y-2 py-3.5 text-sm">
+    <Card className="space-y-2 border border-signal py-3.5 text-sm">
       {sources.map((s) => (
         <div key={s.file_hash} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
           <FileSpreadsheet className="size-4 text-foreground" />
@@ -114,6 +115,15 @@ const columns = [
 type StatusFilter = "open" | "decided" | "all";
 const OPEN: Status[] = ["new", "escalated"];
 const GROUPS = Object.keys(GROUP_LABEL) as TypeGroup[];
+// Inbox tabs (docs/ASSUMPTIONS.md A25): the default view holds findings at or above materiality
+// and missing batches; everything else is one tap away.
+type ViewFilter = InboxView | "all";
+const VIEWS: { value: ViewFilter; label: string; dot?: string }[] = [
+  { value: "attention", label: "Above materiality", dot: "var(--hot)" },
+  { value: "prompts", label: "Mistake prompts", dot: GROUP_TONE.mistakes.bar },
+  { value: "repeats", label: "Repeated postings", dot: GROUP_TONE.miner.bar },
+  { value: "all", label: "Everything" },
+];
 
 export function InboxPage() {
   const kpis = useKpis();
@@ -121,32 +131,49 @@ export function InboxPage() {
   const rules = useRules();
   const all = useExceptions();
   const open = useOpenFinding();
-  const [group, setGroup] = useState<TypeGroup | "all">("all");
+  const [view, setView] = useState<ViewFilter>("attention");
   const [workgroup, setWorkgroup] = useState<"all" | "Payroll" | "Fixed assets">("all");
   const [status, setStatus] = useState<StatusFilter>("open");
   const [sorting, setSorting] = useState<SortingState>([{ id: "score", desc: true }]);
+  const period = usePeriod();
+  // Every figure below counts only the findings in the chosen period (the shared report period).
+  const scoped = useMemo(() => (all.data ?? []).filter((r) => inPeriod(r, period.range)), [all.data, period.range]);
 
   const records = useMemo(
     () =>
-      (all.data ?? []).filter(
+      scoped.filter(
         (r) =>
-          (group === "all" || TYPE_GROUP[r.type] === group) &&
+          (view === "all" || r.inbox_view === view) &&
           (workgroup === "all" || r.workgroup === workgroup) &&
           (status === "all" || (status === "open" ? OPEN.includes(r.status) : !OPEN.includes(r.status))),
       ),
-    [all.data, group, workgroup, status],
+    [scoped, view, workgroup, status],
   );
   const counts = useMemo(() => {
     const out: Record<string, number> = { all: 0 };
-    for (const r of all.data ?? []) {
+    for (const r of scoped) {
       if (!OPEN.includes(r.status)) continue;
       out.all += 1;
       out[TYPE_GROUP[r.type]] = (out[TYPE_GROUP[r.type]] ?? 0) + 1;
+      if (r.inbox_view) out[r.inbox_view] = (out[r.inbox_view] ?? 0) + 1;
     }
     return out;
-  }, [all.data]);
-  const urgent = (all.data ?? []).filter((r) => OPEN.includes(r.status) && r.score >= 70).length;
-  const decided = (all.data ?? []).filter((r) => !OPEN.includes(r.status)).length;
+  }, [scoped]);
+  // The header and "Waiting for you" speak for the whole check, like "accounts really open",
+  // so they read the server's counts (/api/kpis inbox_views, A25); the tabs follow the period.
+  const k = kpis.data;
+  const attention = k?.inbox_views?.attention ?? 0;
+  const toReview = k?.inbox_views?.all ?? 0;
+  const limit = rules.data ? shortEur(rules.data.materiality_eur) : "materiality";
+  const decided = scoped.filter((r) => !OPEN.includes(r.status)).length;
+  const leads = scoped.flatMap((r) => (r.lead_days === null ? [] : [r.lead_days])).sort((a, b) => a - b);
+  const median = leads.length
+    ? leads.length % 2
+      ? leads[(leads.length - 1) / 2]
+      : (leads[leads.length / 2 - 1] + leads[leads.length / 2]) / 2
+    : null;
+  const blind = scoped.filter((r) => r.today_detection === null).length;
+  const scope = period.range ? `${period.grain === "day" ? "on" : "in"} ${period.range.label}` : "overall";
 
   const table = useReactTable({
     data: records,
@@ -157,7 +184,6 @@ export function InboxPage() {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const k = kpis.data;
   return (
     <div className="space-y-8">
       <PageHeader
@@ -170,7 +196,8 @@ export function InboxPage() {
               lines "overdue". After matching what was paid, only{" "}
               <b className="num font-medium text-foreground">{k.exposure_groups_above}</b>{" "}
               {k.exposure_groups_above === 1 ? "account is" : "accounts are"} really open, and{" "}
-              <b className="num font-medium text-hot">{urgent}</b> {urgent === 1 ? "finding deserves" : "findings deserve"} a look first.
+              <b className="num font-medium text-hot">{attention}</b> {attention === 1 ? "finding" : "findings"} at or
+              above {limit} {attention === 1 ? "needs" : "need"} a look first.
             </>
           ) : (
             "Getting your findings ready…"
@@ -178,40 +205,47 @@ export function InboxPage() {
         }
       />
 
-      <DataSources run={run.data} />
+      <div className="rise flex flex-wrap items-center justify-between gap-3">
+        <PeriodPicker />
+        <span className="text-xs text-muted-foreground">
+          {period.range
+            ? `Findings posted or first seen ${period.grain === "day" ? "on" : "in"} ${period.range.label}, plus every balance still open`
+            : "Every finding in the latest check"}
+        </span>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           dark
           index={0}
           label="Waiting for you"
-          value={k?.open_exceptions ?? "–"}
-          note={`out of ${k?.exceptions ?? "–"} found in the latest check`}
+          value={k ? attention : "–"}
+          note={`at or above ${limit}; ${toReview} to review in the whole check`}
           icon={BellRing}
           color="var(--signal)"
           soft="var(--dock-raised)"
-          bars={k ? (k.open_exceptions / Math.max(k.exceptions, 1)) * 48 : 0}
+          bars={(attention / Math.max(toReview, 1)) * 48}
         />
         <StatCard
           index={1}
           label="Spotted earlier by"
-          value={k?.median_days_earlier ?? "–"}
+          value={all.data ? (median ?? "–") : "–"}
           unit="days"
-          note={`median, counted from the weekly ${weekdayName(rules.data?.weekly_run_weekday)} run`}
+          note={`median ${scope}, counted from the weekly ${weekdayName(rules.data?.weekly_run_weekday)} run`}
           icon={Sparkles}
           color="var(--pulse)"
           soft="var(--pulse-soft)"
-          bars={Math.min(k?.median_days_earlier ?? 0, 48)}
+          bars={Math.min(median ?? 0, 48)}
         />
         <StatCard
           index={2}
           label="Today's report misses"
-          value={k?.blind_spots ?? "–"}
-          note="findings no current check would ever catch"
+          value={all.data ? blind : "–"}
+          note={`findings ${scope} no current check would ever catch`}
           icon={EyeOff}
           color="var(--hot)"
           soft="var(--hot-soft)"
-          bars={k ? (k.blind_spots / Math.max(k.exceptions, 1)) * 48 : 0}
+          bars={(blind / Math.max(scoped.length, 1)) * 48}
         />
         <StatCard
           index={3}
@@ -233,26 +267,25 @@ export function InboxPage() {
           </div>
           <SplitBar parts={GROUPS.map((g) => ({ label: GROUP_LABEL[g], value: counts[g] ?? 0, color: GROUP_TONE[g].bar }))} />
           <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
-            💡 Tip: tap a coloured pill below to see just one kind of finding. Click any row to see the evidence and
-            make your call.
+            💡 Tip: the list starts with findings at or above {limit}. Mistake prompts, repeated postings and
+            everything else are one tap away below. Click any row to see the evidence and make your call.
           </p>
         </Card>
         <Card className="flex flex-col items-center justify-center gap-2" style={stagger(5, 70)}>
-          <Gauge value={decided} total={(all.data ?? []).length} label="reviewed so far" />
+          <Gauge value={decided} total={scoped.length} label="reviewed so far" />
           <span className="text-xs text-muted-foreground">
             {decided === 0 ? "Open a finding to get started" : "Nice progress, keep going"}
           </span>
         </Card>
       </div>
 
+      <DataSources run={run.data} />
+
       <div className="rise flex flex-wrap items-center justify-between gap-4" style={stagger(6, 70)}>
         <div className="flex flex-wrap items-center gap-2">
-          <Chip active={group === "all"} onClick={() => setGroup("all")} count={counts.all}>
-            Everything
-          </Chip>
-          {GROUPS.map((g) => (
-            <Chip key={g} active={group === g} onClick={() => setGroup(g)} count={counts[g] ?? 0} dot={GROUP_TONE[g].bar}>
-              {GROUP_LABEL[g]}
+          {VIEWS.map((v) => (
+            <Chip key={v.value} active={view === v.value} onClick={() => setView(v.value)} count={counts[v.value] ?? 0} dot={v.dot}>
+              {v.value === "attention" ? `Above ${limit}` : v.label}
             </Chip>
           ))}
         </div>

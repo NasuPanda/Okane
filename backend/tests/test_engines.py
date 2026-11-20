@@ -630,6 +630,116 @@ def test_score_uses_rules_weights() -> None:
     assert all(r.score == 0 for r in score_records(records, zero, AS_OF))
 
 
+def _finding(type_: str = "sentinel_outlier", entity: str = "C192", account: str = "279006",
+             exposure: float = 0.0, expected_by: date | None = None,
+             facts: dict[str, float | str] | None = None) -> ExceptionRecord:  # fmt: skip
+    return ExceptionRecord(
+        id=stable_id(type_, "P20", entity, account, [str(exposure)]), run_id="r", type=type_,
+        workgroup="Payroll", erp="P20", entity=entity, account=account, account_name="",
+        title="t", exposure_eur=exposure, facts=facts or {}, evidence=[],
+        first_signal=date(2026, 6, 30), today_detection=None, lead_days=None,
+        expected_by=expected_by, suggested_class=None, score=0, score_breakdown={},
+        ai_comment=None, verifier="not_run", status="new", decision_reason=None,
+    )  # fmt: skip
+
+
+def test_score_exposure_scales_to_five_times_materiality() -> None:
+    """A9 (#18): exposure / (exposure_cap_multiple x materiality), capped at 1."""
+    from app.engines.exposure import score_components
+
+    rules = Rules(materiality_eur=500_000)
+    parts = {e: score_components(_finding(exposure=e), rules, AS_OF, 0)["exposure"]
+             for e in (-1_250_000, 2_500_000, 10_000_000)}  # fmt: skip
+    assert parts == {-1_250_000: 0.5, 2_500_000: 1.0, 10_000_000: 1.0}, "sign ignored, capped"
+    original = rules.model_copy(update={"exposure_cap_multiple": 1.0})
+    assert score_components(_finding(exposure=500_000), original, AS_OF, 0)["exposure"] == 1.0
+
+
+def test_score_days_past_expected_caps_at_90() -> None:
+    from app.engines.exposure import score_components
+
+    rules = Rules()
+
+    def days(record: ExceptionRecord) -> float:
+        return score_components(record, rules, AS_OF, 0)["days_past_expected"]
+
+    assert days(_finding(expected_by=date.fromordinal(AS_OF.toordinal() - 45))) == 0.5
+    assert days(_finding(expected_by=date.fromordinal(AS_OF.toordinal() - 400))) == 1.0
+    assert days(_finding(expected_by=date.fromordinal(AS_OF.toordinal() + 3))) == 0.0
+    assert days(_finding(expected_by=None)) == 0.0
+    gap = _finding("pulse_gap")  # counts from its first month-end above materiality
+    assert days(gap) == min((AS_OF - gap.first_signal).days / 90, 1.0)
+
+
+def test_score_penalty_account_and_error_type_come_from_rules() -> None:
+    from app.engines.exposure import score_components
+
+    rules = Rules()
+    c192, other = _finding(), _finding(entity="C132")
+    assert score_components(c192, rules, AS_OF, 0)["penalty_account"] == 1.0
+    assert score_components(other, rules, AS_OF, 0)["penalty_account"] == 0.0
+    wider = rules.model_copy(update={"penalty_accounts": ["P20/C132/279006"]})
+    assert score_components(other, wider, AS_OF, 0)["penalty_account"] == 1.0
+    assert score_components(c192, rules, AS_OF, 0)["error_type"] == 0.7
+    severe = rules.model_copy(update={"error_type_severity": {"sentinel_outlier": 0.9}})
+    assert score_components(c192, severe, AS_OF, 0)["error_type"] == 0.9
+    assert score_components(_finding("typo"), severe, AS_OF, 0)["error_type"] == 0.0
+
+
+def test_score_repeats_read_the_miner_months() -> None:
+    """A9 (#18): repeats = 1 when a Miner pattern on the same ERP, account and company code
+    spans at least repeats_min_months months; the months come from the Miner's facts."""
+    from app.engines.exposure import miner_months
+
+    long = _finding(
+        "miner_cluster", account="279030", facts={"months": 4, "entity_list": "C132, C192"}
+    )
+    short = _finding("miner_cluster", account="279031", facts={"months": 2, "entity_list": "C192"})
+    same, cousin = _finding(account="279030"), _finding(entity="C132", account="279030")
+    elsewhere = _finding(entity="C141", account="279030")
+    records = [long, short, same, cousin, elsewhere]
+    assert miner_months(records) == {long.id: 4, short.id: 2, same.id: 4, cousin.id: 4,
+                                     elsewhere.id: 0}  # fmt: skip
+    points = {r.id: r.score_breakdown["repeats"] for r in score_records(records, Rules(), AS_OF)}
+    assert points == {long.id: 10, short.id: 0, same.id: 10, cousin.id: 10, elsewhere.id: 0}
+    stricter = Rules(repeats_min_months=5)
+    assert all(r.score_breakdown["repeats"] == 0 for r in score_records(records, stricter, AS_OF))
+
+
+def test_score_breakdown_adds_up_and_ids_ignore_the_score() -> None:
+    """The breakdown sums exactly to the score; a score never moves an id (CLAUDE.md rule 10)."""
+    records = [
+        _finding(exposure=1_234_567.89, expected_by=date(2026, 9, 1)),
+        _finding("pulse_gap", exposure=-777_777.77),
+        _finding("miner_cluster", entity="C132", exposure=33_333.33, facts={"months": 7}),
+        _finding("typo", entity="C141", exposure=12.34),
+    ]
+    for rules in (Rules(), Rules(materiality_eur=100_000), Rules(repeats_min_months=9)):
+        scored = score_records(records, rules, AS_OF)
+        assert {r.id for r in scored} == {r.id for r in records}
+        for r in scored:
+            assert set(r.score_breakdown) == set(rules.weights)
+            assert r.score == round(sum(r.score_breakdown.values()), 1)
+            for name, points in r.score_breakdown.items():
+                assert 0 <= points <= rules.weights[name]
+
+
+def test_inbox_view_by_type_and_materiality() -> None:
+    """A25 (#21): prompts and Miner cards have their own tabs; the default view holds findings at
+    or above materiality and the types in Rules.inbox_always_types."""
+    from app.engines.exposure import inbox_view
+
+    rules = Rules(materiality_eur=500_000)
+    assert inbox_view(_finding("typo", exposure=9e6), rules) == "prompts"
+    assert inbox_view(_finding("label_mismatch", exposure=9e6), rules) == "prompts"
+    assert inbox_view(_finding("miner_cluster", exposure=9e6), rules) == "repeats"
+    assert inbox_view(_finding(exposure=-500_000), rules) == "attention", "at the limit, any sign"
+    assert inbox_view(_finding(exposure=499_999.99), rules) == "other"
+    assert inbox_view(_finding("pulse_missing_batch"), rules) == "attention"
+    assert inbox_view(_finding("pulse_missing_batch"), Rules(inbox_always_types=[])) == "other"
+    assert inbox_view(_finding(exposure=150_000), Rules(materiality_eur=100_000)) == "attention"
+
+
 def test_exception_ids_are_stable_across_runs(synthetic_lines: pd.DataFrame) -> None:
     rules = Rules()
     first = {r.id for r in run_pulse(synthetic_lines, rules, AS_OF).records}

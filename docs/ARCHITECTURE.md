@@ -49,7 +49,7 @@ id, so decisions survive later runs), `rules` + `rule_changes`, `ai_cache`.
 | `typos.py` | Spelling and period-label prompts (A6, decided in #12, built in #13) | records |
 | `miner.py` | Repeated manual postings, a possible recurring correction (A7, #14) | records |
 | `leadtime.py` | Today's detection date per type, weekly view and badge (A8, #16) | fills lead time |
-| `exposure.py` | Payroll netting (8); risk score (weights from 7, scaling an assumption) | groups, scores |
+| `exposure.py` | Payroll netting (8); risk score (weights from 7, scaling A9, #18) | groups, scores |
 
 Engines never read files, the clock or the database; the pipeline passes the analysis date in.
 

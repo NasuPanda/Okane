@@ -7,6 +7,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 
 import { AppShell } from "@/components/AppShell";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { PeriodProvider } from "@/lib/period";
 import { ExposurePage } from "@/pages/ExposurePage";
 import { InboxPage } from "@/pages/InboxPage";
 import { RulesPage } from "@/pages/RulesPage";
@@ -33,7 +34,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <RouterProvider router={router} />
+        <PeriodProvider>
+          <RouterProvider router={router} />
+        </PeriodProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </StrictMode>,

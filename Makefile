@@ -12,7 +12,7 @@ PY := $(BIN)/python
 NPM ?= npm
 
 .PHONY: help setup dev dev-api dev-web ollama-check test lint fixtures generate-sample-data \
-        types build serve clean
+        types build serve clean demo-reset demo demo-api
 
 help:
 	@echo "setup                 create backend venv, install deps, copy sample rates, npm install"
@@ -22,6 +22,8 @@ help:
 	@echo "fixtures              export synthetic JSON fixtures to fixtures/"
 	@echo "types                 regenerate frontend API types from the OpenAPI schema"
 	@echo "build | serve         build frontend | serve API + built frontend on :8000"
+	@echo "demo-reset            rebuild the synthetic demo folder data/demo (docs/DEMO.md)"
+	@echo "demo                  API on :8000 (on data/demo) + Vite on :5173, for the demo"
 
 setup:
 	$(PYTHON) -m venv $(VENV)
@@ -69,3 +71,19 @@ serve: build
 
 clean:
 	rm -rf frontend/dist backend/.pytest_cache backend/.ruff_cache
+
+# ----- demo (docs/DEMO.md, #26) --------------------------------------------------------------
+# The demo runs on its own folder, so data/inbox, data/okane.duckdb and .env are never touched.
+DEMO_DIR := $(CURDIR)/data/demo
+DEMO_ENV := OKANE_DATA_DIR="$(DEMO_DIR)" OKANE_INBOX_DIR="$(DEMO_DIR)/inbox" \
+            OKANE_DB_PATH="$(DEMO_DIR)/okane.duckdb" OKANE_RATES_PATH="$(DEMO_DIR)/rates.csv" \
+            OKANE_SAMPLE_DIR="$(DEMO_DIR)/sample" OKANE_ENABLE_SCHEDULER=false
+
+demo-reset:
+	$(PY) scripts/demo_reset.py --yes
+
+demo-api:
+	cd backend && $(DEMO_ENV) ../$(PY) -m uvicorn app.main:app --port 8000
+
+demo: ollama-check
+	$(MAKE) -j2 demo-api dev-web

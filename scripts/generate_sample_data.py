@@ -28,6 +28,9 @@ Planted cases (each one is asserted in backend/tests/test_golden.py):
   months and two entities (score 10, a near-miss). The older USER_045 lines on 279002 have
   no header text, so they are not a pattern.
 - Pension-type account with "Actual ageing ( No Overdue )" (exempt from the 365-day rule).
+
+For the demo (docs/DEMO.md, #25), ``generate_previous_week`` writes the same Payroll extract as
+if taken a week earlier: later postings dropped, ageing and overdue recomputed.
 """
 
 from __future__ import annotations
@@ -372,14 +375,47 @@ def _write(path: Path, title: str, sheets: dict[str, pd.DataFrame]) -> Path:
     return path
 
 
-def generate(out: Path) -> list[Path]:
-    """Write ``Payroll_sample.xlsx`` and ``Fixed_assets_sample.xlsx`` into ``out``."""
-    out.mkdir(parents=True, exist_ok=True)
+def _payroll_frames() -> tuple[pd.DataFrame, pd.DataFrame]:
     docs = DocCounter("00")
     p20 = build_payroll_p20(docs).frame()
     bpp = build_payroll_bpp(DocCounter("79")).frame()
     blank = pd.DataFrame([{c: None for c in p20.columns}])  # a row with an empty CoCd
-    p20 = pd.concat([p20, blank], ignore_index=True)
+    return pd.concat([p20, blank], ignore_index=True), bpp
+
+
+def age_back(frame: pd.DataFrame, days: int) -> pd.DataFrame:
+    """The Payroll sheet as if extracted ``days`` earlier: later postings are dropped and the
+    ageing columns are recomputed with the same rule as ``PayrollSheet.add``."""
+    taken = pd.Timestamp(PAYROLL_AGEING_DATE - timedelta(days=days))
+    posted = pd.to_datetime(frame["Pstng Date"], errors="coerce")
+    out = frame[posted.isna() | (posted <= taken)].copy()
+    posted = posted[out.index]
+    dated = posted.notna()
+    age = (taken - posted[dated]).dt.days
+    allowed = out.loc[dated, "Ageing Allowed (Days)"].astype(str)
+    limit = pd.to_numeric(allowed, errors="coerce")
+    aged = (allowed != NO_OVERDUE) & limit.notna() & (age > limit)
+    out.loc[dated, "Current Ageing (Days)"] = age
+    out.loc[dated, "Current Ageing (Range)"] = age.gt(365).map({True: ">365", False: "0-365"})
+    out.loc[dated, "Due/Not Due Aged/Not Aged"] = aged.map(
+        {True: "Aged more than 365 days", False: "Not Aged"}
+    )
+    out.loc[dated, "Overdue Amount ABS"] = out.loc[dated, "EUR Absolute"].where(aged, 0.0)
+    return out
+
+
+def generate_previous_week(out: Path, days: int = 7) -> Path:
+    """Write ``Payroll_sample_previous_week.xlsx``: the Payroll extract taken ``days`` earlier."""
+    out.mkdir(parents=True, exist_ok=True)
+    p20, bpp = _payroll_frames()
+    sheets = {"P20": age_back(p20, days), "BPP": age_back(bpp, days)}
+    return _write(out / "Payroll_sample_previous_week.xlsx", "Payroll", sheets)
+
+
+def generate(out: Path) -> list[Path]:
+    """Write ``Payroll_sample.xlsx`` and ``Fixed_assets_sample.xlsx`` into ``out``."""
+    out.mkdir(parents=True, exist_ok=True)
+    p20, bpp = _payroll_frames()
     fa_bpp, fa_p20 = build_fixed_assets()
     return [
         _write(out / "Payroll_sample.xlsx", "Payroll", {"P20": p20, "BPP": bpp}),

@@ -14,14 +14,14 @@ so nobody re-investigates).
 | # | Item | Status | Default we shipped |
 |---|------|--------|--------------------|
 | A1 | Sentinel S1 scope (brief open item 2) | Decide | Decided (#9): `people_only` |
-| A2 | Demo step 5 Sentinel example (brief open item 1) | Decide | C242 48900002 document 7910008634 |
+| A2 | Demo step 5 Sentinel example (brief open item 1) | Decide | Decided (#25): the person-posted Payroll outlier; analysis date = extract date; synthetic on screen pending mentor Q8 |
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
 | A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12), built (#13): one letter from a word 20x as common, Text and header, allow-list; model check built (#30), advisory only |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
-| A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
+| A9 | Risk score scaling | Decide | Decided (#18): exposure / (5 x materiality); repeats = Miner pattern in 3+ months; penalty C192 279006 pending mentor Q6 |
 | A10 | AI prompt contract and model | Decide | Decided (#28, #45), built (#29): comment and typo check; the model names figures and code fills them in; retry with feedback; template if rejected twice; qwen2.5 7B, local |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
@@ -29,11 +29,13 @@ so nobody re-investigates).
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
 | A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; 7 on real data |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
+| A25 | How short is the inbox | Decide | Decided (#21): default view = findings at or above materiality plus missing batches; prompts and repeated postings on their own tabs |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
 | A35 | Where real identifiers may live in Git | Decide | Decided (#6): brief-quoted values only, in the brief, this file and real golden tests |
 | A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
 | A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
+| A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 
 ## Data and ingestion
 
@@ -215,10 +217,48 @@ C192). Its evidence is the unmatched batches. Owner: team.
 median is computed. Real data: August 2026 for C192 (4.1x of 620,878), as expected, and
 January 2026 for C242 (3.5x). Owner: team.
 
-**A25. Netting groups are not Exception records.** *Info.* The brief's demo says "4 exceptions
-remain at 500K" on the Exposure page, but the Exception `type` list has no netting type. Netting
-groups are returned by `/api/exposure/payroll` (4 at 500K, 7 at 100K on real data) and each
-links to the highest-scored exception on its account. Owner: team.
+**A25. How short is the inbox.** *Decided (#21, 19 Nov 2026).* Netting groups are not
+Exception records: the brief's "4 remain at 500K" counts payroll accounts whose overdue lines
+net to materiality or more (`/api/exposure/payroll`: 4 at 500K, 7 at 100K on real data; each
+links to the highest-scored finding on its account). The inbox now says so.
+- Default view "Above materiality": findings whose amount is at or above
+  `Rules.materiality_eur`, plus the types in `Rules.inbox_always_types` (default: a missing
+  payroll batch, whose amount is unknown rather than small). Mistake prompts (typo, wrong month
+  label) and repeated manual postings have their own tabs; "Everything" shows all findings.
+  Each tab shows its count of findings still to review.
+- Header: "Today's report calls 5,475 lines overdue. After matching what was paid, 4 accounts
+  are really open, and N findings at or above 500K need a look first." The "Waiting for you"
+  card counts the open findings in the default view. Both count the whole check, whatever the
+  report period (A40). The Exposure page keeps counting accounts.
+- Demo: step 3 reads "4 accounts remain"; at 100K the accounts grow from 4 to 7 (step 6) and the
+  default view grows with the same limit.
+- Real Payroll (aggregates, as of 18 Nov 2026): 46 findings; default view 19 at 500K (24 at
+  100K), mistake prompts 17, repeated postings 6; the C192 gap is first. Synthetic: 14 findings,
+  6 in the default view. A live run uses the extract date (A38, 23 Oct 2026), when one fewer
+  missing payment is due: 45 findings, 18 in the default view, so the demo header says 18.
+  (Issue #21 counted 147 before the typo rule, the Miner and the missing-payment limit.)
+- Rejected: a priority-score threshold (6 at 500K; a number accountants would need explained);
+  one row per account (3 of the 7 accounts at 100K have no finding to open); no filter (46 rows).
+Owner: team.
+
+**A40. Report period on the Inbox and Sentinel pages.** *Decided (review of PR #65, 20 Nov
+2026; added without an issue, recorded here).* A Daily, Weekly, Monthly, Yearly or Overall
+selector, shared by both pages, with arrows back through earlier periods.
+- Periods are calendar days, Monday-to-Sunday weeks, months and years, counted back from the
+  analysis date (the extract date, A38). Overall is the default and shows every finding.
+- A finding belongs to the day of its posting date, or the day it was first seen when it has
+  no posting date.
+- A gap, a missing batch and a missing payment are shown in every period: each is a balance
+  still open on the analysis date, and hiding it would hide real exposure (the C192 gap was
+  first seen months before the analysis date). An unusually big month follows the period.
+- The Inbox tabs, table, split bar, gauge and the lead-time and "report misses" cards follow
+  the period. The header sentence and "Waiting for you" count the whole check (from
+  `/api/kpis`, A25), next to the accounts really open, which do not depend on a period either.
+  The Sentinel feed and its cards follow the period.
+- The chosen grain is remembered in the browser; the step back is not.
+- Rejected: hiding open balances by their first-seen date (the review found the demo header
+  then read "0 findings ... need a look" next to "4 accounts are really open").
+Owner: team.
 
 ## Sentinel, typos, Miner
 
@@ -229,12 +269,30 @@ this gives the brief's 12 hits (11 Payroll, 1 Fixed assets); the unrestricted ru
 hits, 42 of them Payroll) and `all` stay selectable on the Rules page. Golden test:
 `test_real_sentinel_s1_default_scope`. Owner: team.
 
-**A2. Demo step 5 example.** *Decide (brief open item 1).* With `people_only` the top hit is
-Payroll BPP C242 48900002 document 7910008634 (2019, USER_120, about 57,769x the account
-median). With the lead-time rule (A8, decided in #16) it is caught 16 days before that
-month's close review (weekly view; 21 days counted from the posting date).
-The alternative candidate (Fixed assets P20 C218 119001 document 7750001797) needs the Fixed
-assets workbook. Owner: team.
+**A2. Demo script: step 5 and the analysis date.** *Decided (#25, 20 Nov 2026; what is on
+screen is pending mentor question 8).*
+- Step 5 shows the person-posted Payroll outlier (an accountant grasps "one line thousands of
+  times the account's usual size, typed by hand" fastest; it needs only the Payroll workbook).
+  On the synthetic data that is C192 279002. Rejected: the Fixed assets outlier and the S2
+  same-amount-in-two-currencies case (both need the Fixed assets workbook; S2 takes longer to
+  explain).
+- Analysis date: the Payroll extract date (A38, built in #24), so on-screen counts no longer
+  move with the calendar; `OKANE_AS_OF` is not pinned.
+- On screen: the synthetic sample, the default of mentor question 8. The demo starts with last
+  week's synthetic Payroll extract loaded (`generate_previous_week`), so step 1 has an old
+  report to show and step 2 uploads this week's. The script is `docs/DEMO.md`; a test walks it.
+- Reset (#26): `make demo-reset` rebuilds `data/demo/` only (a demo folder of its own, so the
+  real `data/inbox`, database and `.env` are never touched); it prints its plan, needs
+  `--yes`, and refuses anything that is not the demo's own synthetic files (links included,
+  checked before anything is deleted). `--real` moves the database and extract store named in
+  the app's settings aside, never deletes, and leaves the watched folder alone
+  (A38), so #26's "take the newest extract out of the inbox" is left to the person.
+- Real data: with `people_only` the top hit is Payroll BPP C242 48900002 document 7910008634
+  (2019, USER_120, about 57,769x the account median). With the lead-time rule (A8, decided in
+  #16) it is caught 16 days before that month's close review (weekly view; 21 days counted from
+  the posting date). The alternative candidate (Fixed assets P20 C218 119001 document
+  7750001797) needs the Fixed assets workbook.
+Owner: team.
 
 **A4. S2 two currencies.** *Decided (#10).* S2 flags the same amount posted in different
 document currencies on the same ERP, entity, account and posting date, when the amount in
@@ -332,6 +390,11 @@ the name "CC06" is dropped.
   top score 159.
 - Rejected: the earlier rule (entity, account, document type and line text, 3+ months; 42
   Payroll and about 38 Fixed assets clusters, no score) and the original without the user.
+- Card (#31, static part): what is corrected (document type, account), how often (lines,
+  documents, first and last month), where (company codes), who (one colleague or several,
+  by hand) and what fixing the source would remove, all read from the record's facts and
+  labelled a hypothesis. The model-written text (A10, contract merged in #61 and #62) is
+  still to be built.
 Owner: team.
 
 ## Lead time and score
@@ -368,13 +431,30 @@ is pending mentor question 2).*
   (overstates what a Monday run delivers by up to 6 days).
 Owner: team.
 
-**A9. Risk score.** *Decide.* Weights come from Rules (40/20/20/10/10). Each component is scaled
-to 0..1: exposure = |exposure| / (5 x materiality), capped; days past expected = days / 90,
-capped (a gap counts from its first month above materiality); penalty account = 1 if the
-account is in `Rules.penalty_accounts` (default C192 279006, social security); error type =
-`Rules.error_type_severity`; repeats = (same type on the same account - 1) / 5, capped (a Miner
-cluster counts its months, a gap its months above materiality). With these, the C192 gap ranks
-first on real data (89.4), as the demo needs. Owner: team.
+**A9. Risk score.** *Decided (#18, 19 Nov 2026; the penalty-account list is pending mentor
+question 6).* Weights come from Rules (40/20/20/10/10); each component is scaled to 0..1,
+multiplied by its weight and rounded to 0.1 point, and the score is the sum of those points, so
+the breakdown adds up to the score.
+- Exposure = |exposure| / (`Rules.exposure_cap_multiple` (5) x materiality), capped at 1.
+  Departs from the original rule (/ materiality, capped): with that, every finding at or above
+  materiality takes the full 40 points, the top of the list becomes ties, and the C192 gap leads
+  by 1 point on real data instead of 9.6.
+- Days past expected = days / `Rules.days_past_expected_cap` (90), capped (the original rule; a
+  gap counts from its first month-end above materiality).
+- Penalty account = 1 if the account is in `Rules.penalty_accounts`. Default C192 279006 (social
+  security), the recorded default of mentor question 6, until the mentor names the tax and
+  social-security accounts. Adding 279006 in the other P20 entities changes no ranking.
+- Error type = `Rules.error_type_severity` per finding type (the original rule).
+- Repeats = 1 when a Miner pattern (A7) on the same ERP, account and company code has at least
+  `Rules.repeats_min_months` (3) months, read from the Miner's `months` fact; otherwise 0. A
+  Miner card scores its own pattern. The original rule; replaces the earlier count of same-type
+  findings per account (which let missing payments on one account lift each other) and retires
+  `Rules.repeats_cap`.
+- Real Payroll (aggregates, as of 18 Nov 2026): the C192 gap ranks first at 79.4, ahead of 69.8;
+  at 100K it ranks first at 90, ahead of 89. Synthetic: first at 90, ahead of 65. Measured
+  alternatives, all keeping the gap first: the earlier rule 89.4 vs 75.8; the full original
+  (/ materiality) 90 vs 89.
+Owner: team.
 
 **A27. Suggested class.** *Info (confirmed 18 Nov 2026, #5).* Code (never the model) suggests:
 gap, outliers, S2, S3 = Required Adjustment Item; missing payment = Timing item if at most 30
@@ -516,7 +596,7 @@ Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default
 | 3 | Group closing rates for the run date, or ECB reference rates | #8 | drafted, not yet sent | ECB euro reference rates on each workbook's ageing date (public and reproducible), A11 | | |
 | 4 | Is the cross-ERP posting text on C192's payment lines a known route, and are some C192 batches paid quarterly? | #20 | drafted, not yet sent | Decided in #20 without waiting: missing payments only for batches due in the last 12 months (A15); a "quarterly" answer needs no change | | |
 | 5 | What repeated manual corrections on payroll and fixed-asset accounts usually fix (replaces the CC06 question) | #14 (then #15, #31) | drafted, not yet sent | The original Miner rule: person-posted lines with a header text, score = distinct entities x distinct months; the card is labelled a hypothesis and not called CC06 (A7) | | |
-| 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as built (A9) | | |
+| 6 | Which payroll accounts count as tax or social-security accounts for the risk-score penalty | #18 (then #19) | drafted, not yet sent | C192 279006 only, as decided in #18 (A9) | | |
 | 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |
 | 8 | May the video and deck show the real (scaled) data, or must they use the synthetic sample? | #25 (then #26, #37, #38) | drafted, not yet sent | Synthetic sample on screen; real figures only as the aggregates the brief quotes | | |
 | 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | no answer, default applied | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | Default applied in #23 (A38); revisit A38 if the mentor answers, especially on cloud folders | 19 Nov 2026 |

@@ -31,7 +31,7 @@ from app.ai import client as ai
 from app.ai import typo_check
 from app.config import Settings
 from app.database import Database, utcnow
-from app.engines.exposure import payroll_netting, score_records
+from app.engines.exposure import inbox_view, payroll_netting, score_records
 from app.engines.leadtime import apply_lead_time
 from app.engines.miner import run_miner
 from app.engines.pairs import paired_count
@@ -100,6 +100,7 @@ def run_engines(lines: pd.DataFrame, rules: Rules, as_of: Any) -> EngineOutput:
     records = apply_lead_time(records, lines, rules)
     netting = payroll_netting(lines, rules.materiality_eur)
     records = score_records(records, rules, as_of)
+    records = [r.model_copy(update={"inbox_view": inbox_view(r, rules)}) for r in records]
     by_type = Counter(r.type for r in records)
     counts = {
         "lines": len(lines),

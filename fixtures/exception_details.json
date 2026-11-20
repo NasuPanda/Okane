@@ -5,7 +5,7 @@
   "b80b0b905e1fe118": {
    "exception": {
     "id": "b80b0b905e1fe118",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "pulse_gap",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -40,13 +40,13 @@
     "lead_days": null,
     "expected_by": null,
     "suggested_class": "Required Adjustment Item",
-    "score": 100.0,
+    "score": 90.0,
     "score_breakdown": {
      "exposure": 40.0,
      "days_past_expected": 20.0,
      "penalty_account": 20.0,
      "error_type": 10.0,
-     "repeats": 10.0
+     "repeats": 0.0
     },
     "ai_comment": null,
     "verifier": "not_run",
@@ -54,6 +54,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "attention",
     "ai_check": null
    },
    "evidence_lines": [
@@ -577,7 +578,7 @@
   "5a2ed0b6c0c57484": {
    "exception": {
     "id": "5a2ed0b6c0c57484",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "pulse_spike",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -623,6 +624,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "attention",
     "ai_check": null
    },
    "evidence_lines": [
@@ -1026,7 +1028,7 @@
   "61ca766fbdf173e5": {
    "exception": {
     "id": "61ca766fbdf173e5",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1076,6 +1078,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "attention",
     "ai_check": null
    },
    "evidence_lines": [
@@ -1479,7 +1482,7 @@
   "4b75e13ab2dc5a8d": {
    "exception": {
     "id": "4b75e13ab2dc5a8d",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "sentinel_outlier",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1528,6 +1531,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "attention",
     "ai_check": null
    },
    "evidence_lines": [
@@ -1548,7 +1552,7 @@
   "5cb790939c58a948": {
    "exception": {
     "id": "5cb790939c58a948",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "sentinel_outlier",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -1597,6 +1601,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "attention",
     "ai_check": null
    },
    "evidence_lines": [
@@ -1617,7 +1622,7 @@
   "ca26141f45d62ffe": {
    "exception": {
     "id": "ca26141f45d62ffe",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "label_mismatch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1666,6 +1671,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "prompts",
     "ai_check": null
    },
    "evidence_lines": [
@@ -2089,7 +2095,7 @@
   "3267f451b8da112e": {
    "exception": {
     "id": "3267f451b8da112e",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2140,6 +2146,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "prompts",
     "ai_check": null
    },
    "evidence_lines": [
@@ -2523,7 +2530,7 @@
   "0c7228820c2b5ca8": {
    "exception": {
     "id": "0c7228820c2b5ca8",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "pulse_missing_batch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2560,6 +2567,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "attention",
     "ai_check": null
    },
    "evidence_lines": [],
@@ -2922,7 +2930,7 @@
   "d00346a86e3ca1d6": {
    "exception": {
     "id": "d00346a86e3ca1d6",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "miner_cluster",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2979,6 +2987,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "repeats",
     "ai_check": null
    },
    "evidence_lines": [
@@ -3009,7 +3018,7 @@
   "1578d0ba41872186": {
    "exception": {
     "id": "1578d0ba41872186",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "sentinel_currency_code",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3056,6 +3065,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "other",
     "ai_check": null
    },
    "evidence_lines": [
@@ -3076,7 +3086,7 @@
   "f04ae2adff34c19c": {
    "exception": {
     "id": "f04ae2adff34c19c",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "sentinel_currency_code",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3124,6 +3134,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "other",
     "ai_check": null
    },
    "evidence_lines": [
@@ -3144,7 +3155,7 @@
   "6c91062e6c599fb8": {
    "exception": {
     "id": "6c91062e6c599fb8",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "sentinel_two_currencies",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3191,6 +3202,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "other",
     "ai_check": null
    },
    "evidence_lines": [
@@ -3221,7 +3233,7 @@
   "0c33474c40046521": {
    "exception": {
     "id": "0c33474c40046521",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "sentinel_two_currencies",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3268,6 +3280,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "other",
     "ai_check": null
    },
    "evidence_lines": [
@@ -3298,7 +3311,7 @@
   "f4d7086d081a2e09": {
    "exception": {
     "id": "f4d7086d081a2e09",
-    "run_id": "run_20261119T191229_1bac89",
+    "run_id": "run_20261120T153716_18ac98",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3349,6 +3362,7 @@
     "decision_reason": null,
     "decided_class": null,
     "edited_comment": null,
+    "inbox_view": "prompts",
     "ai_check": null
    },
    "evidence_lines": [
