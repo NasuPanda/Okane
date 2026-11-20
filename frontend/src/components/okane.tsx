@@ -244,14 +244,17 @@ export function PageHeader({
   subtitle,
   trail,
   actions,
+  tour,
 }: {
   title: string;
   subtitle?: React.ReactNode;
   trail?: string[];
   actions?: React.ReactNode;
+  /** A key the tutorial (A39) highlights. */
+  tour?: string;
 }) {
   return (
-    <div className="rise flex flex-wrap items-end justify-between gap-4">
+    <div data-tour={tour} className="rise flex flex-wrap items-end justify-between gap-4">
       <div className="space-y-2">
         <div className="flex items-baseline gap-5">
           <h1 className="text-[2.1rem] leading-none font-light tracking-tight">{title}</h1>
@@ -304,6 +307,7 @@ export function StatCard({
   bars,
   index = 0,
   dark,
+  tour,
 }: {
   label: string;
   value: React.ReactNode;
@@ -315,9 +319,12 @@ export function StatCard({
   bars: number;
   index?: number;
   dark?: boolean;
+  /** A key the tutorial (A39) highlights. */
+  tour?: string;
 }) {
   return (
     <div
+      data-tour={tour}
       className={cn(
         "rise group flex flex-col justify-between gap-4 rounded-2xl p-5 transition-transform hover:-translate-y-0.5",
         dark ? "bg-dock text-white" : "bg-card",

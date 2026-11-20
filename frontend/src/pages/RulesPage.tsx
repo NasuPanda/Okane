@@ -63,15 +63,18 @@ function NumberField({
   value,
   onChange,
   step = 1,
+  tour,
 }: {
   label: string;
   hint: string;
   value: number;
   onChange: (v: number) => void;
   step?: number;
+  /** A key the tutorial (A39) highlights. */
+  tour?: string;
 }) {
   return (
-    <label className="grid grid-cols-[1fr_140px] items-center gap-4 border-b border-dashed py-3">
+    <label data-tour={tour} className="grid grid-cols-[1fr_140px] items-center gap-4 border-b border-dashed py-3">
       <span>
         <span className="block text-sm">{label}</span>
         <span className="block text-xs text-muted-foreground">{hint}</span>
@@ -99,11 +102,13 @@ function WordListField({
   hint,
   value,
   onChange,
+  tour,
 }: {
   label: string;
   hint: string;
   value: string[];
   onChange: (v: string[]) => void;
+  tour?: string;
 }) {
   const joined = value.join(", ");
   const [text, setText] = useState(joined);
@@ -112,7 +117,7 @@ function WordListField({
     setText((current) => (parseWords(current).join(", ") === joined ? current : joined));
   }, [joined]);
   return (
-    <label className="grid gap-2 border-b border-dashed py-3">
+    <label data-tour={tour} className="grid gap-2 border-b border-dashed py-3">
       <span>
         <span className="block text-sm">{label}</span>
         <span className="block text-xs text-muted-foreground">{hint}</span>
@@ -174,6 +179,7 @@ export function RulesPage() {
       <PageHeader
         title="Rules"
         trail={["Your settings", "Every change is logged"]}
+        tour="rules-header"
         subtitle="You decide what counts as important. Okane never guesses: every finding is ranked with the numbers on this page, and every change is written to the log with your reason."
       />
 
@@ -182,7 +188,7 @@ export function RulesPage() {
           <Skeleton className="h-[600px]" />
         ) : (
           <div className="space-y-6">
-            <Card className="space-y-5 p-6">
+            <Card data-tour="rules-materiality" className="space-y-5 p-6">
               <div className="flex items-end justify-between gap-6">
                 <div className="space-y-2">
                   <div className="eyebrow">How big is "big"? · materiality</div>
@@ -213,6 +219,7 @@ export function RulesPage() {
               <div className="eyebrow mb-2">Matching payments to accruals</div>
               <NumberField
                 label="Tolerance (share of batch)"
+                tour="rules-tolerance"
                 hint="How close a payment must be to its accrual, e.g. 0.01 = within 1%"
                 step={0.005}
                 value={draft.tolerance_pct ?? 0}
@@ -220,6 +227,7 @@ export function RulesPage() {
               />
               <NumberField
                 label="Tolerance floor (EUR)"
+                tour="rules-tolerance-floor"
                 hint="Small differences up to this amount always count as a match"
                 step={100}
                 value={draft.tolerance_eur ?? 0}
@@ -227,23 +235,26 @@ export function RulesPage() {
               />
               <NumberField
                 label="Grace days"
+                tour="rules-grace"
                 hint="Extra days we wait after the usual payment date before calling it missing"
                 value={draft.grace_days ?? 0}
                 onChange={(v) => set("grace_days", v)}
               />
               <NumberField
                 label="Missing payments: months checked"
+                tour="rules-missing-months"
                 hint="Accruals whose payment was due longer ago are not raised (the gap alert still lists them)"
                 value={draft.missing_payment_lookback_months ?? 12}
                 onChange={(v) => set("missing_payment_lookback_months", v)}
               />
               <NumberField
                 label="Close review: working day after month end"
+                tour="rules-close-day"
                 hint="Today's close review falls on this working day (Mon-Fri); used for 'days earlier'"
                 value={draft.close_review_working_day ?? 5}
                 onChange={(v) => set("close_review_working_day", v)}
               />
-              <label className="grid grid-cols-[1fr_220px] items-center gap-4 border-b border-dashed py-3">
+              <label data-tour="rules-holidays" className="grid grid-cols-[1fr_220px] items-center gap-4 border-b border-dashed py-3">
                 <span>
                   <span className="block text-sm">Close review: holidays</span>
                   <span className="block text-xs text-muted-foreground">
@@ -266,7 +277,7 @@ export function RulesPage() {
                   className="num"
                 />
               </label>
-              <div className="space-y-2 py-3">
+              <div data-tour="rules-lead-view" className="space-y-2 py-3">
                 <div className="text-sm">Count "days earlier" from</div>
                 <div className="grid grid-cols-2 gap-2">
                   {([
@@ -293,12 +304,13 @@ export function RulesPage() {
               <div className="eyebrow">Posting-day checks</div>
               <NumberField
                 label="Unusually large means"
+                tour="rules-outlier"
                 hint="Times bigger than the account's usual amount"
                 step={100}
                 value={draft.outlier_multiple ?? 0}
                 onChange={(v) => set("outlier_multiple", v)}
               />
-              <div className="space-y-2">
+              <div data-tour="rules-s1-scope" className="space-y-2">
                 <div className="text-sm">Check large amounts posted by</div>
                 <div className="grid grid-cols-3 gap-2">
                   {SCOPES.map((s) => (
@@ -318,6 +330,7 @@ export function RulesPage() {
               </div>
               <NumberField
                 label="Same amount, two currencies: smallest amount"
+                tour="rules-s2-min"
                 hint="Amounts below this, as typed in the document currency, are not checked"
                 step={100}
                 value={draft.sentinel_s2_min_amount ?? 0}
@@ -326,43 +339,49 @@ export function RulesPage() {
               <div className="pt-2 text-sm font-medium">Possible typos</div>
               <NumberField
                 label="Rare word: seen at most"
+                tour="rules-typo-rare"
                 hint="Times in the run; a word used more often than this is never flagged"
                 value={draft.typo_max_rare_count ?? 0}
                 onChange={(v) => set("typo_max_rare_count", v)}
               />
               <NumberField
                 label="Usual spelling: at least … times as common"
+                tour="rules-typo-ratio"
                 hint="The word it looks like must be used this many times more often"
                 value={draft.typo_common_ratio ?? 0}
                 onChange={(v) => set("typo_common_ratio", v)}
               />
               <NumberField
                 label="Letters different"
+                tour="rules-typo-edits"
                 hint="One letter added, removed or replaced counts as one (1 to 3)"
                 value={draft.typo_max_edits ?? 0}
                 onChange={(v) => set("typo_max_edits", v)}
               />
               <NumberField
                 label="Shortest word checked"
+                tour="rules-typo-length"
                 hint="Letters; shorter words are never flagged"
                 value={draft.typo_min_word_length ?? 0}
                 onChange={(v) => set("typo_min_word_length", v)}
               />
               <NumberField
                 label="Wrong month label: smallest document"
+                tour="rules-period-label"
                 hint="Lines naming a month; a line naming another month than most of them is flagged"
                 value={draft.period_label_min_lines ?? 0}
                 onChange={(v) => set("period_label_min_lines", v)}
               />
               <WordListField
                 label="Words that are never typos"
+                tour="rules-allow-list"
                 hint="Abbreviations and foreign words, separated by commas; no typo prompt is raised for them"
                 value={draft.typo_allow_list ?? []}
                 onChange={(v) => set("typo_allow_list", v)}
               />
             </Card>
 
-            <Card className="space-y-4 p-6">
+            <Card data-tour="rules-miner" className="space-y-4 p-6">
               <div className="eyebrow">Repeated manual postings</div>
               <NumberField
                 label="Smallest repeat strength"
@@ -402,7 +421,7 @@ export function RulesPage() {
               </div>
             </Card>
 
-            <Card className="space-y-3 p-6">
+            <Card data-tour="rules-weights" className="space-y-3 p-6">
               <div className="flex items-center justify-between">
                 <div className="eyebrow">What matters most to you · priority weights</div>
                 <span className={cn("num text-xs", weightSum === 100 ? "text-muted-foreground" : "text-warn")}>
@@ -437,6 +456,7 @@ export function RulesPage() {
             </Card>
 
             <Card
+              data-tour="rules-save"
               className={cn(
                 "space-y-3 border p-5 transition-shadow",
                 changes > 0 && "sticky bottom-28 z-10 border-signal shadow-xl",
@@ -473,7 +493,7 @@ export function RulesPage() {
           </div>
         )}
 
-        <Card className="h-fit space-y-4 p-6">
+        <Card data-tour="rules-log" className="h-fit space-y-4 p-6">
           <div className="eyebrow flex items-center gap-1.5">
             <History className="size-3.5" /> Who changed what
           </div>

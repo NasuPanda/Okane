@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { FileUp, FolderInput, Inbox, Layers, Loader2, Moon, Play, Radar, SlidersHorizontal, Sun } from "lucide-react";
+import { FileUp, FolderInput, GraduationCap, Inbox, Layers, Loader2, Moon, Play, Radar, SlidersHorizontal, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -12,6 +12,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/lib/theme";
 import { cn, stamp } from "@/lib/utils";
+import { TutorialLayer } from "@/tutorial/TutorialCard";
+import { TutorialProvider, useTutorial } from "@/tutorial/TutorialProvider";
 
 const NAV = [
   { to: "/", label: "Inbox: what needs you", icon: Inbox, end: true },
@@ -43,6 +45,7 @@ function ThemeToggle() {
     <Tooltip>
       <TooltipTrigger asChild>
         <button
+          data-tour="tour-theme"
           onClick={toggle}
           aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
           className="relative grid size-10 place-items-center overflow-hidden rounded-lg border bg-secondary transition hover:bg-accent"
@@ -56,12 +59,27 @@ function ThemeToggle() {
   );
 }
 
+/** "Tutorial": Mr. Kentaro's guided tour of every page (A39). */
+function TutorialButton() {
+  const tour = useTutorial();
+  return (
+    <button
+      data-tour="tour-tutorial"
+      onClick={tour.start}
+      className="flex h-10 items-center gap-2 rounded-lg border bg-secondary px-3 text-sm font-medium transition hover:bg-accent"
+    >
+      <GraduationCap className="size-[18px] text-sentinel" />
+      Tutorial
+    </button>
+  );
+}
+
 function TopBar() {
   const { pathname } = useLocation();
   return (
     <header className="flex items-center justify-between gap-6 py-6">
       <Logo />
-      <nav className="flex items-center gap-2 rounded-2xl border bg-card/60 p-1.5 backdrop-blur" aria-label="Main">
+      <nav data-tour="tour-nav" className="flex items-center gap-2 rounded-2xl border bg-card/60 p-1.5 backdrop-blur" aria-label="Main">
         {NAV.map(({ to, label, icon: Icon, end }) => {
           // Radix asChild merges className as a string, so the active state is computed here.
           const active = end ? pathname === to : pathname.startsWith(to);
@@ -95,6 +113,7 @@ function TopBar() {
         >
           {API_MODE === "fixtures" ? "Practice data" : "Live data"} · amounts are scaled EUR
         </span>
+        <TutorialButton />
         <ThemeToggle />
         <div className="flex items-center gap-2.5 rounded-xl border bg-secondary py-1 pr-3 pl-1">
           <span className="grid size-8 place-items-center rounded-lg bg-signal text-xs font-semibold text-[#0d0d0f]">C</span>
@@ -150,7 +169,7 @@ function RunDock() {
   const open = kpis.data?.open_exceptions;
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center">
-      <div className="rise pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/5 bg-dock/95 p-2 pr-2.5 text-white shadow-2xl backdrop-blur" style={{ "--d": "400ms" } as React.CSSProperties}>
+      <div data-tour="tour-dock" className="rise pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/5 bg-dock/95 p-2 pr-2.5 text-white shadow-2xl backdrop-blur" style={{ "--d": "400ms" } as React.CSSProperties}>
         <span className={cn("grid size-10 place-items-center rounded-xl", busy ? "bg-dock-raised" : "bg-signal text-[#0d0d0f]")}>
           {busy ? <Loader2 className="size-5 animate-spin text-signal" /> : <FolderInput className="size-5" />}
         </span>
@@ -298,6 +317,14 @@ function DropZone() {
 }
 
 export function AppShell() {
+  return (
+    <TutorialProvider>
+      <Shell />
+    </TutorialProvider>
+  );
+}
+
+function Shell() {
   const [params, setParams] = useSearchParams();
   const { pathname } = useLocation();
   const finding = params.get("finding");
@@ -327,6 +354,7 @@ export function AppShell() {
         }}
       />
       <Toaster />
+      <TutorialLayer />
     </div>
   );
 }

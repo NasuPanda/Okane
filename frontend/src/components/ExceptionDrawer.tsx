@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { Skeleton } from "@/components/ui/skeleton";
 import { CLASSES, factLabel, isAmountFact, promptOf, STATUS_LABEL, TYPE_HINT, WEIGHT_LABEL, toneOf } from "@/lib/labels";
 import { cn, day, eur, stamp } from "@/lib/utils";
+import { useTutorial } from "@/tutorial/TutorialProvider";
 
 const WEIGHT_COLOR: Record<string, string> = {
   exposure: "var(--forest)",
@@ -36,9 +37,19 @@ function factValue(key: string, value: number | string): string {
   return value.toLocaleString("en-GB");
 }
 
-function Section({ title, children, aside }: { title: string; children: React.ReactNode; aside?: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  aside,
+  tour,
+}: {
+  title: string;
+  children: React.ReactNode;
+  aside?: React.ReactNode;
+  tour?: string;
+}) {
   return (
-    <section className="rise space-y-3 border-t py-5">
+    <section data-tour={tour} className="rise space-y-3 border-t py-5">
       <div className="flex items-center justify-between">
         <h3 className="eyebrow">{title}</h3>
         {aside}
@@ -111,7 +122,7 @@ function MistakePrompts({ record }: { record: ExceptionRecord }) {
   const all = own ? [record, ...prompts] : prompts;
   if (!all.length) return null;
   return (
-    <Section title="Heads-up: possible slips on this account">
+    <Section title="Heads-up: possible slips on this account" tour="drawer-slips">
       <div className="space-y-2">
         {all.slice(0, 4).map((r) => (
           <div key={r.id} className="flex gap-3 rounded-xl bg-mistake-soft p-3 text-sm">
@@ -159,7 +170,7 @@ function Decision({ record }: { record: ExceptionRecord }) {
   };
 
   return (
-    <Section title="Your call" aside={<StatusPill status={record.status} />}>
+    <Section title="Your call" aside={<StatusPill status={record.status} />} tour="drawer-call">
       <div className="grid grid-cols-3 gap-2">
         {CLASSES.map((c) => (
           <button
@@ -207,10 +218,12 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
   const rules = useRules();
   const record = detail.data?.exception;
   const materiality = Number(record?.facts.materiality_eur ?? rules.data?.materiality_eur ?? 500_000);
+  const tour = useTutorial();
 
   return (
     <Sheet open={!!id} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="overflow-y-auto">
+      {/* During the tutorial (A39) a click on the tour card must not close this panel. */}
+      <SheetContent className="overflow-y-auto" onInteractOutside={(e) => tour.active && e.preventDefault()}>
         {!record ? (
           <div className="space-y-4 p-8">
             <SheetTitle className="sr-only">Loading finding</SheetTitle>
@@ -225,7 +238,7 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
               className={cn("pointer-events-none absolute inset-x-0 top-0 h-44", toneOf(record.type).soft)}
               style={{ maskImage: "linear-gradient(to bottom, black, transparent)" }}
             />
-            <header className="rise relative space-y-3 pr-12">
+            <header data-tour="drawer-header" className="rise relative space-y-3 pr-12">
               <div className="flex flex-wrap items-center gap-3">
                 <TypeIcon type={record.type} size="lg" />
                 <TypeLabel type={record.type} />
@@ -250,7 +263,7 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
               </div>
             </header>
 
-            <div className="rise relative mt-6 grid grid-cols-2 gap-5 rounded-2xl bg-card p-5 shadow-sm sm:grid-cols-4" style={stagger(1, 80)}>
+            <div data-tour="drawer-stats" className="rise relative mt-6 grid grid-cols-2 gap-5 rounded-2xl bg-card p-5 shadow-sm sm:grid-cols-4" style={stagger(1, 80)}>
               <Stat label="Amount · scaled EUR" className="col-span-2 sm:col-span-1">
                 <span className={cn("text-2xl", priorityTone(record.score).text)}>{eur(record.exposure_eur)}</span>
               </Stat>
@@ -261,6 +274,7 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
 
             {detail.data?.timeline && (
               <Section
+                tour="drawer-chart"
                 title="The money over time · scaled EUR"
                 aside={<span className="text-xs text-muted-foreground">coral bars are over the {eur(materiality)} limit</span>}
               >
@@ -270,7 +284,7 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
 
             <MistakePrompts record={record} />
 
-            <Section title="A note for the file">
+            <Section title="A note for the file" tour="drawer-note">
               <CommentPanel record={record} />
             </Section>
 
@@ -293,7 +307,7 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
               </dl>
             </Section>
 
-            <Section title={`Why it's this high on your list · ${record.score.toFixed(0)} of 100`}>
+            <Section title={`Why it's this high on your list · ${record.score.toFixed(0)} of 100`} tour="drawer-why">
               <div className="space-y-2">
                 {Object.entries(record.score_breakdown).map(([k, v]) => {
                   const weight = rules.data?.weights?.[k] ?? 0;

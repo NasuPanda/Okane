@@ -13,6 +13,8 @@ is on screen), A9 (risk score), A25 (inbox), A38 (extract intake).
 - **Start state:** last week's Payroll extract and the Fixed assets extract are already loaded
   (analysis date 16 Oct 2026); this week's Payroll extract (taken 23 Oct 2026) waits in the
   demo folder's `ready/` for step 2.
+- **Tutorial mode** (the Tutorial button, A39) is not part of the video: close it (X or Esc)
+  before a take.
 
 ## Before each take: reset the demo
 

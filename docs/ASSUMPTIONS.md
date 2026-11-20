@@ -35,6 +35,7 @@ so nobody re-investigates).
 | A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
 | A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
+| A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 
 ## Data and ingestion
@@ -152,6 +153,40 @@ in #24.
 - Rejected: folder only, with no upload page (the demo would not show a pipeline anyone could
   use); the run date as the analysis date (false missing payments between extracts); "late
   after 7 days" with old files overwritten (no re-run of a past week).
+Owner: team.
+
+**A39. Tutorial mode.** *Decided (20 Nov 2026, requested by the team; built on
+`feat/tutorial-mode`, not yet merged).* A guided tour for first-time users and judges. It is
+beyond the brief's P0 list (BRIEF.md section 3, "Should have").
+- What it is: a **Tutorial** button in the top bar of every page starts a tour by Mr. Kentaro,
+  an original 2D mascot (a Japanese office worker in a suit, with a samurai helmet). About 40
+  cards cover the four pages in order: two intro cards on what Okane is for, the top bar, then
+  each section of the Inbox, Exposure, Sentinel and Rules pages, the Rules settings in on-screen
+  order, and an outro. Each page ends with one or two worked examples on the data on screen:
+  what is wrong and how to approach it. The Inbox example opens the top finding's details.
+- How it looks: the sections a card explains are highlighted with a glowing ring, and the rest
+  of the page is softly blurred. Arrows on the card's sides (or the arrow keys) go back and
+  forth; the X (or Esc) leaves. Cards are a vibrant colour picked at random per page when the
+  tour starts, the same on every card of that page.
+- Tutorials (PR #66 review): the button opens a menu: **this page**, **a page to pick**
+  (Getting started 5 cards, Inbox 15, Exposure 5, Sentinel 6, Rules 12) or **the full tour**
+  (44). A page tutorial ends with "Another tutorial" (back to the menu, the finished one ticked)
+  or "Finish"; ← on the first card returns to the menu.
+- Motion: the card sits right next to what it explains (below, above or beside it) and glides
+  from one card's place to the next (350ms), as do the highlights. The last card ends with Mr. Kentaro
+  suiting up in full samurai armour and vanishing in a burst of cherry blossoms. With reduced
+  motion switched on, nothing glides and the blossoms are skipped.
+- Read-only, always: the tour never changes data. A transparent layer takes every click and the
+  keyboard is limited to the tour's own keys and scrolling, so nothing on a page can be pressed
+  or typed into. The tour calls no API that writes, and doesn't touch the period, tabs or
+  filters. Opening a finding's details only changes the address (`?finding=`), and its draft
+  note is only read from the cache.
+- Plain words: as simple as possible, no jargon. Figures on example cards come from the data
+  on screen, never typed into the script; without such data a card uses general words.
+- How it's built: a small custom tour in `frontend/src/tutorial/`, not react-joyride, which
+  doesn't support React 19 officially, highlights one element per step and dims rather than
+  blurs. Sections carry a `data-tour="key"` marker; `tutorial/steps.tsx` lists the cards and
+  the keys they highlight. CONTRIBUTING.md asks to keep both in step.
 Owner: team.
 
 ## Pulse
