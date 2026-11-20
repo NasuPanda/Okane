@@ -15,8 +15,16 @@ export type TourCtx = {
   run?: Run | null;
 };
 
+/** The tutorials a person can pick (A39): "Getting started" and one per page. */
+export type ModuleId = "start" | "inbox" | "exposure" | "sentinel" | "rules";
+export type Choice = "full" | ModuleId;
+
 export type Step = {
   page: TourPage;
+  /** Which tutorial the card belongs to; by default the one of its page. */
+  module?: ModuleId;
+  /** Only in the full tour (the closing card). */
+  fullOnly?: boolean;
   title: string;
   body: (ctx: TourCtx) => React.ReactNode;
   /** `data-tour` keys to highlight; none = an intro card in the middle of the screen. */
@@ -26,6 +34,23 @@ export type Step = {
   pose?: Pose;
   example?: boolean;
 };
+
+export const MODULES: { id: ModuleId; name: string; page: TourPage; about: string }[] = [
+  { id: "start", name: "Getting started", page: "/", about: "What Okane is for, and the buttons at the top" },
+  { id: "inbox", name: "Inbox", page: "/", about: "Your list of findings, and how to work through one" },
+  { id: "exposure", name: "Exposure", page: "/exposure", about: "How much is really still owed" },
+  { id: "sentinel", name: "Sentinel", page: "/sentinel", about: "Slips caught on the day they're posted" },
+  { id: "rules", name: "Rules", page: "/rules", about: "Your settings, one by one, in order" },
+];
+
+const PAGE_MODULE: Record<TourPage, ModuleId> = { "/": "inbox", "/exposure": "exposure", "/sentinel": "sentinel", "/rules": "rules" };
+
+export const moduleOf = (step: Step): ModuleId => step.module ?? PAGE_MODULE[step.page];
+
+/** The page in view as a tutorial ("This page"). */
+export function moduleOfPath(pathname: string): ModuleId {
+  return (Object.entries(PAGE_MODULE).find(([page]) => page !== "/" && pathname.startsWith(page))?.[1] ?? "inbox") as ModuleId;
+}
 
 export const PAGE_NAME: Record<TourPage, string> = {
   "/": "Inbox",
@@ -65,6 +90,7 @@ export const STEPS: Step[] = [
     page: "/",
     pose: "wave",
     title: "Konnichiwa! I'm Mr. Kentaro",
+    module: "start",
     body: () => (
       <>
         Welcome to <B>Okane</B>. Okane reads your payroll and fixed asset books and shows you only the
@@ -77,6 +103,7 @@ export const STEPS: Step[] = [
     page: "/",
     pose: "wave",
     title: "Why Okane exists",
+    module: "start",
     body: () => (
       <>
         Today's report calls every line older than a year "overdue". That is too loud: most of those lines
@@ -92,6 +119,7 @@ export const STEPS: Step[] = [
     page: "/",
     targets: ["tour-nav"],
     title: "Four pages",
+    module: "start",
     body: () => (
       <List
         items={[
@@ -107,6 +135,7 @@ export const STEPS: Step[] = [
     page: "/",
     targets: ["tour-dock"],
     title: "Bring in this week's numbers",
+    module: "start",
     body: () => (
       <>
         Each week, press <B>Upload extract</B> and pick the Payroll or Fixed assets workbook (or drop the file
@@ -119,6 +148,7 @@ export const STEPS: Step[] = [
     page: "/",
     targets: ["tour-tutorial", "tour-theme"],
     title: "Help, light and dark",
+    module: "start",
     body: () => (
       <>
         Press <B>Tutorial</B> any time to see me again. The sun and moon button switches between a light and
@@ -681,6 +711,7 @@ export const STEPS: Step[] = [
     page: "/",
     pose: "wave",
     title: "You're ready!",
+    fullOnly: true,
     body: () => (
       <>
         That's the whole app. Start with the first row of your Inbox, check the proof, and make your call. Press{" "}
@@ -689,3 +720,8 @@ export const STEPS: Step[] = [
     ),
   },
 ];
+
+/** The cards of a tutorial, as indexes into STEPS: every card for the full tour, or one module. */
+export function sequence(choice: Choice): number[] {
+  return STEPS.flatMap((step, i) => (choice === "full" || (!step.fullOnly && moduleOf(step) === choice) ? [i] : []));
+}

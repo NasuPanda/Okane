@@ -1,31 +1,40 @@
-// Tutorial mode state (docs/ASSUMPTIONS.md A39): which card is showing, the page it belongs to,
-// and the finding it opens. The tour only navigates and reads; it never calls an API that writes.
+// Tutorial mode state (docs/ASSUMPTIONS.md A39): the menu (which tutorial), the chosen cards, the
+// card showing, its page and the finding it opens. The tour only navigates and reads; it never
+// calls an API that writes.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import { useExceptions, useExposure, useKpis, useLatestRun, useRules } from "@/api/hooks";
-import { STEPS, type Step, type TourCtx, type TourPage } from "@/tutorial/steps";
+import { STEPS, sequence, type Choice, type Step, type TourCtx, type TourPage } from "@/tutorial/steps";
 
-// Vibrant card colours with dark text. Each tour shuffles them, one per page.
+// Vibrant card colours with dark text. Each tutorial session shuffles them, one per page.
 const PALETTE = ["#ff8a80", "#ffb74d", "#ffe066", "#9be15d", "#5ee6c4", "#7cc4ff", "#b69cff", "#ff8fc4", "#c6f560"];
 const PAGES: TourPage[] = ["/", "/exposure", "/sentinel", "/rules"];
 /** How long the farewell runs: armour (about 1.1s), then the vanish and the cherry blossoms. */
 export const FINALE_MS = 3400;
 
-export type Phase = "tour" | "finale";
+/** "menu": which tutorial? "tour": a card. "finale": Mr. Kentaro's farewell. */
+export type Phase = "menu" | "tour" | "finale";
 
 type TutorialState = {
   active: boolean;
   phase: Phase;
+  choice: Choice;
+  /** Position within the chosen tutorial, and its number of cards. */
   index: number;
   total: number;
+  /** The card's position in STEPS (stable across tutorials), or -1 in the menu. */
+  stepId: number;
   step: Step;
   ctx: TourCtx;
   color: string;
+  done: Set<Choice>;
   start: () => void;
   stop: () => void;
   next: () => void;
   prev: () => void;
+  choose: (choice: Choice) => void;
+  toMenu: () => void;
 };
 
 const TutorialContext = createContext<TutorialState | null>(null);
@@ -41,8 +50,11 @@ function shuffled<T>(items: T[]): T[] {
 
 export function TutorialProvider({ children }: { children: React.ReactNode }) {
   const [active, setActive] = useState(false);
-  const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState<Phase>("tour");
+  const [phase, setPhase] = useState<Phase>("menu");
+  const [choice, setChoice] = useState<Choice>("full");
+  const [seq, setSeq] = useState<number[]>(() => sequence("full"));
+  const [pos, setPos] = useState(0);
+  const [done, setDone] = useState<Set<Choice>>(new Set());
   const [colors, setColors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,20 +69,22 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     [exceptions.data, kpis.data, rules.data, exposure.data, run.data],
   );
 
-  const step = STEPS[index];
-  const wantFinding = active ? (step.finding?.(ctx) ?? null) : null;
+  const menu = phase === "menu";
+  const stepId = menu ? -1 : (seq[pos] ?? 0);
+  const step = STEPS[Math.max(stepId, 0)];
+  const wantFinding = active && !menu ? (step.finding?.(ctx) ?? null) : null;
 
   const start = useCallback(() => {
     const picks = shuffled(PALETTE);
     setColors(Object.fromEntries(PAGES.map((p, i) => [p, picks[i]])));
-    setIndex(0);
-    setPhase("tour");
+    setDone(new Set());
+    setPhase("menu");
     setActive(true);
   }, []);
 
   const stop = useCallback(() => {
     setActive(false);
-    setPhase("tour");
+    setPhase("menu");
     // Close a finding the tour opened; leave the page where it is.
     const params = new URLSearchParams(location.search);
     if (params.has("finding")) {
@@ -80,15 +94,31 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     }
   }, [location.pathname, location.search, navigate]);
 
-  // The last card's "next" plays the farewell: Mr. Kentaro suits up and vanishes in blossoms.
+  const choose = useCallback((picked: Choice) => {
+    setChoice(picked);
+    setSeq(sequence(picked));
+    setPos(0);
+    setPhase("tour");
+  }, []);
+  const toMenu = useCallback(() => setPhase("menu"), []);
+
+  // Reaching the last card of a tutorial ticks it in the menu.
+  useEffect(() => {
+    if (phase === "tour" && pos === seq.length - 1) setDone((d) => (d.has(choice) ? d : new Set(d).add(choice)));
+  }, [phase, pos, seq.length, choice]);
+
+  // → past the last card plays the farewell: Mr. Kentaro suits up and vanishes in blossoms.
   const next = useCallback(() => {
-    if (phase === "finale") return;
-    if (index >= STEPS.length - 1) setPhase("finale");
-    else setIndex(index + 1);
-  }, [index, phase]);
+    if (phase !== "tour") return;
+    if (pos >= seq.length - 1) setPhase("finale");
+    else setPos(pos + 1);
+  }, [phase, pos, seq.length]);
+  // ← on the first card goes back to the menu.
   const prev = useCallback(() => {
-    if (phase !== "finale") setIndex((i) => Math.max(0, i - 1));
-  }, [phase]);
+    if (phase !== "tour") return;
+    if (pos === 0) setPhase("menu");
+    else setPos(pos - 1);
+  }, [phase, pos]);
 
   useEffect(() => {
     if (phase !== "finale") return;
@@ -96,10 +126,18 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [phase, stop]);
 
-  // Go to the card's page, with its finding open or closed (both are only URL changes).
+  // Go to the card's page, with its finding open or closed (both are only URL changes). The
+  // menu stays on the page in view and closes any finding the tour opened.
   useEffect(() => {
     if (!active) return;
     const params = new URLSearchParams(location.search);
+    if (menu) {
+      if (!params.has("finding")) return;
+      params.delete("finding");
+      const search = params.toString();
+      navigate({ pathname: location.pathname, search: search ? `?${search}` : "" }, { replace: true });
+      return;
+    }
     const onPage = location.pathname === step.page;
     if (onPage && params.get("finding") === wantFinding) return;
     if (!onPage) params.delete("view");
@@ -107,10 +145,11 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     else params.delete("finding");
     const search = params.toString();
     navigate({ pathname: step.page, search: search ? `?${search}` : "" }, { replace: true });
-  }, [active, step.page, wantFinding, location.pathname, location.search, navigate]);
+  }, [active, menu, step.page, wantFinding, location.pathname, location.search, navigate]);
 
   // Keys: arrows move, Esc leaves. While the tour runs nothing on the page can be typed into or
-  // pressed from the keyboard either (only Tab and scrolling keys pass), so no data can change.
+  // pressed from the keyboard either (only the card's own buttons, Tab and scrolling keys pass),
+  // so no data can change.
   useEffect(() => {
     if (!active) return;
     const onKey = (e: KeyboardEvent) => {
@@ -133,18 +172,24 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [active, next, prev, stop]);
 
+  const page = menu ? (PAGES.find((p) => p !== "/" && location.pathname.startsWith(p)) ?? "/") : step.page;
   const value: TutorialState = {
     active,
     phase,
-    index,
-    total: STEPS.length,
+    choice,
+    index: pos,
+    total: seq.length,
+    stepId,
     step,
     ctx,
-    color: colors[step.page] ?? PALETTE[0],
+    color: colors[page] ?? PALETTE[0],
+    done,
     start,
     stop,
     next,
     prev,
+    choose,
+    toMenu,
   };
   return <TutorialContext.Provider value={value}>{children}</TutorialContext.Provider>;
 }

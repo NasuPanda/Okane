@@ -10,7 +10,9 @@ const RADIUS = 14;
 
 export const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 /** The glide between cards: a soft ease-out, shared with the card's CSS transition. */
-export const GLIDE_MS = 600;
+export const GLIDE_MS = 350;
+/** Rings drawn at most (a card highlights a few sections; touching ones merge into one). */
+const RING_POOL = 8;
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
 const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
@@ -109,54 +111,8 @@ function lerpBoxes(from: Box[], to: Box[], k: number): Box[] {
   return out;
 }
 
-/** The highlights glide to the next card's sections; in between cards they follow the page
- *  directly (scrolling, resizing). The glide starts when the new card's sections appear. */
-export function useTweenedBoxes(target: Box[], stepId: number): Box[] {
-  const [shown, setShown] = useState<Box[]>(target);
-  const shownRef = useRef<Box[]>(target);
-  const targetRef = useRef<Box[]>(target);
-  const pending = useRef<{ step: number; from: Box[] } | null>(null);
-  const glide = useRef<{ from: Box[]; start: number } | null>(null);
-  const lastStep = useRef(stepId);
-  targetRef.current = target;
-
-  if (stepId !== lastStep.current) {
-    lastStep.current = stepId;
-    pending.current = { step: stepId, from: shownRef.current };
-  }
-
-  useEffect(() => {
-    const p = pending.current;
-    if (p && target !== p.from) {
-      pending.current = null;
-      if (!reducedMotion()) glide.current = { from: p.from, start: performance.now() };
-    }
-    if (glide.current) return;
-    shownRef.current = target;
-    setShown(target);
-  }, [target]);
-
-  useEffect(() => {
-    let frame = 0;
-    const tick = (now: number) => {
-      const g = glide.current;
-      if (g) {
-        const t = Math.min((now - g.start) / GLIDE_MS, 1);
-        const next = lerpBoxes(g.from, targetRef.current, easeOut(t));
-        if (t >= 1) glide.current = null;
-        shownRef.current = t >= 1 ? targetRef.current : next;
-        setShown(shownRef.current);
-      }
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  return shown;
-}
-
-function roundedRect({ x, y, w, h }: Box): string {
+function roundedRect(box: Box): string {
+  const [x, y, w, h] = [box.x, box.y, box.w, box.h].map((n) => Math.round(n * 2) / 2);
   const r = Math.min(RADIUS, w / 2, h / 2);
   return (
     `M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}` +
@@ -182,31 +138,92 @@ function forwardWheel(e: React.WheelEvent) {
   window.scrollBy({ top: e.deltaY });
 }
 
-export function Spotlight({ boxes, leaving = false }: { boxes: Box[]; leaving?: boolean }) {
-  const W = window.innerWidth;
-  const H = window.innerHeight;
-  const path = `M0 0H${W}V${H}H0Z` + boxes.map(roundedRect).join("");
+/** The blur with sharp holes, the rings and the click blocker. On a new card the holes and rings
+ *  glide to the new sections in one animation loop that writes styles straight to the page, so
+ *  React doesn't re-render anything per frame (it felt laggy before, PR #66 review). */
+export function Spotlight({ target, stepId, leaving = false }: { target: Box[]; stepId: number; leaving?: boolean }) {
+  const overlay = useRef<HTMLDivElement>(null);
+  const rings = useRef<(HTMLDivElement | null)[]>([]);
+  const targetRef = useRef<Box[]>(target);
+  const shownRef = useRef<Box[]>(target);
+  const pending = useRef<Box[] | null>(null);
+  const glide = useRef<{ from: Box[]; start: number } | null>(null);
+  const lastStep = useRef(stepId);
+  targetRef.current = target;
+
+  // A new card: glide from where the highlights are now, once the new sections are found.
+  if (stepId !== lastStep.current) {
+    lastStep.current = stepId;
+    pending.current = shownRef.current;
+  }
+  useEffect(() => {
+    const from = pending.current;
+    if (from && target !== from) {
+      pending.current = null;
+      if (!reducedMotion()) glide.current = { from, start: performance.now() };
+    }
+  }, [target]);
+
+  useEffect(() => {
+    let frame = 0;
+    let lastPath = "";
+    const draw = (now: number) => {
+      let boxes = targetRef.current;
+      const g = glide.current;
+      if (g) {
+        const t = Math.min((now - g.start) / GLIDE_MS, 1);
+        if (t >= 1) glide.current = null;
+        else boxes = lerpBoxes(g.from, boxes, easeOut(t));
+      }
+      shownRef.current = boxes;
+      const path = `M0 0H${window.innerWidth}V${window.innerHeight}H0Z` + boxes.map(roundedRect).join("");
+      if (path !== lastPath) {
+        lastPath = path;
+        if (overlay.current) overlay.current.style.clipPath = `path(evenodd, '${path}')`;
+        rings.current.forEach((el, i) => {
+          if (!el) return;
+          const b = boxes[i];
+          if (!b) {
+            el.style.display = "none";
+            return;
+          }
+          el.style.display = "block";
+          el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+          el.style.width = `${b.w}px`;
+          el.style.height = `${b.h}px`;
+        });
+      }
+      frame = requestAnimationFrame(draw);
+    };
+    frame = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   return (
     <>
       <div
+        ref={overlay}
         data-tutorial-layer
         aria-hidden
         className={leaving ? "tour-unfade fixed inset-0 z-[60]" : "tour-fade fixed inset-0 z-[60]"}
         style={{
           pointerEvents: "none",
           background: "rgba(12, 12, 16, 0.28)",
-          backdropFilter: "blur(3px)",
-          WebkitBackdropFilter: "blur(3px)",
-          clipPath: `path(evenodd, '${path}')`,
+          backdropFilter: "blur(2px)",
+          WebkitBackdropFilter: "blur(2px)",
+          willChange: "clip-path",
         }}
       />
-      {boxes.map((b, i) => (
+      {Array.from({ length: RING_POOL }).map((_, i) => (
         <div
           key={i}
+          ref={(el) => {
+            rings.current[i] = el;
+          }}
           data-tutorial-layer
           aria-hidden
-          className="tour-ring fixed z-[61] rounded-[14px]"
-          style={{ pointerEvents: "none", left: b.x, top: b.y, width: b.w, height: b.h }}
+          className="tour-ring fixed top-0 left-0 z-[61] rounded-[14px]"
+          style={{ pointerEvents: "none", display: "none", willChange: "transform" }}
         />
       ))}
       <div

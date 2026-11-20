@@ -87,5 +87,6 @@ Tutorial mode (A39) lives in `src/tutorial/`: `TutorialProvider` (state, page mo
 it opens), `steps.tsx` (the cards, in order, and the sections each highlights), `Spotlight`
 (the blur, the rings and the layer that takes every click), `TutorialCard` and `Kentaro` (the
 mascot, an inline SVG). Sections the tour explains carry `data-tour="key"`; the provider wraps
-`AppShell`, so the Tutorial button sits in the top bar of every page. The tour is read-only:
+`AppShell`, so the Tutorial button sits in the top bar of every page. The button opens a menu
+(this page, one page's tutorial, or the full tour); `sequence()` picks the cards. The tour is read-only:
 it only navigates and reads.

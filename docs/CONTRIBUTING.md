@@ -59,6 +59,7 @@ jargon, no unexplained scores. Label amounts "scaled".
 
 - When you add, move or rename a section the tutorial explains, keep its `data-tour="key"`
   marker, or update `frontend/src/tutorial/steps.tsx` in the same pull request. A new page or
-  section gets a card there, in plain words.
+  section gets a card there, in plain words; a card belongs to its page's tutorial unless it
+  sets `module` (a new page also needs an entry in `MODULES`).
 - The tutorial stays read-only: no API call that writes, and no clicks or typing on the page.
   Figures on its cards come from the data on screen, never typed into the script.

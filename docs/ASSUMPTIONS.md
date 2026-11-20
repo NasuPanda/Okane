@@ -167,8 +167,12 @@ beyond the brief's P0 list (BRIEF.md section 3, "Should have").
   of the page is softly blurred. Arrows on the card's sides (or the arrow keys) go back and
   forth; the X (or Esc) leaves. Cards are a vibrant colour picked at random per page when the
   tour starts, the same on every card of that page.
+- Tutorials (PR #66 review): the button opens a menu: **this page**, **a page to pick**
+  (Getting started 5 cards, Inbox 15, Exposure 5, Sentinel 6, Rules 12) or **the full tour**
+  (44). A page tutorial ends with "Another tutorial" (back to the menu, the finished one ticked)
+  or "Finish"; ← on the first card returns to the menu.
 - Motion: the card sits right next to what it explains (below, above or beside it) and glides
-  from one card's place to the next, as do the highlights. The last card ends with Mr. Kentaro
+  from one card's place to the next (350ms), as do the highlights. The last card ends with Mr. Kentaro
   suiting up in full samurai armour and vanishing in a burst of cherry blossoms. With reduced
   motion switched on, nothing glides and the blossoms are skipped.
 - Read-only, always: the tour never changes data. A transparent layer takes every click and the
