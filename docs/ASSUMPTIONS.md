@@ -36,6 +36,7 @@ so nobody re-investigates).
 | A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
+| A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare Pages now; Oracle Always Free VM with the full app later, Pages kept as the backup |
 
 ## Data and ingestion
 
@@ -576,6 +577,27 @@ rule is written in our own words in this file under its A# item, with no contact
 Intercompany material, and `docs/BRIEF.md` section 9 is an index from item to issue to A#.
 Rejected: restoring the original's sections into BRIEF.md, which would need the private-content
 rule loosened and could carry text never meant for the repo. Owner: team.
+
+**A41. Where the demo is hosted.** *Decided (#67, 20 Nov 2026).* Mentors and judges need a link
+before code freeze, on a free tier, with no long cold start.
+- Now: Cloudflare Pages serves the UI built with `VITE_API_MODE=fixtures` (option D). It reads
+  the committed synthetic `fixtures/*.json` and has no backend, so no upload or rules endpoint
+  is exposed and the missing login does not matter. Settings are in `deploy/README.md`.
+- What it cannot show: it is a fixed snapshot of the synthetic sample run. Check now and Upload
+  extract only simulate a run; an uploaded file is never read (the message says so). AI
+  comments are the ones stored in the fixtures. Decisions and rule changes live in that browser
+  tab and reset on reload, so there is no shared audit trail.
+- Upkeep: the fixtures are a copy of the API's answers. After a change to `schemas.py`, an
+  engine or the fixture client in `frontend/src/api/client.ts`, run `make fixtures` and commit
+  the result, or the hosted page goes stale.
+- Later: an Oracle Always Free ARM VM (option A) runs the full app with Ollama behind HTTPS and
+  basic auth, on synthetic data only. The account signup starts now because card verification
+  and ARM capacity are the slow part. When A runs, it becomes the main link and Pages stays as
+  the always-on backup; the deck and submission list both.
+- Rejected for now: A first (the mentor would wait an unknown time for the account and VM);
+  Render free tier (C) and Cloud Run (B) for their cold starts; a laptop tunnel (E) for a URL
+  that changes on every restart.
+Owner: team.
 
 ## Mentor questions
 

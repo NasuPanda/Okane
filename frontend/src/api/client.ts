@@ -183,7 +183,9 @@ const fixtureApi: Api = {
     const run = { ...s.run, status: "running" as const, trigger: "upload" as const };
     emit({ event: "run_started", data: run });
     setTimeout(() => emit({ event: "run_finished", data: { ...s.run, status: "finished" } }), 1400);
-    return later({ status: "accepted" as const, kind, file_name: file.name, message: `${kind} extract ${file.name} accepted. Checking it now.`, run });
+    // Practice data (hosted demo, A41): the file never leaves the browser and is not read, so say so.
+    const message = `Practice data: ${file.name} was not read. The check runs again on the sample extracts.`;
+    return later({ status: "accepted" as const, kind, file_name: file.name, message, run });
   },
   async exceptions(filters = {}) {
     const s = await loadStore();
