@@ -283,8 +283,9 @@ screen is pending mentor question 8).*
   report to show and step 2 uploads this week's. The script is `docs/DEMO.md`; a test walks it.
 - Reset (#26): `make demo-reset` rebuilds `data/demo/` only (a demo folder of its own, so the
   real `data/inbox`, database and `.env` are never touched); it prints its plan, needs
-  `--yes`, and refuses anything that is not the demo's own synthetic files. `--real` moves the
-  real database and extract store aside, never deletes, and leaves the watched folder alone
+  `--yes`, and refuses anything that is not the demo's own synthetic files (links included,
+  checked before anything is deleted). `--real` moves the database and extract store named in
+  the app's settings aside, never deletes, and leaves the watched folder alone
   (A38), so #26's "take the newest extract out of the inbox" is left to the person.
 - Real data: with `people_only` the top hit is Payroll BPP C242 48900002 document 7910008634
   (2019, USER_120, about 57,769x the account median). With the lead-time rule (A8, decided in

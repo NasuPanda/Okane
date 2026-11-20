@@ -237,7 +237,7 @@ def test_reset_refuses_a_link_before_deleting_anything(tmp_path: Path, where: st
 
 
 def test_real_reset_moves_and_never_deletes(tmp_path: Path) -> None:
-    from demo_reset import apply, real_plan
+    from demo_reset import app_settings, apply, real_plan
 
     data = tmp_path / "data"
     (data / "inbox").mkdir(parents=True)
@@ -246,7 +246,10 @@ def test_real_reset_moves_and_never_deletes(tmp_path: Path) -> None:
     (data / "extracts" / "payroll" / "extract.xlsx").write_text("Okane's copy")
     (data / "okane.duckdb").write_text("runs and decisions")
     (data / ".env").write_text("OKANE_X=1")
-    plan = real_plan(data, stamp="T")
+    settings = app_settings(
+        data_dir=data, inbox_dir=data / "inbox", db_path=data / "okane.duckdb", _env_file=None
+    )
+    plan = real_plan(settings, stamp="T")
     assert plan.delete == [] and plan.create == []
     apply(plan)
     aside = data / "archive" / "reset-T"
@@ -254,6 +257,48 @@ def test_real_reset_moves_and_never_deletes(tmp_path: Path) -> None:
     assert (aside / "extracts" / "payroll" / "extract.xlsx").exists()
     assert (data / "inbox" / "extract.xlsx").exists() and (data / ".env").exists()
     assert not (data / "okane.duckdb").exists()
+
+
+def test_real_reset_follows_the_app_settings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A database and extract store moved by OKANE_ settings are the ones moved aside."""
+    from demo_reset import RefusedError, apply, real_plan
+
+    db = tmp_path / "elsewhere" / "books.duckdb"
+    store = tmp_path / "store"
+    db.parent.mkdir()
+    db.write_text("runs and decisions")
+    (store / "payroll").mkdir(parents=True)
+    for key, value in {
+        "OKANE_DATA_DIR": tmp_path / "data", "OKANE_INBOX_DIR": tmp_path / "watched",
+        "OKANE_DB_PATH": db, "OKANE_EXTRACTS_DIR": store,
+        "OKANE_ARCHIVE_DIR": tmp_path / "archive",
+    }.items():  # fmt: skip
+        monkeypatch.setenv(key, str(value))
+    plan = real_plan(stamp="T")
+    aside = tmp_path / "archive" / "reset-T"
+    assert plan.move == [(db, aside / "books.duckdb"), (store, aside / "store")]
+    apply(plan)
+    assert (aside / "books.duckdb").read_text() == "runs and decisions"
+    assert not db.exists() and (aside / "store" / "payroll").is_dir()
+
+    # An extract store inside the watched folder is refused: Okane never changes it (A38).
+    monkeypatch.setenv("OKANE_EXTRACTS_DIR", str(tmp_path / "watched" / "store"))
+    (tmp_path / "watched" / "store").mkdir(parents=True)
+    with pytest.raises(RefusedError, match="watched folder"):
+        real_plan(stamp="U")
+
+
+def test_as_of_note_reads_the_env_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from demo_reset import app_settings, as_of_note
+
+    monkeypatch.delenv("OKANE_AS_OF", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text("OKANE_AS_OF=2026-10-05\n")
+    note = as_of_note(app_settings(_env_file=env_file))
+    assert note is not None and "2026-10-05" in note
+    assert as_of_note(app_settings(_env_file=None)) is None
 
 
 def test_demo_path_after_a_reset(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

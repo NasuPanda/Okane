@@ -36,10 +36,13 @@ cd backend; .venv\Scripts\python -m uvicorn app.main:app --port 8000   # then, i
 ```
 
 - Without `--yes` the reset only prints its plan. It refuses a folder holding anything other
-  than the demo's own files, a workbook not marked synthetic, the repository or `data/` itself.
-- Leave `OKANE_AS_OF` unset: the analysis date is the extract date (A2, A38).
-- `--real` (rehearsing on real data): moves `data/okane.duckdb` and Okane's extract store into
-  `data/archive/reset-<time>/` (never deletes). It does not move the workbook out of
+  than the demo's own files, a workbook not marked synthetic, a link, the repository or `data/`
+  itself, and checks everything before it deletes anything.
+- Leave `OKANE_AS_OF` unset, in the shell and in `backend/.env`: the analysis date is the
+  extract date (A2, A38). The reset warns when either sets it.
+- `--real` (rehearsing on real data): moves the app's database and extract store (the paths
+  from the environment and `backend/.env`; by default `data/okane.duckdb` and `data/extracts`)
+  into `<archive>/reset-<time>/`, by default `data/archive/` (never deletes). It does not move the workbook out of
   `data/inbox` (Okane never changes the watched folder, A38); to show the upload in step 2 on
   real data, take the Payroll workbook out of `data/inbox` yourself first.
 

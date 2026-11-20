@@ -11,9 +11,10 @@ Safety (#26):
 - The synthetic reset deletes only the demo folder's own entries, and refuses a folder that
   holds anything else, a workbook not marked synthetic, a link (symlink), the repository or the
   real ``data/`` folder, or a ``.git`` or ``.env``. Every check runs before anything changes.
-- ``--real`` never deletes: it moves the app's real database and extract store into
-  ``data/archive/reset-<time>/``. It never touches ``data/inbox`` (the watched folder is only
-  read, A38) or ``.env``.
+- ``--real`` never deletes: it moves the app's database and extract store into
+  ``<archive>/reset-<time>/``. The paths are the app's own settings (the environment and
+  ``backend/.env``), so a changed ``OKANE_DB_PATH`` or ``OKANE_EXTRACTS_DIR`` is honoured. It
+  never touches the watched folder (only read, A38) or ``.env``.
 
 Usage: ``python scripts/demo_reset.py [--dir PATH] [--yes]`` or ``... --real [--yes]``.
 """
@@ -21,16 +22,20 @@ Usage: ``python scripts/demo_reset.py [--dir PATH] [--yes]`` or ``... --real [--
 from __future__ import annotations
 
 import argparse
-import os
 import shutil
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
+if TYPE_CHECKING:
+    from app.config import Settings
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
+BACKEND_DIR = REPO_ROOT / "backend"
 DATA_DIR = REPO_ROOT / "data"
 DEMO_DIR = DATA_DIR / "demo"
 SAMPLE_RATES = REPO_ROOT / "backend" / "tests" / "data" / "rates.sample.csv"
@@ -113,17 +118,43 @@ def synthetic_plan(target: Path = DEMO_DIR) -> Plan:
     return plan
 
 
-def real_plan(data_dir: Path = DATA_DIR, stamp: str | None = None) -> Plan:
-    """What ``--real`` moves aside: the database and Okane's extract store. Never deletes, and
-    never touches the inbox (the watched folder, A38) or ``.env``."""
+def app_settings(**overrides: Any) -> Settings:
+    """The settings a run of the app reads: the environment and ``backend/.env`` (fresh, not
+    the app's cached copy)."""
+    if str(BACKEND_DIR) not in sys.path:
+        sys.path.insert(0, str(BACKEND_DIR))
+    from app.config import Settings
+
+    return Settings(**overrides)
+
+
+def real_plan(settings: Settings | None = None, stamp: str | None = None) -> Plan:
+    """What ``--real`` moves aside: the app's database and its extract store, from its settings.
+    Never deletes, and refuses to touch the watched folder (A38) or a ``.env``."""
+    settings = settings or app_settings()
     stamp = stamp or datetime.now().strftime("%Y%m%d-%H%M%S")
-    aside = data_dir / "archive" / f"reset-{stamp}"
-    plan = Plan(target=data_dir.resolve())
-    for name in ("okane.duckdb", "okane.duckdb.wal", "extracts"):
-        src = data_dir / name
-        if src.exists():
-            plan.move.append((src, aside / name))
+    aside = settings.archive_path / f"reset-{stamp}"
+    plan = Plan(target=settings.data_dir.resolve())
+    db = settings.db_path
+    for src in (db, db.with_name(db.name + ".wal"), settings.store_dir):
+        if not src.exists():
+            continue
+        if _contains(settings.inbox_dir, src) or _contains(src, settings.inbox_dir):
+            raise RefusedError(f"{src} is or holds the watched folder; nothing was changed")
+        if src.name.startswith(".env"):
+            raise RefusedError(f"{src} must not be moved; nothing was changed")
+        plan.move.append((src, aside / src.name))
     return plan
+
+
+def as_of_note(settings: Settings) -> str | None:
+    """A warning when an analysis date is pinned (environment or ``backend/.env``)."""
+    if settings.as_of is None:
+        return None
+    return (
+        f"Note: OKANE_AS_OF is set to {settings.as_of}; the demo expects the extract date (A2)."
+        " Unset it in the environment and backend/.env."
+    )
 
 
 def apply(plan: Plan) -> None:
@@ -156,7 +187,7 @@ def build_demo_folder(target: Path) -> Path:
 
 def reset(target: Path = DEMO_DIR, *, real: bool = False, yes: bool = False) -> Plan:
     """Print the plan; carry it out only with ``yes``."""
-    plan = real_plan(target) if real else synthetic_plan(target)
+    plan = real_plan() if real else synthetic_plan(target)
     print(plan.describe())
     if not yes:
         print("Nothing changed. Run again with --yes to do this.")
@@ -173,15 +204,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--yes", action="store_true", help="carry out the plan")
     args = parser.parse_args(argv)
     if args.real and args.dir is not None:
-        parser.error("--real works on data/ only; --dir is for the synthetic demo folder")
-    target = DATA_DIR if args.real else (args.dir or DEMO_DIR)
+        parser.error("--real uses the app's own paths; --dir is for the synthetic demo folder")
     try:
-        reset(target, real=args.real, yes=args.yes)
+        reset(args.dir or DEMO_DIR, real=args.real, yes=args.yes)
     except RefusedError as error:
         print(f"Refused: {error}", file=sys.stderr)
         return 2
-    if os.environ.get("OKANE_AS_OF"):
-        print("Note: OKANE_AS_OF is set; the demo expects the extract date (A2). Unset it.")
+    note = as_of_note(app_settings())
+    if note:
+        print(note)
     return 0
 
 
