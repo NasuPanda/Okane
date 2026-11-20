@@ -140,7 +140,11 @@ def fact_dates(
 
 
 def fact_numbers(values: Iterable[float | str]) -> list[float]:
-    """Numeric facts plus numbers written inside text facts (e.g. '3x', '12-month')."""
+    """Numeric facts plus numbers written inside text facts (e.g. '3x', '12-month').
+
+    The parts of a date (year, month, day) are not numbers on their own: dates are matched as
+    dates, so "within 21 days" does not pass because a fact date falls on the 21st (#45 review).
+    """
     numbers: list[float] = []
     for value in values:
         if isinstance(value, bool):
@@ -150,8 +154,6 @@ def fact_numbers(values: Iterable[float | str]) -> list[float]:
             continue
         _, without_dates = extract_dates(value)
         numbers += [f.value for f in extract_figures(without_dates)]
-        for y, m, d in re.findall(r"(\d{4})-(\d{2})(?:-(\d{2}))?", value):
-            numbers += [float(y), float(m)] + ([float(d)] if d else [])
     return numbers
 
 
@@ -188,3 +190,47 @@ def verify(
     for figure in extract_figures(remainder):
         (checked if matches(figure, candidates) else failed).append(figure.text)
     return VerifierOutput("failed" if failed else "passed", checked, failed)
+
+
+# ----- wording check (#29, #45) ------------------------------------------------------------
+MAX_WORDS = 60
+SENTENCE = re.compile(r"[^.!?]+")
+CLASS_NAMES = re.compile(r"\b(list component|timing item|required adjustment)", re.IGNORECASE)
+RISK_WORDS = re.compile(
+    r"\b(risk level|(?:high|medium|low)[- ]risk|risk score|score)\b", re.IGNORECASE
+)
+# Run on the model's own text, so "within {lag_p90_days} days" (a figure) is not a deadline;
+# "within 21 days" (a number the model typed) is.
+DEADLINE_WORDS = re.compile(
+    r"\b(deadline|due date|no later than|by the end of"
+    r"|within \d+ (?:\w+ )?(?:days?|weeks?|months?))\b",
+    re.IGNORECASE,
+)
+# A cause stated as fact; "check the cause of the gap" only names it and is fine.
+CAUSE_WORDS = re.compile(
+    r"\b(because|caused by|(?:cause|reason)s? (?:is|are|was|were)"
+    r"|(?:is|are|was|were) (?:likely |probably )?due to)\b",
+    re.IGNORECASE,
+)
+HEDGE_WORDS = re.compile(r"\b(possible|possibly|may|might|could|perhaps)\b", re.IGNORECASE)
+
+
+def wording_issues(text: str) -> list[str]:
+    """What the comment says that the prompt contract forbids, in plain language.
+
+    Run on the model's own text (slots count as one word each). Figures are checked by
+    ``verify``; this covers length, causes stated as fact, classes, risk levels and deadlines.
+    """
+    issues = []
+    words = len(text.split())
+    if words > MAX_WORDS:
+        issues.append(f"Longer than {MAX_WORDS} words ({words})")
+    if any(CAUSE_WORDS.search(s) and not HEDGE_WORDS.search(s) for s in SENTENCE.findall(text)):
+        issues.append("States a cause as fact instead of 'a possible cause'")
+    if CLASS_NAMES.search(text):
+        issues.append("Names a classification; the accountant decides the class")
+    if RISK_WORDS.search(text):
+        issues.append("Gives a risk level or score")
+    if DEADLINE_WORDS.search(text):
+        issues.append("Sets a deadline or due date")
+    return issues
