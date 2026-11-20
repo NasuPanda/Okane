@@ -35,6 +35,7 @@ so nobody re-investigates).
 | A36 | Mentor questions (#2) | Decide | Drafted, not yet sent; each question's default is in the Mentor questions section |
 | A37 | Original rules as the default; where agreed rules live | Decide | Decided (#3): original rules minus Intercompany are the default; agreed rules go here, BRIEF.md section 9 indexes them |
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
+| A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 
 ## Data and ingestion
 
@@ -227,7 +228,8 @@ links to the highest-scored finding on its account). The inbox now says so.
   Each tab shows its count of findings still to review.
 - Header: "Today's report calls 5,475 lines overdue. After matching what was paid, 4 accounts
   are really open, and N findings at or above 500K need a look first." The "Waiting for you"
-  card counts the open findings in the default view. The Exposure page keeps counting accounts.
+  card counts the open findings in the default view. Both count the whole check, whatever the
+  report period (A40). The Exposure page keeps counting accounts.
 - Demo: step 3 reads "4 accounts remain"; at 100K the accounts grow from 4 to 7 (step 6) and the
   default view grows with the same limit.
 - Real Payroll (aggregates, as of 18 Nov 2026): 46 findings; default view 19 at 500K (24 at
@@ -237,6 +239,25 @@ links to the highest-scored finding on its account). The inbox now says so.
   (Issue #21 counted 147 before the typo rule, the Miner and the missing-payment limit.)
 - Rejected: a priority-score threshold (6 at 500K; a number accountants would need explained);
   one row per account (3 of the 7 accounts at 100K have no finding to open); no filter (46 rows).
+Owner: team.
+
+**A40. Report period on the Inbox and Sentinel pages.** *Decided (review of PR #65, 20 Nov
+2026; added without an issue, recorded here).* A Daily, Weekly, Monthly, Yearly or Overall
+selector, shared by both pages, with arrows back through earlier periods.
+- Periods are calendar days, Monday-to-Sunday weeks, months and years, counted back from the
+  analysis date (the extract date, A38). Overall is the default and shows every finding.
+- A finding belongs to the day of its posting date, or the day it was first seen when it has
+  no posting date.
+- A gap, a missing batch and a missing payment are shown in every period: each is a balance
+  still open on the analysis date, and hiding it would hide real exposure (the C192 gap was
+  first seen months before the analysis date). An unusually big month follows the period.
+- The Inbox tabs, table, split bar, gauge and the lead-time and "report misses" cards follow
+  the period. The header sentence and "Waiting for you" count the whole check (from
+  `/api/kpis`, A25), next to the accounts really open, which do not depend on a period either.
+  The Sentinel feed and its cards follow the period.
+- The chosen grain is remembered in the browser; the step back is not.
+- Rejected: hiding open balances by their first-seen date (the review found the demo header
+  then read "0 findings ... need a look" next to "4 accounts are really open").
 Owner: team.
 
 ## Sentinel, typos, Miner

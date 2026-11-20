@@ -41,7 +41,7 @@ function DataSources({ run }: { run: Run | null | undefined }) {
   const sources = run?.sources ?? [];
   if (!run || !sources.length) return null;
   return (
-    <Card className="space-y-2 border border-[#c6f560] py-3.5 text-sm">
+    <Card className="space-y-2 border border-signal py-3.5 text-sm">
       {sources.map((s) => (
         <div key={s.file_hash} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
           <FileSpreadsheet className="size-4 text-foreground" />
