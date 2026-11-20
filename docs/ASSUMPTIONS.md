@@ -37,7 +37,7 @@ so nobody re-investigates).
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
-| A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare Pages now; Oracle Always Free VM with the full app later, Pages kept as the backup |
+| A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare (a Worker with static assets) now; Oracle Always Free VM with the full app later, Cloudflare kept as the backup |
 
 ## Data and ingestion
 
@@ -615,9 +615,12 @@ rule loosened and could carry text never meant for the repo. Owner: team.
 
 **A41. Where the demo is hosted.** *Decided (#67, 20 Nov 2026).* Mentors and judges need a link
 before code freeze, on a free tier, with no long cold start.
-- Now: Cloudflare Pages serves the UI built with `VITE_API_MODE=fixtures` (option D). It reads
+- Now: Cloudflare serves the UI built with `VITE_API_MODE=fixtures` (option D). It reads
   the committed synthetic `fixtures/*.json` and has no backend, so no upload or rules endpoint
   is exposed and the missing login does not matter. Settings are in `deploy/README.md`.
+- Hosted as a Worker with static assets (`frontend/wrangler.jsonc`), not Pages: the Cloudflare
+  dashboard's "Create application" now offers only the Workers import from Git. Same build,
+  same limits; the link is `okane.<account>.workers.dev`.
 - What it cannot show: it is a fixed snapshot of the synthetic sample run. Check now and Upload
   extract only simulate a run; an uploaded file is never read (the message says so). AI
   comments are the ones stored in the fixtures. Decisions and rule changes live in that browser
@@ -627,7 +630,7 @@ before code freeze, on a free tier, with no long cold start.
   the result, or the hosted page goes stale.
 - Later: an Oracle Always Free ARM VM (option A) runs the full app with Ollama behind HTTPS and
   basic auth, on synthetic data only. The account signup starts now because card verification
-  and ARM capacity are the slow part. When A runs, it becomes the main link and Pages stays as
+  and ARM capacity are the slow part. When A runs, it becomes the main link and Cloudflare stays as
   the always-on backup; the deck and submission list both.
 - Rejected for now: A first (the mentor would wait an unknown time for the account and VM);
   Render free tier (C) and Cloud Run (B) for their cold starts; a laptop tunnel (E) for a URL

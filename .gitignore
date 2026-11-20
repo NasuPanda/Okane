@@ -48,3 +48,6 @@ build/
 dist/
 *.tsbuildinfo
 .vite/
+
+# Cloudflare wrangler local state
+.wrangler/

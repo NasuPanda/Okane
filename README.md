@@ -43,7 +43,7 @@ Ollama everything works; comments are a clearly labelled template.
 No backend at all? `cd frontend && VITE_API_MODE=fixtures npm run dev` serves the UI from the
 synthetic JSON in `fixtures/`.
 
-Hosted demo: the same practice-data UI runs on Cloudflare Pages (link to follow). It has no
+Hosted demo: the same practice-data UI runs on Cloudflare (a static Worker; link to follow). It has no
 backend; decisions reset on reload. Setup and limits: `deploy/README.md` (ASSUMPTIONS A41).
 
 ## Using the real workbooks (locally only)
