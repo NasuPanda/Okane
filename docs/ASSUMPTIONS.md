@@ -18,7 +18,7 @@ so nobody re-investigates).
 | A3 | Do Fixed assets feed Sentinel and the Miner? (brief open item 4) | Info | Confirmed (#7): Sentinel, typos, Miner; not Pulse or netting |
 | A4 | Sentinel S2 rule | Decide | Decided (#10): the same amount in two currencies on one day, at least 1,000 |
 | A5 | Sentinel S3 rule | Decide | Decided (#10): not an ISO code, or replaced by the euro |
-| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12), built (#13): one letter from a word 20x as common, Text and header, allow-list |
+| A6 | Typo prompts: fields, thresholds, dictionary | Decide | Decided (#12), built (#13): one letter from a word 20x as common, Text and header, allow-list; model check built (#30), advisory only |
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
@@ -272,7 +272,7 @@ that is `typo_max_edits` (1) letter away (Levenshtein: one letter added, removed
 from a word seen at least `typo_common_ratio` (20) times as often is flagged. Plurals and
 shortened forms (one word starts with the other) are skipped. Known abbreviations and foreign
 words go on `typo_allow_list` (default alloc, avance, recov, reverse), which controllers edit
-on the Rules page; the model check of each candidate is #30. Two swapped letters count as two
+on the Rules page. Each spelling candidate also gets a model check (#30, below). Two swapped letters count as two
 edits, so "Langrf" or "recalss" are not flagged (chosen to keep the agreed rule; OSA distance
 would add 3 such words on real data). (2) Period label (unchanged; demo step 4): a line whose
 text names a different period than most lines of its document. ASSUMPTION (#13): only
@@ -285,6 +285,26 @@ the allow-list, which removes Alloc and recov); period labels: 7. The previous p
 (similarity 80, rarity 2.5x, Text only) gave 15 spelling prompts, several false ("Advance" for
 "avance", "Auszahlung" for "Barzahlung"); it found "Auzahl", which the new rule does not, as
 "Auszahl" is not 20 times as common. Golden test: `test_real_typo_prompts`. Owner: team.
+
+*Model check (#30, built 19 Nov 2026).* For each spelling prompt the local model (A10) reads the
+flagged word, the common word, how often each is written and up to three line texts of that
+account that contain the word (names and numbers of 6 digits or more masked). It answers
+`{"is_typo", "suggestion"}`, both required (Ollama may skip an optional key). No reason is
+asked for: an optional one was always skipped, and a required one, written first, gave worse
+verdicts on real data (SwissLlife read as a name, recov as a typo), so it was dropped in the
+#62 review. The verdict is advisory: it is shown under the prompt ("The
+assistant reads this as a typo of ..." or "... as a real word, not a typo. You decide.") and
+never removes the prompt or changes its id, score, status or class. For a "real word" verdict
+the drawer offers "Add the word to the allow-list", which saves the Rules with a logged reason
+and re-runs (A33). A suggestion is kept only if it is a word of the run's own dictionary, at most
+`typo_max_edits` letters from the flagged word and at least `typo_common_ratio` times as common;
+otherwise the rule's suggestion stands. The cache holds the model's own answer, keyed by the
+prompt version, system prompt, output schema and prompt, and this suggestion rule is applied
+each time it is read, so a Rules change takes effect without asking the model again.
+Period-label prompts are not checked. Without a model nothing is added; cached verdicts are
+reused. Real data (qwen2.5 7B, 19 Nov 2026, after the review): Adjustmnt, retirment, SwissLlife
+and URSAAF are confirmed with the rule's suggestion; with an empty allow-list Alloc is read as a
+real word and recov as a typo of recon (the allow-list keeps recov out by default). Owner: team.
 
 **A7. Recurring-Correction Miner.** *Decided (#14, 19 Nov 2026; the original rule per A37,
 pending mentor question 5).* The CC06 cluster was in the removed Intercompany workbook, so

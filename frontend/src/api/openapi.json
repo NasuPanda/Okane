@@ -1473,6 +1473,16 @@
               }
             ],
             "title": "Edited Comment"
+          },
+          "ai_check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TypoCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -2470,6 +2480,35 @@
         ],
         "title": "TimelinePoint",
         "description": "Gap chart point: month-end balance, expected balance and gap (brief section 8)."
+      },
+      "TypoCheck": {
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "typo",
+              "not_a_typo"
+            ],
+            "title": "Verdict"
+          },
+          "suggestion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestion"
+          }
+        },
+        "type": "object",
+        "required": [
+          "verdict"
+        ],
+        "title": "TypoCheck",
+        "description": "ADDITION (#30, A6): the assistant's reading of a spelling prompt.\n\nAdvisory only: it never changes the record's id, score, status, class or exposure, and a\n\"not_a_typo\" verdict never hides the prompt. The controller can allow-list the word."
       },
       "UploadResult": {
         "properties": {

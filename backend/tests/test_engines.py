@@ -996,3 +996,156 @@ def test_client_falls_back_to_labelled_template(tmp_path, synthetic_lines) -> No
     disabled = draft_comment(record, db, Settings(ai_enabled=False))
     assert disabled.source == "template"
     db.close()
+
+
+# ----- AI typo check (#30) -------------------------------------------------------------------
+def _spelling(synthetic_lines: pd.DataFrame) -> list[ExceptionRecord]:
+    from app.ai.typo_check import spelling_prompts
+
+    return spelling_prompts(run_typos(synthetic_lines, Rules()))
+
+
+def test_typo_samples_are_scoped_and_masked(synthetic_lines: pd.DataFrame) -> None:
+    from app.engines.typos import typo_samples
+
+    records = _spelling(synthetic_lines)
+    assert records
+    for record in records:
+        samples = typo_samples(synthetic_lines, record)
+        assert 1 <= len(samples) <= 3 and len(set(samples)) == len(samples)
+        found = str(record.facts["found"]).lower()
+        assert all(found in s.lower() for s in samples)
+        assert not any(re.search(r"NAME\d+", s, re.IGNORECASE) for s in samples)
+
+
+@pytest.mark.parametrize(
+    ("is_typo", "suggestion", "kept"),
+    [
+        (False, "URSSAF", None),
+        (True, "URSSAF", "URSSAF"),
+        (True, "urssaf", "URSSAF"),  # the rule's casing
+        (True, None, "URSSAF"),
+        (True, "URSAAF", "URSSAF"),  # the flagged word itself
+        (True, "ursaff", "ursaff"),  # common in the run and one letter away
+        (True, "urssat", "URSSAF"),  # in the run but rare
+        (True, "payroll", "URSSAF"),  # common but not close
+        (True, "Unedic", "URSSAF"),  # not a word of the run
+    ],
+)
+def test_typo_suggestion_must_be_a_common_run_word(
+    synthetic_lines: pd.DataFrame, is_typo: bool, suggestion: str | None, kept: str | None
+) -> None:
+    from collections import Counter
+
+    from app.ai.typo_check import TypoVerdict, accepted_suggestion
+
+    record = _spelling(synthetic_lines)[0]
+    record = record.model_copy(update={"facts": {**record.facts, "found": "URSAAF",
+                                                 "suggestion": "URSSAF"}})  # fmt: skip
+    vocabulary = Counter({"urssaf": 62, "ursaaf": 1, "ursaff": 40, "urssat": 1, "payroll": 90})
+    verdict = TypoVerdict(is_typo=is_typo, suggestion=suggestion)
+    assert accepted_suggestion(verdict, record, vocabulary, Rules()) == kept
+
+
+def test_typo_check_is_advisory_and_cached(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from app.ai.typo_check import annotate_typos
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    records = run_typos(synthetic_lines, Rules())
+    spelling = _spelling(synthetic_lines)
+    calls: list[dict] = []  # type: ignore[type-arg]
+    reply = '{"is_typo": false, "suggestion": null}'
+    http = _mock_ollama([reply], calls)
+
+    checked = annotate_typos(records, synthetic_lines, Rules(), db, settings, True, http)
+    assert len(calls) == len(spelling)
+    # both keys required: Ollama may skip an optional key (#62 review)
+    assert calls[0]["format"]["required"] == ["is_typo", "suggestion"]
+    assert not any(re.search(r"NAME\d+", str(c["messages"]), re.IGNORECASE) for c in calls)
+    for before, after in zip(records, checked, strict=True):
+        # the verdict never hides a prompt or changes what code decided
+        assert before.model_dump(exclude={"ai_check"}) == after.model_dump(exclude={"ai_check"})
+        if before in spelling:
+            assert after.ai_check is not None and after.ai_check.verdict == "not_a_typo"
+            assert after.ai_check.suggestion is None
+        else:
+            assert after.ai_check is None  # period-label prompts are not checked
+
+    again = annotate_typos(records, synthetic_lines, Rules(), db, settings, False)
+    assert [r.ai_check for r in again] == [r.ai_check for r in checked]
+    assert len(calls) == len(spelling)  # served from the cache
+    db.close()
+
+
+def test_typo_check_without_a_model_changes_nothing(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    import httpx
+
+    from app.ai.typo_check import annotate_typos
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    records = run_typos(synthetic_lines, Rules())
+    assert annotate_typos(records, synthetic_lines, Rules(), db, settings, False) == records
+
+    attempts: list[int] = []
+
+    def refuse(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        raise httpx.ConnectError("connection refused")
+
+    down = httpx.Client(transport=httpx.MockTransport(refuse))
+    assert annotate_typos(records, synthetic_lines, Rules(), db, settings, True, down) == records
+    assert len(attempts) == 1  # stops asking after the first failure
+    db.close()
+
+
+def test_cached_typo_verdict_follows_todays_rules(tmp_path, synthetic_lines) -> None:  # type: ignore[no-untyped-def]
+    from collections import Counter
+
+    from app.ai.typo_check import check_typo
+    from app.config import Settings
+    from app.database import Database
+
+    db = Database(tmp_path / "ai.duckdb")
+    settings = Settings(ai_enabled=True)
+    record = _spelling(synthetic_lines)[0]
+    record = record.model_copy(update={"facts": {**record.facts, "found": "URSAAF",
+                                                 "suggestion": "URSSAF"}})  # fmt: skip
+    vocabulary = Counter({"urssaf": 62, "ursaaf": 1, "ursaff": 40})
+    calls: list[dict] = []  # type: ignore[type-arg]
+    http = _mock_ollama(['{"is_typo": true, "suggestion": "ursaff"}'], calls)
+
+    first = check_typo(record, ["URSAAF contribution"], vocabulary, Rules(), db, settings, http)
+    assert first is not None and first.suggestion == "ursaff"  # 40 >= 20 x 1
+    # the controller raises the ratio: the cached answer is checked again, without the model
+    stricter = Rules(typo_common_ratio=50)
+    again = check_typo(record, ["URSAAF contribution"], vocabulary, stricter, db, settings, None)
+    assert again is not None and again.suggestion == "URSSAF" and len(calls) == 1
+    db.close()
+
+
+def test_typo_prompt_masks_names_and_long_numbers(synthetic_lines: pd.DataFrame) -> None:
+    from app.ai.typo_check import typo_prompt
+
+    record = _spelling(synthetic_lines)[0]
+    prompt = typo_prompt(record, ["Retirment top-up NAME12 ref 1900012345, 2 lines"])
+    assert "NAME12" not in prompt and "1900012345" not in prompt
+    assert "[name]" in prompt and "[number]" in prompt and "2 lines" in prompt
+
+
+def test_model_errors_do_not_carry_the_models_text() -> None:
+    from app.ai.client import ModelUnavailableError, chat
+    from app.ai.typo_check import TypoVerdict
+    from app.config import Settings
+
+    calls: list[dict] = []  # type: ignore[type-arg]
+    reply = '{"is_typo": "maybe", "suggestion": "Retirement top-up 4,812.50"}'
+    with pytest.raises(ModelUnavailableError) as failure:
+        chat([], TypoVerdict, Settings(ai_enabled=True), _mock_ollama([reply], calls))
+    assert "4,812.50" not in str(failure.value) and "Retirement" not in str(failure.value)
+    assert "ValidationError" in str(failure.value)

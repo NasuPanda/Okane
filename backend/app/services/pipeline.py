@@ -28,6 +28,7 @@ from typing import Any
 import pandas as pd
 
 from app.ai import client as ai
+from app.ai import typo_check
 from app.config import Settings
 from app.database import Database, utcnow
 from app.engines.exposure import payroll_netting, score_records
@@ -288,6 +289,7 @@ class Pipeline:
         rules = self.db.get_rules()
         output = run_engines(lines, rules, run.as_of)
         records = [r.model_copy(update={"run_id": run.run_id}) for r in output.records]
+        records = self.check_typos(records, lines, rules)
         records = self.attach_comments(records)
         self.db.save_exceptions(run.run_id, records)
         for key, payload in output.timelines.items():
@@ -299,6 +301,13 @@ class Pipeline:
         self.db.save_run(run)
         log.info("run %s finished: %d exceptions", run.run_id, len(records))
         return run
+
+    def check_typos(
+        self, records: list[ExceptionRecord], lines: pd.DataFrame, rules: Rules
+    ) -> list[ExceptionRecord]:
+        """The assistant's check of each spelling prompt (#30); cached verdicts without a model."""
+        use_model = self.settings.ai_enabled and ai.ollama_available(self.settings)
+        return typo_check.annotate_typos(records, lines, rules, self.db, self.settings, use_model)
 
     def attach_comments(self, records: list[ExceptionRecord]) -> list[ExceptionRecord]:
         """Cached AI comments; new drafts for the top-ranked findings when a model runs."""

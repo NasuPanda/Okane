@@ -50,6 +50,39 @@ def line_words(lines: pd.DataFrame, min_length: int) -> pd.Series:
     )
 
 
+def word_counts(lines: pd.DataFrame, rules: Rules) -> Counter[str]:
+    """How often each word (lower-case) is written in the run: the run's own dictionary."""
+    return Counter(w.lower() for ws in line_words(lines, rules.typo_min_word_length) for w in ws)
+
+
+def typo_samples(lines: pd.DataFrame, record: ExceptionRecord, limit: int = 3) -> list[str]:
+    """Up to ``limit`` distinct texts of a spelling prompt's lines, name placeholders masked.
+
+    Used by the model check (#30): the lines of the record's ERP, entity and account whose Text
+    or Doc.Header Text contains the flagged word.
+    """
+    found = record.facts.get("found")
+    if not isinstance(found, str) or lines.empty:
+        return []
+    word = re.compile(rf"(?<![A-Za-zÀ-ÿ]){re.escape(found)}(?![A-Za-zÀ-ÿ])", re.IGNORECASE)
+    scope = lines[
+        (lines["erp"] == record.erp)
+        & (lines["entity"] == record.entity)
+        & (lines["account"] == record.account)
+    ]
+    samples: list[str] = []
+    for field in (f for f in TEXT_FIELDS if f in scope.columns):
+        for text in scope[field]:
+            if not isinstance(text, str) or not word.search(text):
+                continue
+            masked = NAME_PLACEHOLDER.sub("[name]", text).strip()
+            if masked not in samples:
+                samples.append(masked)
+            if len(samples) >= limit:
+                return samples
+    return samples
+
+
 def typo_candidates(counts: Counter[str], rules: Rules) -> dict[str, str]:
     """Rare word -> the frequent word it is a slip of (both lower-case)."""
     allowed = {w.strip().lower() for w in rules.typo_allow_list}
