@@ -66,8 +66,9 @@ export function TypeLabel({ type, className }: { type: ExceptionType; className?
 }
 
 /** How much earlier Okane spots it than today's process. The wording comes from the engine
- *  (A8, #16): counted from the weekly run on or after the first signal. */
-export function LeadBadge({ record, size = "sm" }: { record: ExceptionRecord; size?: "sm" | "lg" }) {
+ *  (A8, #16): counted from the weekly run on or after the first signal. `tip={false}` drops the
+ *  explanation tooltip (inside a row a tap should open the finding, whose panel explains it). */
+export function LeadBadge({ record, size = "sm", tip = true }: { record: ExceptionRecord; size?: "sm" | "lg"; tip?: boolean }) {
   const basis = String(record.facts.today_detection_basis ?? "");
   const lead = record.lead_days;
   const badge = typeof record.facts.lead_badge === "string" ? record.facts.lead_badge : null;
@@ -79,43 +80,42 @@ export function LeadBadge({ record, size = "sm" }: { record: ExceptionRecord; si
     "inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap",
     big ? "px-3 py-1.5 text-sm" : "px-2.5 py-1 text-[11px]",
   );
-  if (lead === null || lead === undefined) {
-    return (
+  const withTip = (pill: React.ReactNode, why: React.ReactNode) =>
+    tip ? (
       <Tooltip>
-        <TooltipTrigger asChild>
-          <span className={cn(shape, "bg-hot-soft text-hot")}>
-            <EyeOff className={big ? "size-4" : "size-3"} />
-            {badge ?? "Today's process would miss this"}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          Neither the ageing rule nor the month-end close review looks for this. Only Okane does.
-        </TooltipContent>
+        <TooltipTrigger asChild>{pill}</TooltipTrigger>
+        <TooltipContent>{why}</TooltipContent>
       </Tooltip>
+    ) : (
+      pill
+    );
+  if (lead === null || lead === undefined) {
+    return withTip(
+      <span className={cn(shape, "bg-hot-soft text-hot")}>
+        <EyeOff className={big ? "size-4" : "size-3"} />
+        {badge ?? "Today's process would miss this"}
+      </span>,
+      "Neither the ageing rule nor the month-end close review looks for this. Only Okane does.",
     );
   }
   const what = basis.includes("ageing") ? "the ageing rule" : "the month-end close review";
   const earlier = lead >= 0;
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className={cn(shape, earlier ? "bg-dock text-white" : "bg-muted text-muted-foreground")}>
-          <Sparkles className={cn(big ? "size-4" : "size-3", earlier && "text-signal")} />
-          {badge ?? `${earlier ? "Caught" : "Seen"} ${Math.abs(lead)} days ${earlier ? "earlier" : "later"}`}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>
-        {weekly && run ? (
-          <>
-            The first sign is on {day(record.first_signal)}; Okane's weekly run flags it on {day(run)}.{" "}
-          </>
-        ) : (
-          <>Okane can flag it on {day(record.first_signal)}. </>
-        )}
-        Today it would surface through {what} on {day(record.today_detection)}.
-        {weekly && typeof daily === "number" ? ` (${daily} days earlier if Okane ran every day.)` : ""}
-      </TooltipContent>
-    </Tooltip>
+  return withTip(
+    <span className={cn(shape, earlier ? "bg-dock text-white" : "bg-muted text-muted-foreground")}>
+      <Sparkles className={cn(big ? "size-4" : "size-3", earlier && "text-signal")} />
+      {badge ?? `${earlier ? "Caught" : "Seen"} ${Math.abs(lead)} days ${earlier ? "earlier" : "later"}`}
+    </span>,
+    <>
+      {weekly && run ? (
+        <>
+          The first sign is on {day(record.first_signal)}; Okane's weekly run flags it on {day(run)}.{" "}
+        </>
+      ) : (
+        <>Okane can flag it on {day(record.first_signal)}. </>
+      )}
+      Today it would surface through {what} on {day(record.today_detection)}.
+      {weekly && typeof daily === "number" ? ` (${daily} days earlier if Okane ran every day.)` : ""}
+    </>,
   );
 }
 
@@ -140,8 +140,17 @@ export function priorityTone(score: number) {
   return { bar: "bg-pulse", text: "text-pulse", label: "Low" };
 }
 
-export function ScoreBar({ record }: { record: ExceptionRecord }) {
+/** Priority with its bar and a tooltip listing the points. `compact`: one line of text
+ *  ("HIGH · 82"), for the Inbox row on narrow screens; the finding's panel lists the points. */
+export function ScoreBar({ record, compact }: { record: ExceptionRecord; compact?: boolean }) {
   const tone = priorityTone(record.score);
+  if (compact) {
+    return (
+      <span className={cn("text-[11px] font-medium tracking-wide uppercase", tone.text)}>
+        {tone.label} · <span className="num">{record.score.toFixed(0)}</span>
+      </span>
+    );
+  }
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -180,7 +189,10 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("inline-flex items-center gap-1 rounded-full border bg-secondary p-1", className)} role="tablist">
+    <div
+      className={cn("inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border bg-secondary p-1 [scrollbar-width:none]", className)}
+      role="tablist"
+    >
       {options.map((option) => (
         <button
           key={option.value}
@@ -188,7 +200,7 @@ export function Segmented<T extends string>({
           aria-selected={option.value === value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-sm transition-all",
+            "shrink-0 rounded-full px-2 py-1.5 text-[13px] whitespace-nowrap transition-all sm:px-3.5 sm:text-sm",
             option.value === value
               ? "bg-foreground text-background shadow-sm"
               : "text-muted-foreground hover:text-foreground",
@@ -257,7 +269,7 @@ export function PageHeader({
     <div data-tour={tour} className="rise flex flex-wrap items-end justify-between gap-4">
       <div className="space-y-2">
         <div className="flex items-baseline gap-5">
-          <h1 className="text-[2.1rem] leading-none font-light tracking-tight">{title}</h1>
+          <h1 className="text-[1.75rem] leading-none font-light tracking-tight sm:text-[2.1rem]">{title}</h1>
           {trail && (
             <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
               {trail.map((part, i) => (
@@ -271,7 +283,7 @@ export function PageHeader({
         </div>
         {subtitle && <p className="max-w-2xl text-[15px] text-muted-foreground">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
@@ -338,7 +350,7 @@ export function StatCard({
         </span>
       </div>
       <div className="space-y-1">
-        <div className="num text-[2.4rem] leading-none font-light">
+        <div className="num text-[2rem] leading-none font-light sm:text-[2.4rem]">
           {value}
           {unit && <span className={cn("ml-1.5 text-base", dark ? "text-white/50" : "text-muted-foreground")}>{unit}</span>}
         </div>

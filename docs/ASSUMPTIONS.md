@@ -38,6 +38,7 @@ so nobody re-investigates).
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 | A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare (a Worker with static assets) now; Oracle Always Free VM with the full app later, Cloudflare kept as the backup |
+| A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
 
 ## Data and ingestion
 
@@ -635,6 +636,29 @@ before code freeze, on a free tier, with no long cold start.
 - Rejected for now: A first (the mentor would wait an unknown time for the account and VM);
   Render free tier (C) and Cloud Run (B) for their cold starts; a laptop tunnel (E) for a URL
   that changes on every restart.
+Owner: team.
+
+**A42. Phones and tablets.** *Decided (20 Nov 2026, requested by the team).* Okane was built for
+a desktop screen; reviewers and mentors also open the link on a phone. Every page now works from
+360px wide with no sideways scroll, using Tailwind breakpoints only (`sm` 640px, `md` 768px,
+`lg` 1024px). At 1280px and wider nothing changes.
+- Top bar: below 768px the page buttons get a full-width row of their own; the "Controller"
+  chip shows only its initial below 1024px. The Tutorial button keeps its label.
+- Run dock: below 640px it spans the screen, shows one line of status, and puts Upload extract
+  and Check now side by side underneath.
+- Inbox: below 1024px the priority, amount, "spotted" and status columns fold into a line under
+  each finding's title, and a "Sort by" control (priority, amount, spotted; largest first)
+  replaces the column headers. Exposure: below 768px each account takes two lines (account, then lines,
+  old report and really open, each with its own label).
+- Forms (Rules, the finding's panel): label above the field, and choices stacked, below 640px.
+- Hover explanations (lead time, priority points, Exposure bars, finding types) open with a tap
+  on touch screens; a tap elsewhere closes them. In an Inbox row a tap on the lead-time badge
+  opens the finding instead, whose panel shows the same explanation.
+- Tutorial: below 640px the card docks at the bottom like a sheet, its arrows move to the
+  bottom row, and the explained sections are scrolled above the card (the page gets room at its
+  end for that). A section fixed to the bottom of the screen (the run dock) cannot scroll, so for
+  it the card docks at the top instead. A finger drag on the page scrolls it, as the mouse wheel
+  does; nothing can be tapped. Still read-only.
 Owner: team.
 
 ## Mentor questions

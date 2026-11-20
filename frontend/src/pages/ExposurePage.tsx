@@ -29,9 +29,9 @@ function AccountStrip({ groups, view }: { groups: ExposureGroup[]; view: View })
           return (
             <Tooltip key={`${g.erp}${g.entity}${g.account}`}>
               <TooltipTrigger asChild>
-                <div className="flex h-full w-5 items-end justify-center">
+                <div className="flex h-full w-5 min-w-0 shrink items-end justify-center">
                   <div
-                    className="grow w-2 rounded-full transition-all duration-700 ease-out"
+                    className="grow w-full max-w-2 rounded-full transition-all duration-700 ease-out"
                     style={{
                       height: `${Math.max((value / max) * 100, 2)}%`,
                       background: view === "old" ? "var(--forest)" : open ? "var(--signal)" : "var(--chart-2)",
@@ -70,10 +70,10 @@ function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: 
         <button
           onClick={onOpen}
           disabled={!group.exception_id}
-          className="rise grid w-full grid-cols-[minmax(0,1fr)_100px_150px_190px_24px] items-center gap-4 border-b px-4 py-4 text-left transition hover:bg-secondary disabled:cursor-default"
+          className="rise grid w-full grid-cols-3 items-center gap-x-4 gap-y-3 border-b px-4 py-4 text-left transition hover:bg-secondary disabled:cursor-default md:grid-cols-[minmax(0,1fr)_100px_150px_190px_24px] md:gap-4"
           style={stagger(index, 50)}
         >
-          <div className="min-w-0">
+          <div className="col-span-3 min-w-0 md:col-span-1">
             <div className="flex items-center gap-2">
               <span className="text-[15px]">
                 {group.entity} {group.account}
@@ -88,27 +88,29 @@ function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: 
               {group.erp} · {group.account_name}
             </div>
           </div>
-          <div className="text-right text-sm">
+          <div className="text-left text-sm md:text-right">
             <div className="num">{group.lines.toLocaleString("en-GB")}</div>
             <div className="text-[11px] text-muted-foreground">
               {group.paired_lines ? `${group.paired_lines} cancel out` : "lines"}
             </div>
           </div>
-          <div className="num text-right text-sm text-muted-foreground line-through decoration-muted-foreground/40">
-            {eur(group.overdue_abs)}
+          <div className="text-right text-sm">
+            <div className="num text-muted-foreground line-through decoration-muted-foreground/40">{eur(group.overdue_abs)}</div>
+            <div className="text-[11px] text-muted-foreground md:hidden">old report</div>
           </div>
           <div className="space-y-1.5 text-right">
-            <div className={cn("num text-xl font-light", !group.above_materiality && "text-muted-foreground")}>
+            <div className={cn("num text-lg font-light md:text-xl", !group.above_materiality && "text-muted-foreground")}>
               {eur(group.net_eur)}
             </div>
-            <div className="ml-auto h-1 w-28 overflow-hidden rounded-full bg-muted">
+            <div className="text-[11px] text-muted-foreground md:hidden">really open</div>
+            <div className="ml-auto h-1 w-full max-w-28 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full"
                 style={{ width: `${share * 100}%`, background: group.above_materiality ? "var(--forest)" : "var(--chart-3)" }}
               />
             </div>
           </div>
-          <ChevronRight className={cn("size-4 text-muted-foreground", !group.exception_id && "opacity-0")} />
+          <ChevronRight className={cn("hidden size-4 text-muted-foreground md:block", !group.exception_id && "opacity-0")} />
         </button>
       </div>
     </div>
@@ -154,13 +156,13 @@ export function ExposurePage() {
         }
       />
 
-      <Card data-tour="exposure-headline" className="space-y-6 p-7" style={stagger(1, 80)}>
+      <Card data-tour="exposure-headline" className="space-y-6 p-5 sm:p-7" style={stagger(1, 80)}>
         <div className="flex flex-wrap items-center justify-between gap-6">
           <Segmented
             value={view}
             onChange={setView}
             options={[
-              { value: "old", label: "Old report (365-day rule)" },
+              { value: "old", label: <>Old report<span className="hidden sm:inline"> (365-day rule)</span></> },
               { value: "real", label: "What's really open" },
             ]}
           />
@@ -174,7 +176,7 @@ export function ExposurePage() {
             <div
               key={view}
               className={cn(
-                "num animate-in slide-in-from-bottom-3 text-[length:clamp(3rem,8vw,6.5rem)] leading-none font-light tracking-tight duration-700",
+                "num animate-in slide-in-from-bottom-3 text-[length:clamp(2rem,8vw,6.5rem)] leading-none font-light tracking-tight duration-700",
                 view === "real" && "text-forest",
               )}
             >
@@ -205,7 +207,7 @@ export function ExposurePage() {
         {data && <AccountStrip groups={data.groups} view={view} />}
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-[330px_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[330px_1fr]">
         <section
           data-tour="exposure-materiality"
           className="rise h-fit space-y-5 rounded-2xl bg-forest p-6 text-white dark:bg-forest-soft"
@@ -243,7 +245,7 @@ export function ExposurePage() {
         </section>
 
         <Card data-tour="exposure-accounts" className="p-0" style={stagger(3, 80)}>
-          <div className="grid grid-cols-[minmax(0,1fr)_100px_150px_190px_24px] gap-4 border-b px-4 py-3">
+          <div className="hidden grid-cols-[minmax(0,1fr)_100px_150px_190px_24px] gap-4 border-b px-4 py-3 md:grid">
             <span className="eyebrow">Account</span>
             <span className="eyebrow text-right">Overdue lines</span>
             <span className="eyebrow text-right">Old report</span>

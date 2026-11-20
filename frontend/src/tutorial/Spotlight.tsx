@@ -11,6 +11,8 @@ const RADIUS = 14;
 export const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 /** The glide between cards: a soft ease-out, shared with the card's CSS transition. */
 export const GLIDE_MS = 350;
+/** Narrower than this (phones), the card docks at the top or bottom of the screen like a sheet. */
+export const SHEET_BELOW = 640;
 /** Rings drawn at most (a card highlights a few sections; touching ones merge into one). */
 const RING_POOL = 8;
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -36,10 +38,21 @@ function merge(input: Box[]): Box[] {
   return boxes;
 }
 
+/** True when the element sits in a part of the page fixed to the screen (the run dock), which
+ *  scrolling cannot move. */
+export function isPinned(el: Element): boolean {
+  for (let node: Element | null = el; node && node !== document.body; node = node.parentElement) {
+    if (getComputedStyle(node).position === "fixed") return true;
+  }
+  return false;
+}
+
 /** Where the highlighted sections are, kept up to date while the page scrolls and animates.
  *  On a new card the previous boxes stay until the new sections are found (another page may
- *  still be loading), so the highlight glides instead of blinking out. */
-export function useTargetBoxes(keys: string[], stepId: number): Box[] {
+ *  still be loading), so the highlight glides instead of blinking out. On phones `sheet` holds
+ *  the height the docked card covers at the bottom of the screen, so the sections are scrolled
+ *  clear of it. */
+export function useTargetBoxes(keys: string[], stepId: number, sheet?: { current: number }): Box[] {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const signature = keys.join("|");
   useEffect(() => {
@@ -69,12 +82,22 @@ export function useTargetBoxes(keys: string[], stepId: number): Box[] {
       }
       if (!scrolled && shown.length && performance.now() - started > 180) {
         scrolled = true;
-        const r = shown[0].getBoundingClientRect();
-        if (r.top < 90 || r.bottom > window.innerHeight - 150) {
-          shown[0].scrollIntoView({
-            block: r.height > window.innerHeight * 0.6 ? "start" : "center",
-            behavior: reducedMotion() ? "auto" : "smooth",
-          });
+        const behavior = reducedMotion() ? "auto" : "smooth";
+        if (window.innerWidth < SHEET_BELOW) {
+          // Phones: the card covers the bottom of the screen, so every highlighted section goes
+          // above it: the topmost one is scrolled to the top of the screen.
+          const H = window.innerHeight;
+          const clear = H - (sheet?.current || H * 0.55);
+          const rects = shown.map((el) => el.getBoundingClientRect());
+          const top = Math.min(...rects.map((r) => r.top));
+          const bottom = Math.max(...rects.map((r) => r.bottom));
+          const first = shown[rects.findIndex((r) => r.top === top)];
+          if ((top < 16 || bottom > clear) && !isPinned(first)) first.scrollIntoView({ block: "start", behavior });
+        } else {
+          const r = shown[0].getBoundingClientRect();
+          if (r.top < 90 || r.bottom > window.innerHeight - 150) {
+            shown[0].scrollIntoView({ block: r.height > window.innerHeight * 0.6 ? "start" : "center", behavior });
+          }
         }
       }
       const next = merge(
@@ -122,20 +145,44 @@ function roundedRect(box: Box): string {
 
 /** Scroll whatever is under the pointer (the page, or the open finding's panel). */
 function forwardWheel(e: React.WheelEvent) {
-  for (const el of document.elementsFromPoint(e.clientX, e.clientY)) {
+  scrollBy(scrollerAt(e.clientX, e.clientY), e.deltaY);
+}
+
+/** Touch: a finger drag on the blocker scrolls what is under it, like the mouse wheel. The first
+ *  finger is followed by its id, and what it scrolls is found once, when it touches down. */
+let touch: { id: number; y: number; scroller: HTMLElement | null } | null = null;
+function onTouchStart(e: React.TouchEvent) {
+  const t = e.changedTouches[0];
+  if (!t || touch) return;
+  touch = { id: t.identifier, y: t.clientY, scroller: scrollerAt(t.clientX, t.clientY) };
+}
+function onTouchMove(e: React.TouchEvent) {
+  const t = touch && Array.from(e.touches).find((x) => x.identifier === touch!.id);
+  if (!touch || !t) return;
+  scrollBy(touch.scroller, touch.y - t.clientY);
+  touch.y = t.clientY;
+}
+function onTouchEnd(e: React.TouchEvent) {
+  if (touch && Array.from(e.changedTouches).some((t) => t.identifier === touch!.id)) touch = null;
+}
+
+/** The scrollable panel under a point, or null for the page itself. */
+function scrollerAt(x: number, y: number): HTMLElement | null {
+  for (const el of document.elementsFromPoint(x, y)) {
     if ((el as HTMLElement).closest("[data-tutorial-layer]")) continue;
     let node: HTMLElement | null = el as HTMLElement;
     while (node && node !== document.body && node !== document.documentElement) {
       const style = getComputedStyle(node);
-      if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1) {
-        node.scrollBy({ top: e.deltaY });
-        return;
-      }
+      if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1) return node;
       node = node.parentElement;
     }
     break;
   }
-  window.scrollBy({ top: e.deltaY });
+  return null;
+}
+
+function scrollBy(scroller: HTMLElement | null, deltaY: number) {
+  (scroller ?? window).scrollBy({ top: deltaY });
 }
 
 /** The blur with sharp holes, the rings and the click blocker. On a new card the holes and rings
@@ -230,8 +277,12 @@ export function Spotlight({ target, stepId, leaving = false }: { target: Box[]; 
         data-tutorial-layer
         aria-hidden
         className="fixed inset-0 z-[62]"
-        style={{ pointerEvents: "auto" }}
+        style={{ pointerEvents: "auto", touchAction: "none" }}
         onWheel={forwardWheel}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
         onPointerDown={(e) => e.preventDefault()}
         onClick={(e) => e.preventDefault()}
         onContextMenu={(e) => e.preventDefault()}

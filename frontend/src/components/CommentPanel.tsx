@@ -106,7 +106,7 @@ export function CommentPanel({ record }: { record: ExceptionRecord }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="eyebrow flex items-center gap-1.5">
           <Sparkles className="size-3.5 text-sentinel" /> Draft note
         </span>

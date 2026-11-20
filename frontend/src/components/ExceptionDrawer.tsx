@@ -50,7 +50,7 @@ function Section({
 }) {
   return (
     <section data-tour={tour} className="rise space-y-3 border-t py-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <h3 className="eyebrow">{title}</h3>
         {aside}
       </div>
@@ -171,7 +171,7 @@ function Decision({ record }: { record: ExceptionRecord }) {
 
   return (
     <Section title="Your call" aside={<StatusPill status={record.status} />} tour="drawer-call">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {CLASSES.map((c) => (
           <button
             key={c.value}
@@ -225,14 +225,14 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
       {/* During the tutorial (A39) a click on the tour card must not close this panel. */}
       <SheetContent className="overflow-y-auto" onInteractOutside={(e) => tour.active && e.preventDefault()}>
         {!record ? (
-          <div className="space-y-4 p-8">
+          <div className="space-y-4 p-5 sm:p-8">
             <SheetTitle className="sr-only">Loading finding</SheetTitle>
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-9 w-3/4" />
             <Skeleton className="h-64 w-full" />
           </div>
         ) : (
-          <div className="relative px-8 pt-7 pb-10">
+          <div className="relative px-4 pt-6 pb-10 sm:px-8 sm:pt-7">
             <div
               aria-hidden
               className={cn("pointer-events-none absolute inset-x-0 top-0 h-44", toneOf(record.type).soft)}
@@ -246,7 +246,7 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
                   {record.workgroup} · {record.erp} · {record.entity} · {record.account} {record.account_name}
                 </span>
               </div>
-              <SheetTitle className="text-[1.75rem] leading-tight font-light">{record.title}</SheetTitle>
+              <SheetTitle className="text-[1.4rem] leading-tight font-light sm:text-[1.75rem]">{record.title}</SheetTitle>
               <SheetDescription asChild>
                 <div className="space-y-1">
                   <span className="block text-[15px] text-foreground/80">{TYPE_HINT[record.type]}</span>
@@ -263,7 +263,7 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
               </div>
             </header>
 
-            <div data-tour="drawer-stats" className="rise relative mt-6 grid grid-cols-2 gap-5 rounded-2xl bg-card p-5 shadow-sm sm:grid-cols-4" style={stagger(1, 80)}>
+            <div data-tour="drawer-stats" className="rise relative mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-card p-4 shadow-sm sm:grid-cols-4 sm:gap-5 sm:p-5" style={stagger(1, 80)}>
               <Stat label="Amount · scaled EUR" className="col-span-2 sm:col-span-1">
                 <span className={cn("text-2xl", priorityTone(record.score).text)}>{eur(record.exposure_eur)}</span>
               </Stat>
@@ -312,9 +312,9 @@ export function ExceptionDrawer({ id, onClose }: { id: string | null; onClose: (
                 {Object.entries(record.score_breakdown).map(([k, v]) => {
                   const weight = rules.data?.weights?.[k] ?? 0;
                   return (
-                    <div key={k} className="grid grid-cols-[150px_1fr_70px] items-center gap-3 text-sm">
+                    <div key={k} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 text-sm sm:grid-cols-[150px_1fr_70px]">
                       <span className="text-muted-foreground">{WEIGHT_LABEL[k] ?? k}</span>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div className="col-span-2 row-start-2 h-1.5 overflow-hidden rounded-full bg-muted sm:col-span-1 sm:row-start-auto">
                         <div
                           className="grow-x h-full rounded-full"
                           style={{ width: weight ? `${(v / weight) * 100}%` : 0, background: WEIGHT_COLOR[k] ?? "var(--foreground)" }}
