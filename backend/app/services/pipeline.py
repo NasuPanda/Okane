@@ -307,10 +307,12 @@ class Pipeline:
             predraft = False
         out = []
         for index, record in enumerate(records):
-            hit = ai.cached_comment(record, self.db)
+            hit = ai.cached_comment(record, self.db, self.settings)
             if hit is None and predraft and index < self.settings.ai_predraft_top:
                 drafted = ai.draft_comment(record, self.db, self.settings)
-                hit = drafted if drafted.source == "model" else None
+                # A model outcome: a passed draft, or the template after two rejected drafts.
+                keep = drafted.source == "model" or drafted.rejected_draft is not None
+                hit = drafted if keep else None
             if hit is not None:
                 record = record.model_copy(
                     update={"ai_comment": hit.comment, "verifier": hit.verifier}

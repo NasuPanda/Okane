@@ -420,6 +420,10 @@ class Comment(BaseModel):
     checked_figures: list[str]
     failed_figures: list[str]
     cached: bool
+    # ADDITION (#45, A10): when both model drafts were rejected, the labelled template is the
+    # comment and the last rejected draft is kept here with the reasons, one click away.
+    rejected_draft: str | None = None
+    rejected_reasons: list[str] = Field(default_factory=list)
 
 
 class ExceptionDetail(BaseModel):

@@ -22,7 +22,7 @@ so nobody re-investigates).
 | A7 | Recurring-Correction Miner and the CC06 definition | Decide | Decided (#14): original fingerprint, score = entities x months, Inbox at 12+; card "Repeated manual posting" |
 | A8 | Lead time: "today's detection date" per type | Decide | Decided (#16): close review on the 5th working day; weekly view from the Monday run; pending mentor Q2 |
 | A9 | Risk score scaling | Decide | Linear 0..1 per component, caps in Rules |
-| A10 | AI prompt contract and model | Decide | `{"comment": str}`, qwen2.5 7B instruct, temperature 0 |
+| A10 | AI prompt contract and model | Decide | Decided (#28, #45), built (#29): comment and typo check; the model names figures and code fills them in; retry with feedback; template if rejected twice; qwen2.5 7B, local |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
 | A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
@@ -365,22 +365,59 @@ moves into `Rules` (no behaviour change at the default). Owner: team.
 
 ## AI layer
 
-**A10. Prompt contract.** *Decide.* The model receives a system prompt and one JSON message with
-the masked title, type, workgroup, entity and `facts`; never document numbers, user ids or raw
-lines. It must answer `{"comment": "..."}` (pydantic-validated, 10 to 1,200 characters). Default
-model `qwen2.5:7b-instruct` (any 7 to 9B instruct model works; set `OKANE_OLLAMA_MODEL`),
-temperature 0, one retry when the verifier fails. Only model output is cached (key: exception
-id + hash of title, facts and prompt version). The top 3 findings are pre-drafted during a run
-when Ollama is reachable. Owner: team.
+**A10. Prompt contract.** *Decided (#28 and #45, 19 Nov 2026; built in #29).*
+- Tasks: the comment draft (#29) and the typo check (#30). The Miner card (#31) uses the same
+  client. Key extraction is dropped (it was for the Intercompany keys, which are removed).
+- Local only: Ollama, default `qwen2.5:7b-instruct` (any 7 to 9B instruct model works; set
+  `OKANE_OLLAMA_MODEL`), temperature 0, 60-second timeout, JSON output passed to Ollama as a
+  JSON schema and validated with pydantic (`{"comment": "..."}`, 10 to 1,200 characters).
+- What the model sees: a sentence about the finding type written by code, each number and date
+  fact as a named figure already formatted by code (`gap_eur`: "1,838,462 EUR", "the gap: month-end
+  balance minus the expected balance"), the remaining text facts masked, the entity and the
+  check to suggest. It never sees the title (it carries rounded amounts the model re-expanded
+  wrongly, #45), document numbers, user ids or raw lines. The Miner score is not shown either,
+  as the comment may not give a score.
+- Figures by name: the model writes `{gap_eur}` instead of a number, and code fills in the exact
+  value, so code writes every figure in the comment. A unit the model repeats next to a name
+  ("{multiple} times", "EUR {gap_eur}") is dropped, and `{{name}}` counts as `{name}`. A number
+  the model types itself is still checked by the verifier (A28).
+- Wording rules: at most 60 words, two or three sentences; a cause only as "a possible cause"
+  (naming a cause to check, "check the cause of the gap", is fine); no deadline, due date,
+  "by the end of" or "within N days"; no class, risk level or score. Code checks these as well
+  (`verifier.wording_issues`).
+- Retry with feedback: a rejected draft goes back to the model once, as its own earlier reply,
+  followed by the reasons and the figure names it may use. (At temperature 0 a plain retry
+  returned the same text, #45.)
+- Rejected twice: the comment is the labelled template (A29), and the last draft is kept with
+  its reasons behind "Show the assistant's draft". The reasons shown to the person are in plain
+  words (no figure names in braces; those go to the model only). A draft with an unconfirmed
+  figure is never the note the preparer sees.
+- Cache: every model outcome (a passed draft, or the template after two rejections) is cached by
+  task, model, exception id and a hash of the prompt version, system prompt, output schema and
+  prompt. Changing the model or any prompt text therefore drafts again; an outage is not cached.
+  `PROMPT_VERSION` is `v3` (the checks changed in the #61 review).
+- Logs and errors never carry the model's text, which can quote line texts or amounts (rule 3):
+  a failed call logs only the kind of error.
+- The top 3 findings (`ai_predraft_top`) are pre-drafted during a run when Ollama is reachable.
 
-**A28. Verifier rule.** *Info.* Every number and date in a comment must equal a fact at the
-precision shown (1,838,461.53 may appear as 1,838,462, 1.84M or 1.8M, not 1.85M); percentages
-may be a percent fact or a fraction fact x 100; signs are ignored; entity and account codes are
-allowed; dates must match a fact date (day precision when a day is given). Owner: team.
+Owner: team.
 
-**A29. Template fallback.** *Info.* Without Ollama, comments start with "Standard note (no AI
-was used):" and carry `verifier = "not_run"`. Every template is tested to pass the
-verifier anyway. Owner: team.
+**A28. Verifier rule.** *Info (updated in #29).* The verifier runs on the comment after the
+figures are filled in. Every number and date in it must equal a fact at the precision shown
+(1,838,461.53 may appear as 1,838,462, 1.84M or 1.8M, not 1.85M); percentages may be a percent
+fact or a fraction fact x 100; signs are ignored; entity and account codes are allowed; dates
+must match a fact date (day precision when a day is given). The parts of a fact date (year,
+month, day) are not numbers on their own, so "within 21 days" fails even when a fact date falls
+on the 21st (#61 review). A small number that happens to equal a count fact (3 lines) still
+passes; the wording rules catch the deadline forms of it. A name in braces that is not a
+figure rejects the draft, and so does a wording rule from A10. Known limit: the verifier cannot
+prove that a figure is described correctly ("the liability" for the gap). Naming each figure
+with its meaning reduces this, and the preparer still reads the draft. Owner: team.
+
+**A29. Template fallback.** *Info (updated in #29).* Without Ollama, or after two rejected
+drafts, the comment starts with "Standard note (no AI was used):" and carries
+`verifier = "not_run"`. Templates use the same named figures and formatter as the model, end
+with the same suggested check, and are tested to pass the verifier. Owner: team.
 
 ## API and governance
 

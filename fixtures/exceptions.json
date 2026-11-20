@@ -4,7 +4,7 @@
  "data": [
   {
    "id": "b80b0b905e1fe118",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "pulse_gap",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -47,7 +47,7 @@
     "error_type": 10.0,
     "repeats": 10.0
    },
-   "ai_comment": "Standard note (no AI was used): The month-end balance for 2026-10 is -2,534,699 EUR against an expected 0 EUR, a gap of -2,534,699 EUR. The gap has been at or above materiality since 2025-06; the lowest was -705,292 EUR in 2025-06. Check the unmatched batches listed as evidence.",
+   "ai_comment": "Standard note (no AI was used): The month-end balance for Oct 2026 is -2,534,699 EUR against an expected 0 EUR, a gap of -2,534,699 EUR. The gap has been at or above materiality since Jun 2025; the lowest was -705,292 EUR in Jun 2025. Check the unmatched accrual batches listed as evidence.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -56,7 +56,7 @@
   },
   {
    "id": "5a2ed0b6c0c57484",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "pulse_spike",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -96,7 +96,7 @@
     "error_type": 5.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): The 2026-08 batch of -2,531,446 EUR is 4.1x the usual size (median 615,900 EUR). Confirm it is a genuine one-off.",
+   "ai_comment": "Standard note (no AI was used): The Aug 2026 batch of -2,531,446 EUR is 4.1x the usual size (median 615,900 EUR). Check that the batch is a genuine one-off.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -105,7 +105,7 @@
   },
   {
    "id": "61ca766fbdf173e5",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -149,7 +149,7 @@
     "error_type": 9.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): The 2026-06 batch of -598,600 EUR has no matching payment. It was expected by 2026-08-20. Confirm whether it was paid under another reference or is still owed.",
+   "ai_comment": "Standard note (no AI was used): The Jun 2026 batch of -598,600 EUR has no matching payment. It was expected by 20 Aug 2026. Check whether the batch was paid under another reference or is still owed.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -158,7 +158,7 @@
   },
   {
    "id": "4b75e13ab2dc5a8d",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "sentinel_outlier",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -201,7 +201,7 @@
     "error_type": 7.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): Amount 4,874x the account's usual size, posted by a person. Rule: S1: amount at or above 1000x the median. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): Amount 4,874x the account's usual size, posted by a person. Rule: S1: amount at or above 1000x the median. Check the source document and whether the amount was keyed correctly.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -210,7 +210,7 @@
   },
   {
    "id": "5cb790939c58a948",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "sentinel_outlier",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -253,7 +253,7 @@
     "error_type": 7.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): Amount 1,459x the account's usual size, posted by a person. Rule: S1: amount at or above 1000x the median. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): Amount 1,459x the account's usual size, posted by a person. Rule: S1: amount at or above 1000x the median. Check the source document and whether the amount was keyed correctly.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -262,7 +262,7 @@
   },
   {
    "id": "ca26141f45d62ffe",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "label_mismatch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -305,7 +305,7 @@
     "error_type": 5.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): The payment of 614,052 EUR is labelled 2026-01 but settles the 2026-02 batch. Correct the payment text if the label is wrong.",
+   "ai_comment": "Standard note (no AI was used): The payment of 614,052 EUR is labelled Jan 2026 but settles the Feb 2026 batch. Check the payment text, and correct it if the label is wrong.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -314,7 +314,7 @@
   },
   {
    "id": "3267f451b8da112e",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -359,7 +359,7 @@
     "error_type": 2.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 62 times.",
+   "ai_comment": "Standard note (no AI was used): You may have made a mistake: 'URSAAF' looks like 'URSSAF', which is used 62 times. Check the line text, and correct it if it is wrong.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -368,7 +368,7 @@
   },
   {
    "id": "0c7228820c2b5ca8",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "pulse_missing_batch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -399,7 +399,7 @@
     "error_type": 6.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): No batch was posted for 2025-08; a typical batch is 618,389 EUR. Confirm whether the accrual was booked elsewhere.",
+   "ai_comment": "Standard note (no AI was used): No batch was posted for Aug 2025; a typical batch is 618,389 EUR. Check whether the accrual was booked elsewhere.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -408,7 +408,7 @@
   },
   {
    "id": "d00346a86e3ca1d6",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -459,7 +459,7 @@
     "error_type": 4.0,
     "repeats": 10.0
    },
-   "ai_comment": "Standard note (no AI was used): Repeated manual posting: 6 months. Rule: The same manual posting by one person scores at least 12 (entities x months) in 3+ months. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): Repeated manual posting: 6 months. Rule: The same manual posting by one person scores at least 12 (entities x months) in 3+ months. Check whether the automated posting or mapping can do this instead.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -468,7 +468,7 @@
   },
   {
    "id": "1578d0ba41872186",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "sentinel_currency_code",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -509,7 +509,7 @@
     "error_type": 8.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): 'GHC' is not a valid currency code. Rule: S3: the document currency is not an ISO currency code. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): 'GHC' is not a valid currency code. Rule: S3: the document currency is not an ISO currency code. Check the currency on the source document.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -518,7 +518,7 @@
   },
   {
    "id": "f04ae2adff34c19c",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "sentinel_currency_code",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -560,7 +560,7 @@
     "error_type": 8.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): FRF was replaced by the euro. Rule: S3: the document currency had been replaced by the euro by the posting date. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): FRF was replaced by the euro. Rule: S3: the document currency had been replaced by the euro by the posting date. Check the currency on the source document.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -569,7 +569,7 @@
   },
   {
    "id": "6c91062e6c599fb8",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "sentinel_two_currencies",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -610,7 +610,7 @@
     "error_type": 7.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): Same amount posted in EUR and PLN on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): Same amount posted in EUR and PLN on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Check whether one of the two postings is a duplicate in the wrong currency.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -619,7 +619,7 @@
   },
   {
    "id": "0c33474c40046521",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "sentinel_two_currencies",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -660,7 +660,7 @@
     "error_type": 7.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): Same amount posted in EUR and RWF on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Review the evidence documents.",
+   "ai_comment": "Standard note (no AI was used): Same amount posted in EUR and RWF on the same day. Rule: S2: the same amount of at least 1,000 posted in different currencies on one day. Check whether one of the two postings is a duplicate in the wrong currency.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
@@ -669,7 +669,7 @@
   },
   {
    "id": "f4d7086d081a2e09",
-   "run_id": "run_20261119T182456_62a48f",
+   "run_id": "run_20261119T185517_9ca392",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -714,7 +714,7 @@
     "error_type": 2.0,
     "repeats": 0.0
    },
-   "ai_comment": "Standard note (no AI was used): You may have made a mistake: 'Pauroll' looks like 'Payroll', which is used 92 times.",
+   "ai_comment": "Standard note (no AI was used): You may have made a mistake: 'Pauroll' looks like 'Payroll', which is used 92 times. Check the line text, and correct it if it is wrong.",
    "verifier": "not_run",
    "status": "new",
    "decision_reason": null,
