@@ -23,14 +23,17 @@ in one container:
 - **Caddy** on `:10000`, Render's default port. It asks for the basic auth password on
   everything except `/api/health`. Render adds HTTPS in front.
 
+> **The free instance stops after 15 minutes without visits.** The next visitor sees Render's
+> "starting" page for about a minute, then the app needs about 35 s more for its first run.
+> Decisions and rule changes made before the stop are gone. Render's own health checks are not
+> visits, so they don't keep it running. To keep it always on, see "Keep it awake" below.
+
 What the free tier gives and costs:
 
 - **No card**, and 512 MB with a tenth of a CPU. Measured locally under the same limits: the
   health check answers after about 15 s, the first run finishes after about 35 s, and memory
   stays near 105 MB.
-- **It sleeps after 15 minutes without visits** and takes about a minute to wake. The uptime
-  check below keeps it awake. Render's 750 free hours a month cover one service around the
-  clock, so don't add a second free service.
+- **It sleeps after 15 minutes without visits** (see the note above and "Keep it awake").
 - **The disk resets** on every restart, redeploy or settings change. Decisions, rule changes and
   uploads start over, and a fresh run rebuilds the Inbox from the sample in about 35 s.
 - **No AI on the host.** Comments are the labelled template, unless the app is pointed at a
@@ -65,9 +68,30 @@ What the free tier gives and costs:
    | `OKANE_AUTH_HASH` | the hash from step 1, pasted as is, **without quotes** |
 
 4. **Deploy.** The first build takes a few minutes. Render finds port 10000 on its own.
-5. **Keep it awake.** At UptimeRobot (free; or cron-job.org), add an HTTP monitor for
-   `https://okane-ilp5.onrender.com/api/health` every 5 to 10 minutes. This page needs no password and
-   answers only `{"status":"ok"}`.
+5. **Keep it awake.** Pick one of the options in "Keep it awake" below.
+
+### Keep it awake
+
+Something outside Render must request `https://okane-ilp5.onrender.com/api/health` more often
+than every 15 minutes. Every 5 minutes leaves a margin. That page needs no password and answers
+only `{"status":"ok"}`. One service running all month uses about 720 of Render's 750 free hours,
+so nothing else on the Render account may use free hours.
+
+- **UptimeRobot (recommended).** A free account, no card. Add an HTTP(S) monitor for the URL
+  above with a 5-minute interval, in the browser in a couple of minutes. It also emails us when
+  the app is down.
+- **cron-job.org.** A free account, no card. Create a job that calls the URL every 5 minutes, in
+  the browser. It sends no down alert unless that is switched on.
+- **Cloudflare Worker with a cron trigger.** No new account: we already use Cloudflare. It needs a
+  small Worker script that fetches the URL, plus its own `wrangler` config with a 5-minute cron,
+  deployed separately from the UI Worker. Not in the repository today.
+- **GitHub Actions on a schedule (not recommended).** The repository is private, so a run every
+  10 minutes costs about 4,300 Actions minutes a month, more than the 2,000 free ones. GitHub
+  also starts scheduled runs late at busy times, sometimes by more than 15 minutes.
+- **A paid Render instance type.** It never sleeps, so no pinger is needed. It is not free.
+
+None of these stops Render from restarting the service on a deploy or for its own maintenance. The
+disk then starts empty, and the first run rebuilds the Inbox in about 35 s.
 
 ### Redeploy and reset
 
@@ -97,6 +121,8 @@ Ollama we run. On recording day, a laptop's Ollama can serve the hosted app:
 3. `/exposure`, `/sentinel` and `/rules` open directly and on reload.
 4. A finding's comment shows the labelled template (or a checked AI draft while a tunnel is set).
 5. Run "Check now": the run status updates live, without a page reload.
+6. After 20 minutes with no visits, the app opens without Render's "starting" page (the
+   keep-alive works).
 
 ### Try it locally first
 
