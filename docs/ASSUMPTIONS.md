@@ -621,7 +621,8 @@ before code freeze, on a free tier, with no long cold start.
   is exposed and the missing login does not matter. Settings are in `deploy/README.md`.
 - Hosted as a Worker with static assets (`frontend/wrangler.jsonc`), not Pages: the Cloudflare
   dashboard's "Create application" now offers only the Workers import from Git. Same build,
-  same limits; the link is `okane.<account>.workers.dev`.
+  same limits; the link is `okane.recon-copilot.workers.dev`. The Render link is
+  `okane-ilp5.onrender.com`.
 - What it cannot show: it is a fixed snapshot of the synthetic sample run. Check now and Upload
   extract only simulate a run; an uploaded file is never read (the message says so). AI
   comments are the ones stored in the fixtures. Decisions and rule changes live in that browser

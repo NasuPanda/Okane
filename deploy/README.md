@@ -4,8 +4,8 @@ Decision and limits: `docs/ASSUMPTIONS.md` A41 (issue #67).
 
 | Link | What it runs | Status |
 |---|---|---|
-| Render free web service (`https://okane.onrender.com`, basic auth) | The full app on the built-in synthetic sample, template comments | Main link |
-| Cloudflare Worker (`okane.<account>.workers.dev`) | The UI on the synthetic `fixtures/*.json` ("Practice data"), no backend | Backup link, always on |
+| Render free web service (<https://okane-ilp5.onrender.com/>, basic auth) | The full app on the built-in synthetic sample, template comments | Main link |
+| Cloudflare Worker (<https://okane.recon-copilot.workers.dev/>) | The UI on the synthetic `fixtures/*.json` ("Practice data"), no backend | Backup link, always on |
 
 **Synthetic data only, on every host.** The app has no login. Never upload a real workbook to a
 hosted copy, never copy `data/` to a server, and never build the hosted UI from anything other
@@ -46,7 +46,7 @@ What the free tier gives and costs:
 
    | Field | Value |
    |---|---|
-   | Name | `okane` (gives `okane.onrender.com` if it is free) |
+   | Name | `okane` (Render adds a suffix when the name is taken: ours is `okane-ilp5.onrender.com`) |
    | Language | Docker |
    | Branch | `main` |
    | Region | Frankfurt (EU Central) |
@@ -66,7 +66,7 @@ What the free tier gives and costs:
 
 4. **Deploy.** The first build takes a few minutes. Render finds port 10000 on its own.
 5. **Keep it awake.** At UptimeRobot (free; or cron-job.org), add an HTTP monitor for
-   `https://okane.onrender.com/api/health` every 5 to 10 minutes. This page needs no password and
+   `https://okane-ilp5.onrender.com/api/health` every 5 to 10 minutes. This page needs no password and
    answers only `{"status":"ok"}`.
 
 ### Redeploy and reset
