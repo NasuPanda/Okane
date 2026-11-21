@@ -1,0 +1,16 @@
+# Basic auth in front of Okane (deploy/README.md).
+# - On a VM (deploy/compose.yaml): values come from deploy/.env; Caddy gets a Let's Encrypt
+#   certificate for each hostname over port 80.
+# - On Render (Dockerfile.demo, `render` stage): the site is `:10000`, plain HTTP (Render adds
+#   HTTPS), and Okane runs in the same container.
+# No `encode`: compression can hold back the run-status event stream (/api/events).
+
+{$OKANE_HOSTNAMES} {
+	# Open, so an uptime check can reach it; it answers only {"status":"ok"}.
+	@protected not path /api/health
+	basic_auth @protected {
+		{$OKANE_AUTH_USER} {$OKANE_AUTH_HASH}
+	}
+	header X-Robots-Tag "noindex, nofollow"
+	reverse_proxy {$OKANE_UPSTREAM:okane:8000}
+}

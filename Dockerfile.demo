@@ -1,0 +1,64 @@
+# Okane hosted demo image (docs/ASSUMPTIONS.md A41, deploy/README.md): the same app as
+# `Dockerfile`, plus the SYNTHETIC sample workbooks and sample rates baked in, so a fresh
+# container runs the pipeline with nothing mounted. Keep the frontend and app stages in step
+# with `Dockerfile`.
+#
+# Two targets:
+# - `app`: Okane alone on :8000 (deploy/compose.yaml puts Caddy and Ollama next to it).
+#     docker build -f Dockerfile.demo --target app -t okane-demo .
+#     docker run --rm -p 8000:8000 okane-demo
+# - `render` (the last stage, so the default): Okane on 127.0.0.1:8001 behind Caddy with basic
+#   auth on :10000, in one container, for Render's free web service (no app code change).
+#     docker build -f Dockerfile.demo -t okane-render .
+#     docker run --rm -p 10000:10000 -e OKANE_AUTH_USER=okane -e OKANE_AUTH_HASH='<hash>' okane-render
+#
+# Synthetic data only: nothing from data/ is copied (and .dockerignore keeps it out of the
+# build context). /data holds only what the app writes: the database, the extract store of an
+# upload, and the archive.
+
+FROM node:22-alpine AS frontend
+WORKDIR /src/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY frontend/ ./
+COPY fixtures/ /src/fixtures/
+RUN npm run build
+
+# The generator needs xlsxwriter, a dev dependency, so it runs in its own stage.
+FROM python:3.12-slim AS sample
+RUN pip install --no-cache-dir pandas==3.1.1 xlsxwriter==3.3.1
+COPY scripts/generate_sample_data.py /src/generate_sample_data.py
+RUN python /src/generate_sample_data.py --out /sample
+
+FROM python:3.12-slim AS app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    OKANE_DATA_DIR=/data \
+    OKANE_INBOX_DIR=/data/inbox \
+    OKANE_SAMPLE_DIR=/app/sample \
+    OKANE_RATES_PATH=/app/rates.csv \
+    OKANE_DB_PATH=/data/okane.duckdb \
+    OKANE_FRONTEND_DIST=/app/frontend/dist \
+    OKANE_CORS_ORIGINS='[]'
+WORKDIR /app/backend
+COPY backend/pyproject.toml backend/README.md ./
+COPY backend/app ./app
+RUN pip install --no-cache-dir . && useradd --create-home okane && mkdir -p /data && chown okane /data
+COPY --from=frontend /src/frontend/dist /app/frontend/dist
+COPY --from=sample /sample /app/sample
+COPY backend/tests/data/rates.sample.csv /app/rates.csv
+USER okane
+# No VOLUME: compose mounts /data itself, and Render's free tier has no persistent disk.
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+FROM app AS render
+COPY --from=caddy:2.11.9 /usr/bin/caddy /usr/bin/caddy
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+# Plain HTTP on :10000 (Render's default port; Render adds HTTPS). The auth user and hash come
+# from the service's environment variables.
+ENV OKANE_HOSTNAMES=:10000 \
+    OKANE_UPSTREAM=127.0.0.1:8001
+EXPOSE 10000
+# Caddy is the main process. If Okane stops, /api/health fails and Render restarts the service.
+CMD ["sh", "-c", "uvicorn app.main:app --host 127.0.0.1 --port 8001 & exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"]

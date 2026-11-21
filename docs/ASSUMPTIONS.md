@@ -37,7 +37,7 @@ so nobody re-investigates).
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
-| A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare (a Worker with static assets) now; Oracle Always Free VM with the full app later, Cloudflare kept as the backup |
+| A41 | Where the demo is hosted | Decide | Decided (#67): Render free web service with the full app (template comments, basic auth, kept awake by an uptime check) as the main link; practice-data UI on Cloudflare (a Worker with static assets) as the backup |
 | A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
 
 ## Data and ingestion
@@ -629,13 +629,31 @@ before code freeze, on a free tier, with no long cold start.
 - Upkeep: the fixtures are a copy of the API's answers. After a change to `schemas.py`, an
   engine or the fixture client in `frontend/src/api/client.ts`, run `make fixtures` and commit
   the result, or the hosted page goes stale.
-- Later: an Oracle Always Free ARM VM (option A) runs the full app with Ollama behind HTTPS and
-  basic auth, on synthetic data only. The account signup starts now because card verification
-  and ARM capacity are the slow part. When A runs, it becomes the main link and Cloudflare stays as
-  the always-on backup; the deck and submission list both.
-- Rejected for now: A first (the mentor would wait an unknown time for the account and VM);
-  Render free tier (C) and Cloud Run (B) for their cold starts; a laptop tunnel (E) for a URL
-  that changes on every restart.
+- Main link (decided 21 Nov 2026): the full app on Render's free web service (option C), on
+  synthetic data only, with no app code change. We planned an Oracle Always Free VM (option A)
+  first, but could not create the account. Cloudflare stays as the always-on backup, and the deck
+  and submission list both links. Config: `Dockerfile.demo` (stage `render`) and
+  `deploy/Caddyfile`; the steps are in `deploy/README.md`.
+  - Data: the image bakes in the synthetic sample workbooks and sample rates. A run reads them
+    whenever nothing has been uploaded (A20).
+  - Analysis date: the extract date (A21), as with `make demo`. It is not pinned to 18 Nov 2026
+    like the Cloudflare fixtures, so the two links can show different dates and lead times.
+  - Access: Caddy runs in the same container as Okane and asks for a basic auth password on
+    everything except `/api/health`; Render adds HTTPS. The password is shared in the submission,
+    never in Git.
+  - Cold start: the free instance sleeps after 15 minutes without visits. A free uptime check on
+    `/api/health` every 5 to 10 minutes keeps it awake (one service fits in the 750 free hours a
+    month). If it does sleep, it wakes in about a minute, and the first run takes about 35 s more
+    (measured under the same 512 MB and 0.1 CPU limits).
+  - What it cannot keep: the disk resets on every restart or redeploy, so decisions, rule changes
+    and uploads start over, and the Inbox is rebuilt from the sample.
+  - AI: none on the host, so comments are the labelled template. For a recording,
+    `OKANE_OLLAMA_URL` can point at a laptop's Ollama through a temporary tunnel.
+- Kept for any Docker VM: `deploy/compose.yaml` (stage `app`, Ollama 7B and Caddy with HTTPS)
+  runs the same app with AI comments and a persistent disk. It was tested on a laptop and is not
+  hosted anywhere.
+- Rejected: Cloud Run (B) for its cold start and card; a laptop tunnel (E) as the main link,
+  because its URL changes on every restart.
 Owner: team.
 
 **A42. Phones and tablets.** *Decided (20 Nov 2026, requested by the team).* Okane was built for

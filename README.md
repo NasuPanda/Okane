@@ -43,8 +43,11 @@ Ollama everything works; comments are a clearly labelled template.
 No backend at all? `cd frontend && VITE_API_MODE=fixtures npm run dev` serves the UI from the
 synthetic JSON in `fixtures/`.
 
-Hosted demo: the same practice-data UI runs on Cloudflare (a static Worker; link to follow). It has no
-backend; decisions reset on reload. Setup and limits: `deploy/README.md` (ASSUMPTIONS A41).
+Hosted demo (synthetic data only; setup and limits in `deploy/README.md`, ASSUMPTIONS A41):
+- Main link: the full app on Render's free tier, behind basic auth (the password is in the
+  submission); comments are the labelled template. Link to follow.
+- Backup link: the practice-data UI as a static Cloudflare Worker, with no backend; decisions
+  reset on reload. Link to follow.
 
 ## Using the real workbooks (locally only)
 

@@ -62,10 +62,17 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
 
+  # The hosted demo image (A41, deploy/README.md): fails when Dockerfile.demo drifts from the app.
+  demo-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f Dockerfile.demo -t okane-demo:ci .
+
   # ASSUMPTION (A34): required status checks need GitHub Pro/Team on a private repo, so main
   # cannot block a red merge. This job only reports: it opens one "main is red" issue.
   main-is-red:
-    needs: [forbidden-files, backend, frontend]
+    needs: [forbidden-files, backend, frontend, demo-image]
     if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
