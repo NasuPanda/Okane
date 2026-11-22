@@ -869,6 +869,11 @@ export interface components {
              */
             missing_payment_lookback_months: number;
             /**
+             * Missing Payment Balance Check
+             * @default true
+             */
+            missing_payment_balance_check: boolean;
+            /**
              * Sentinel S1 Scope
              * @default people_only
              * @enum {string}

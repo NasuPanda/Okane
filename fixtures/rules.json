@@ -66,6 +66,7 @@
   "spike_lookback_months": 12,
   "missing_batch_lookback_months": 24,
   "missing_payment_lookback_months": 12,
+  "missing_payment_balance_check": true,
   "sentinel_s1_scope": "people_only",
   "close_review_working_day": 5,
   "close_review_holidays": [],

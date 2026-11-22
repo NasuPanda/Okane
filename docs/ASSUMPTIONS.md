@@ -27,7 +27,8 @@ so nobody re-investigates).
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
 | A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
-| A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; 7 on real data |
+| A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; since A44 also only when the account's balance still holds the batch: 0 at the extract date |
+| A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A25 | How short is the inbox | Decide | Decided (#21): default view = findings at or above materiality plus missing batches; prompts and repeated postings on their own tabs |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
@@ -245,6 +246,45 @@ not recognise (quarterly CFE and GARP payments or another ERP), not left unpaid.
 - Mentor question 4: a "yes, some are paid quarterly" answer needs no change.
 - Since #24 the 12 months count back from the analysis date, which is now the Payroll extract
   date (A38): 6 alerts as of 23 Oct 2026, as C242's October 2026 batch is not yet due then.
+- Since A44 a batch is also checked against the account's balance: none of those 6 remains.
+Owner: team.
+
+**A44. Missing payments the balance shows as paid.** *Decided (review of 22 Nov 2026, fix 2).*
+The 6 "payment not found" alerts at the extract date ranked #2, #3, #4, #6, #10 and #11 in the
+inbox, and each account's balance contradicted them:
+- C242 34900015 flagged February 2026 (-4.28M) and June 2026 (-4.35M). February's payments
+  covered February's accrual plus January's leftover, so the batch alone was 2.1% off, outside
+  the 1% tolerance; the month-end balance was back to +1,056 at the end of February. June's
+  shortfall was paid in July (-3,479 at the end of July).
+- C192 279006 flagged April to July 2026 (3.37M), but 4.26M of payments were posted in those
+  months and the account is in debit (A43).
+
+Rule (`Rules.missing_payment_balance_check`, default on): before a missing payment is raised,
+- check date = the earlier of the month-end of the batch's expected-by date and the analysis
+  date;
+- available = max(0, the account's open credit balance on the check date - the credits of
+  later batches accrued by then but not yet past their own expected-by date);
+- if available is below the batch tolerance (max(profile tolerance x batch, tolerance_eur)),
+  nothing is raised;
+- otherwise the alert is raised with exposure -min(batch, available), titled "No payment found
+  for the X batch" when the whole batch is still held, or "Payment short by Y on the X batch".
+- The check date, open credit, later accruals and the amount still unpaid are facts on the
+  record. The matching statistics (lags, expected-by dates) do not change: C192 still has 21
+  matched batches, median lag 30, 90th percentile 37.
+
+Measured (real Payroll, aggregates):
+- At the extract date (23 Oct 2026): 0 missing payments (was 6), so 39 findings (45), 12 in the
+  "Above 500K" tab (18), 30 with a lead time, median 8.5 days (36, 11). The C192 gap stays first
+  at 79.4; the runner-up is now the C192 August 2026 spike at 65.0 (was a missing payment at
+  69.8).
+- At 18 Nov 2026 (the other golden tests): 1 missing payment, C242's October 2026 batch (was 7);
+  40 findings (46); 13 in the default view at 500K, 18 at 100K (19, 24); weekly median 10 days
+  over 31 dated findings (11 over 37), daily 13 (17).
+- Synthetic: the unpaid June 2026 C192 batch still fires (the older unpaid 2025 batches keep the
+  balance in credit); no synthetic or demo figure changes.
+- **Departure from the brief:** section 8 quotes the C192 September 2026 batch, expected by
+  21 Nov 2026, as a missing payment once it is due. The account is in debit, so with the check
+  on it is not raised. Its golden test checks the brief's values with the check off.
 Owner: team.
 
 **A23. Gap alert.** *Info.* Fires when the latest |gap| is at or above materiality. Its first
@@ -305,7 +345,8 @@ links to the highest-scored finding on its account). The inbox now says so.
 - Demo: step 3 reads "4 accounts remain"; at 100K the accounts grow from 4 to 7 (step 6) and the
   default view grows with the same limit.
 - Real Payroll (aggregates, as of 18 Nov 2026): 46 findings; default view 19 at 500K (24 at
-  100K), mistake prompts 17, repeated postings 6; the C192 gap is first. Synthetic: 14 findings,
+  100K), mistake prompts 17, repeated postings 6; the C192 gap is first. (Since A44: 40
+  findings, 13 at 500K, 18 at 100K.) Synthetic: 14 findings,
   6 in the default view. A live run uses the extract date (A38, 23 Oct 2026), when one fewer
   missing payment is due: 45 findings, 18 in the default view, so the demo header says 18.
   (Issue #21 counted 147 before the typo rule, the Miner and the missing-payment limit.)

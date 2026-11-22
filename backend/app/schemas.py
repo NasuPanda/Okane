@@ -212,6 +212,10 @@ class Rules(BaseModel):
     # date falls within this many months before the run date; older unmatched batches stay
     # listed on the gap alert. Decided in #20 (docs/ASSUMPTIONS.md A15).
     missing_payment_lookback_months: int = Field(default=12, ge=1)
+    # ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A15, A44): before a missing payment
+    # is raised, the account's own open credit balance must still hold the batch (less the
+    # credits of later batches not yet due); a batch the balance shows as paid is not raised.
+    missing_payment_balance_check: bool = True
     # ADDITION (brief open item 2): which lines Sentinel S1 may flag. Decided in #9
     # (docs/ASSUMPTIONS.md A1): person-posted lines only.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"

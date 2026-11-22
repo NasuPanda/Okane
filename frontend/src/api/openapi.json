@@ -2220,6 +2220,11 @@
             "title": "Missing Payment Lookback Months",
             "default": 12
           },
+          "missing_payment_balance_check": {
+            "type": "boolean",
+            "title": "Missing Payment Balance Check",
+            "default": true
+          },
           "sentinel_s1_scope": {
             "type": "string",
             "enum": [

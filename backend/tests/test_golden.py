@@ -144,21 +144,41 @@ def test_real_c192_alerts(real_pulse: PulseResult) -> None:
     assert sep == [], "the September 2026 batch is not due before 21 Nov 2026"
 
 
-def test_real_missing_payments_capped(real_lines: pd.DataFrame, real_pulse: PulseResult) -> None:
+def test_real_missing_payments_capped(real_lines: pd.DataFrame) -> None:
     """A15 (#20): 21 missing payments without the cap, 7 with it (C192 4, C242 3).
 
-    Older unmatched C192 batches stay listed on the gap alert. Widening the C192 profile was
-    tried and matched no further payments, so the profile is unchanged.
+    Measured with the balance check off (A44), so the cap's own effect stays visible. Older
+    unmatched C192 batches stay listed on the gap alert. Widening the C192 profile was tried and
+    matched no further payments, so the profile is unchanged.
     """
-    missing = [r for r in real_pulse.records if r.type == "pulse_missing_payment"]
+    unchecked = Rules(missing_payment_balance_check=False)
+    pulse = run_pulse(real_lines, unchecked, AS_OF)
+    missing = [r for r in pulse.records if r.type == "pulse_missing_payment"]
     c192 = sorted(r.facts["batch_period"] for r in missing if r.entity == "C192")
     assert c192 == ["2026-04", "2026-05", "2026-06", "2026-07"]
     assert sum(r.entity == "C242" for r in missing) == 3
     assert len(missing) == 7
-    gap = next(r for r in real_pulse.records if r.type == "pulse_gap" and r.entity == "C192")
+    gap = next(r for r in pulse.records if r.type == "pulse_gap" and r.entity == "C192")
     assert gap.facts["unmatched_batches"] == 19, "the 18 overdue plus Sep 2026, not yet due"
-    uncapped = run_pulse(real_lines, Rules(missing_payment_lookback_months=120), AS_OF)
-    assert sum(r.type == "pulse_missing_payment" for r in uncapped.records) == 21
+    wide = unchecked.model_copy(update={"missing_payment_lookback_months": 120})
+    uncapped = run_pulse(real_lines, wide, AS_OF).records
+    assert sum(r.type == "pulse_missing_payment" for r in uncapped) == 21
+
+
+def test_real_missing_payments_balance_check(real_pulse: PulseResult) -> None:
+    """A44 (review of 22 Nov 2026): the account's balance shows 6 of the 7 batches were paid.
+
+    C192 is in debit (more paid than accrued), so none of April to July 2026 is still owed.
+    C242's February and June 2026 batches were settled with the next month's payments (the
+    month-end balance came back to a few thousand). Only C242's October 2026 batch, still held
+    in the open credit balance on 18 Nov, remains. The matching statistics do not change.
+    """
+    missing = [r for r in real_pulse.records if r.type == "pulse_missing_payment"]
+    assert [(r.entity, r.facts["batch_period"]) for r in missing] == [("C242", "2026-10")]
+    assert float(missing[0].facts["unpaid_by_balance_eur"]) > 0
+    c192 = real_pulse.profiles["P20/C192/279006"]
+    matched = sum(m.matched for m in c192.matches)
+    assert (matched, c192.lag_median, c192.lag_p90) == (21, 30, 37)
 
 
 def test_real_c242_matches(real_pulse: PulseResult) -> None:
@@ -495,10 +515,11 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
 
 
 def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
-    """A8, aggregates only: weekly median 11 days earlier over 37 dated findings, 9 blind.
+    """A8, aggregates only: weekly median 10 days earlier over 31 dated findings, 9 blind.
 
     History: 62 / 17.5 before the typo rule (A6, #12) cut the typo prompts from 22 to 11;
-    51 / 25 before the missing-payment cap (A15, #20) cut missing payments from 21 to 7.
+    51 / 25 before the missing-payment cap (A15, #20) cut missing payments from 21 to 7;
+    37 / 11 (daily 17) before the balance check (A44) cut them from 7 to 1.
     """
     import statistics
 
@@ -506,11 +527,11 @@ def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
 
     records = run_engines(real_lines, Rules(), AS_OF).records
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (37, 11)
+    assert (len(leads), statistics.median(leads)) == (31, 10)
     assert sum(r.today_detection is None for r in records) == 9
     assert min(leads) >= 0
     daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
-    assert statistics.median(daily) == 17
+    assert statistics.median(daily) == 13
 
 
 def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
@@ -518,10 +539,20 @@ def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
 
     Brief section 8 quotes its accrual date (29 Sep 2026) and expected-by date (21 Nov 2026);
     the analysis date is pinned to Monday 23 Nov 2026, after it falls due.
+
+    A44: the account holds a debit balance (more paid than accrued), so with the balance check
+    on (the default) the batch is not raised. The brief's lead-time values are checked with the
+    check off, the rule the example was written for.
     """
     from app.services.pipeline import run_engines
 
-    records = run_engines(real_lines, Rules(), date(2026, 11, 23)).records
+    checked = run_engines(real_lines, Rules(), date(2026, 11, 23)).records
+    assert not [
+        r for r in checked
+        if (r.entity, r.account, r.type) == ("C192", "279006", "pulse_missing_payment")
+    ]  # fmt: skip
+    unchecked = Rules(missing_payment_balance_check=False)
+    records = run_engines(real_lines, unchecked, date(2026, 11, 23)).records
     sep = [
         r for r in records
         if (r.entity, r.account) == ("C192", "279006")
@@ -560,8 +591,9 @@ def test_real_s2_fixed_assets_lead_time(real_all_lines: pd.DataFrame) -> None:
 def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
     """Demo step 4 opens the top exception: the C192 social security gap.
 
-    A9 (#18), aggregates only: first at 79.4 ahead of 69.8 at 500K; still first at 100K (demo
-    step 6), 90 ahead of 89. No Miner pattern sits on C192 279006, so its repeats points are 0.
+    A9 (#18), aggregates only: first at 79.4 ahead of 65.0 at 500K; still first at 100K (demo
+    step 6), 90 ahead of 67. No Miner pattern sits on C192 279006, so its repeats points are 0.
+    (Before the balance check, A44, the runner-up was a missing payment at 69.8, 89 at 100K.)
     """
     from app.services.pipeline import run_engines
 
@@ -569,23 +601,24 @@ def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
     top = output.records[0]
     assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
     assert output.counts["exposure_groups_above"] == 4
-    assert (top.score, output.records[1].score) == (79.4, 69.8)
+    assert (top.score, output.records[1].score) == (79.4, 65.0)
     assert top.score_breakdown["repeats"] == 0
     assert top.score == round(sum(top.score_breakdown.values()), 1)
 
     lower = run_engines(real_lines, Rules(materiality_eur=100_000), AS_OF).records
     assert (lower[0].type, lower[0].entity, lower[0].account) == ("pulse_gap", "C192", "279006")
-    assert (lower[0].score, lower[1].score) == (90.0, 89.0)
+    assert (lower[0].score, lower[1].score) == (90.0, 67.0)
 
 
 def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
-    """A25 (#21), aggregates only: 46 findings; the default view holds 19 at 500K (24 at 100K),
-    with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs."""
+    """A25 (#21), aggregates only: 40 findings; the default view holds 13 at 500K (18 at 100K),
+    with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs.
+    (46, 19 and 24 before the balance check, A44, removed 6 missing payments.)"""
     from collections import Counter
 
     from app.services.pipeline import run_engines
 
-    for materiality, expected in ((500_000, 19), (100_000, 24)):
+    for materiality, expected in ((500_000, 13), (100_000, 18)):
         rules = Rules(materiality_eur=materiality)
         records = run_engines(real_lines, rules, AS_OF).records
         views = Counter(r.inbox_view for r in records)
@@ -593,7 +626,7 @@ def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
         assert (views["prompts"], views["repeats"]) == (17, 6)
         first = next(r for r in records if r.inbox_view == "attention")
         assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
-    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 46
+    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 40
 
 
 # ----- extract date (A38) -------------------------------------------------------------------
@@ -610,10 +643,11 @@ def test_real_extract_dates(real_payroll, real_fixed_assets) -> None:  # type: i
 def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
     """A38: a live run uses the Payroll extract date (23 Oct 2026), not the run date.
 
-    Aggregates only. With the 12-month missing-payment limit (A15, #20), which counts back from
-    the analysis date: 6 missing payments instead of 7 at 18 Nov. C242's October 2026 batch is
-    expected by 13 Nov, after the extract, so it is not yet due. 36 dated findings (37), median
-    still 11 days; the C192 gap still ranks first at 79.4 (A9, #18) and 4 groups stay above 500K.
+    Aggregates only. With the balance check (A44), none of the 6 batches the 12-month limit
+    (A15, #20) would raise at the extract date is still held in its account's balance, so no
+    missing payment remains (C242's October 2026 batch is expected by 13 Nov, after the
+    extract). 30 dated findings, median 8.5 days; the C192 gap still ranks first at 79.4 (A9,
+    #18) and 4 groups stay above 500K. Before A44: 6 missing payments, 36 dated, median 11.
     """
     import statistics
 
@@ -621,12 +655,9 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
 
     output = run_engines(real_lines, Rules(), date(2026, 10, 23))
     records = output.records
-    missing = [r for r in records if r.type == "pulse_missing_payment"]
-    assert sorted(r.facts["batch_period"] for r in missing if r.entity == "C192") == [
-        "2026-04", "2026-05", "2026-06", "2026-07"]  # fmt: skip
-    assert sum(r.entity == "C242" for r in missing) == 2
+    assert not [r for r in records if r.type == "pulse_missing_payment"]
     assert (records[0].type, records[0].entity, round(records[0].score, 1)) == (
         "pulse_gap", "C192", 79.4)  # fmt: skip
     assert output.counts["exposure_groups_above"] == 4
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (36, 11)
+    assert (len(leads), statistics.median(leads)) == (30, 8.5)

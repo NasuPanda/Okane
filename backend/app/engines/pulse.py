@@ -37,6 +37,7 @@ from app.engines import (
     normal_side,
     period_end,
     period_label,
+    short_money,
 )
 from app.schemas import (
     BatchMatch,
@@ -410,6 +411,48 @@ def gap_alert(result: ProfileResult, rules: Rules) -> ExceptionRecord | None:
     )
 
 
+@dataclass
+class BalanceCheck:
+    """What the account's own balance says about one unmatched batch (A44)."""
+
+    check_date: date
+    open_credit: float  # the open credit balance on the check date (0 when in debit)
+    later_not_due: float  # credits of later batches not yet past their own expected-by
+    available: float  # what is left of the open credit for this batch
+
+    @property
+    def facts(self) -> dict[str, object]:
+        return {
+            "balance_check_date": self.check_date,
+            "open_credit_eur": self.open_credit,
+            "later_batches_not_due_eur": self.later_not_due,
+            "unpaid_by_balance_eur": self.available,
+        }
+
+
+def balance_check(result: ProfileResult, match: Match, rules: Rules, as_of: date) -> BalanceCheck:
+    """How much of an unmatched batch the account's open credit balance still holds.
+
+    Check date = the earlier of the month-end of the batch's expected-by date and the analysis
+    date. Available = max(0, open credit balance on that date - the credits of later batches
+    accrued by then but not yet past their own expected-by date).
+    """
+    due = expected_by(match.batch, result.profile, result.lag_p90, rules)
+    check = min(month_end(due), as_of)
+    acct = result.acct
+    dated = acct[acct["posting_date"].notna()]
+    posted = dated[dated["posting_date"].map(lambda d: d <= check)]
+    open_credit = max(0.0, -float(posted["amount_eur"].sum()))
+    later = 0.0
+    for other in result.matches:
+        if other.batch.month() <= match.batch.month() or other.batch.accrual_date > check:
+            continue
+        if expected_by(other.batch, result.profile, result.lag_p90, rules) > check:
+            later += abs(other.batch.amount)
+    available = max(0.0, open_credit - later)
+    return BalanceCheck(check, round(open_credit, 2), round(later, 2), round(available, 2))
+
+
 def missing_payment_alerts(
     result: ProfileResult, rules: Rules, as_of: date
 ) -> list[ExceptionRecord]:
@@ -425,19 +468,40 @@ def missing_payment_alerts(
         due = expected_by(m.batch, result.profile, result.lag_p90, rules)
         if due >= as_of or due < oldest_due:
             continue
+        target = abs(m.batch.amount)
+        exposure, check_facts = m.batch.amount, {}
+        # A44 (review of 22 Nov 2026): when the account's balance shows the money went out (the
+        # payment did not match the batch's pattern, or came with a later one), say nothing.
+        if rules.missing_payment_balance_check:
+            check = balance_check(result, m, rules, as_of)
+            tolerance = max(result.profile.tolerance_pct * target, rules.tolerance_eur)
+            if check.available < tolerance:
+                continue
+            exposure, check_facts = -min(target, check.available), check.facts
         refs = doc_refs(m.batch.lines)
         days_late = (as_of - due).days
         label = (
             period_label(*m.batch.period) if m.batch.period else m.batch.accrual_date.isoformat()
         )
+        short = abs(exposure) < target - max(result.profile.tolerance_pct * target, 0.0)
+        title = (
+            f"Payment short by {short_money(exposure)} on the {label} batch"
+            if short
+            else f"No payment found for the {label} batch"
+        )
         records.append(
             make_record(
                 type_="pulse_missing_payment",
                 lines=result.acct,
-                title=f"No payment found for the {label} batch",
-                exposure_eur=m.batch.amount,
+                title=title,
+                exposure_eur=exposure,
                 facts={
-                    "rule": "Batch unmatched after period end + 90th-percentile lag + grace days",
+                    "rule": "Batch unmatched after period end + 90th-percentile lag + grace days"
+                    + (
+                        ", and still held in the account's open credit balance"
+                        if rules.missing_payment_balance_check
+                        else ""
+                    ),
                     "batch_eur": m.batch.amount,
                     "batch_period": label,
                     "batch_lines": len(m.batch.lines),
@@ -447,6 +511,7 @@ def missing_payment_alerts(
                     "grace_days": rules.grace_days,
                     "days_past_expected": days_late,
                     "lookback_months": rules.missing_payment_lookback_months,
+                    **check_facts,
                 },
                 evidence=refs,
                 first_signal=due + timedelta(days=1),

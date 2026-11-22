@@ -331,6 +331,46 @@ def test_missing_payment_lookback() -> None:
         Rules(missing_payment_lookback_months=0)
 
 
+def _june_lines(june_paid: float | None) -> pd.DataFrame:
+    """Six 600,000 batches in 2026, each paid 30 days after month end, except June: paid
+    ``june_paid`` (outside the tolerance, so it never matches) or not at all."""
+    rows: list[dict[str, object]] = []
+    for month in range(1, 7):
+        end = date(2026, month, 28 if month == 2 else 30 if month in (4, 6) else 31)
+        rows.append({"text": f"Payroll2026{month:02d}", "amount_dc": -600_000.0,
+                     "posting_date": end, "document_no": f"10000000{month:02d}"})  # fmt: skip
+        paid = 600_000.0 if month < 6 else june_paid
+        if paid:
+            rows.append({"text": "URSSAF", "amount_dc": paid,
+                         "posting_date": end + pd.Timedelta(days=30),
+                         "document_no": f"20000000{month:02d}"})  # fmt: skip
+    for row in rows:
+        row["posting_date"] = pd.Timestamp(row["posting_date"]).date()  # type: ignore[arg-type]
+    return frame(rows)
+
+
+@pytest.mark.parametrize(
+    ("june_paid", "check", "expected"),
+    [
+        (None, True, ("No payment found for the 2026-06 batch", -600_000.0)),
+        (660_000.0, True, None),  # paid 10% more than booked: the balance is in debit
+        (300_000.0, True, ("Payment short by 300K on the 2026-06 batch", -300_000.0)),
+        (660_000.0, False, ("No payment found for the 2026-06 batch", -600_000.0)),
+    ],
+)  # fmt: skip
+def test_missing_payment_balance_check(
+    june_paid: float | None, check: bool, expected: tuple[str, float] | None
+) -> None:
+    """A44: a batch the account's balance shows as paid is not raised; a part paid batch is
+    raised for what the balance still holds."""
+    rules = Rules(
+        materiality_eur=100, payment_profiles=[_profile()], missing_payment_balance_check=check
+    )
+    records = run_pulse(_june_lines(june_paid), rules, date(2026, 10, 23)).records
+    missing = [(r.title, r.exposure_eur) for r in records if r.type == "pulse_missing_payment"]
+    assert missing == ([expected] if expected else [])
+
+
 def test_months_before_clamps_to_month_end() -> None:
     assert months_before(date(2026, 11, 18), 12) == date(2025, 11, 18)
     assert months_before(date(2026, 3, 31), 1) == date(2026, 2, 28)
