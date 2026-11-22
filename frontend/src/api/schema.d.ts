@@ -176,6 +176,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/exposure/fixed-assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fixed Assets Exposure
+         * @description Fixed assets after exact pairing, per ERP and entity (A47). Pairing runs in
+         *     ``engines/pairs.py``; this endpoint adds no matching of its own.
+         */
+        get: operations["fixed_assets_exposure_api_exposure_fixed_assets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/pulse/accounts": {
         parameters: {
             query?: never;
@@ -289,9 +310,29 @@ export interface paths {
         };
         /**
          * Health
-         * @description Liveness probe.
+         * @description Liveness probe. It calls nothing else: the hosted demo leaves it open (A41).
          */
         get: operations["health_api_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assistant
+         * @description Whether the assistant can draft notes (A45).
+         */
+        get: operations["assistant_api_assistant_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -304,6 +345,27 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AssistantState
+         * @description ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/assistant.
+         *
+         *     ``assistant``: "on" when Ollama answers and the configured model is pulled; "offline" when
+         *     it is enabled but Ollama does not answer or lacks the model; "off" when disabled in the
+         *     settings. Without the assistant, notes use the labelled standard wording (A29). Kept apart
+         *     from the liveness probe ``/api/health``, which is open without a password on the hosted
+         *     demo (A41) and must not call out to the model server.
+         */
+        AssistantState: {
+            /**
+             * Assistant
+             * @enum {string}
+             */
+            assistant: "on" | "offline" | "off";
+            /** Model */
+            model: string;
+            /** Reason */
+            reason?: string | null;
+        };
         /**
          * BatchMatch
          * @description One accrual batch and the payments that settled it, if any.
@@ -459,7 +521,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster";
+            type: "pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster" | "open_balance" | "wrong_side_balance";
             /**
              * Workgroup
              * @enum {string}
@@ -555,6 +617,11 @@ export interface components {
             above_materiality: boolean;
             /** Exception Id */
             exception_id?: string | null;
+            /**
+             * Normal Side
+             * @default unknown
+             */
+            normal_side: string;
         };
         /**
          * ExposureResponse
@@ -611,6 +678,85 @@ export interface components {
             /** Next Due */
             next_due?: string | null;
         };
+        /**
+         * FixedAssetExposure
+         * @description ADDITION (A47): GET /api/exposure/fixed-assets, what is really open in Fixed assets.
+         */
+        FixedAssetExposure: {
+            /** Run Id */
+            run_id: string;
+            /** Extract Date */
+            extract_date: string | null;
+            /** Recent Days */
+            recent_days: number;
+            /** Lines */
+            lines: number;
+            /** Zero Amount Lines */
+            zero_amount_lines: number;
+            /** Paired Lines */
+            paired_lines: number;
+            /** Recent Lines */
+            recent_lines: number;
+            /** Older Lines */
+            older_lines: number;
+            /** Net Eur */
+            net_eur: number;
+            /** Groups */
+            groups: components["schemas"]["FixedAssetGroup"][];
+        };
+        /**
+         * FixedAssetGroup
+         * @description ADDITION (A47): one Fixed assets ERP, entity and account after exact pairing.
+         */
+        FixedAssetGroup: {
+            /**
+             * Erp
+             * @enum {string}
+             */
+            erp: "P20" | "BPP";
+            /** Entity */
+            entity: string;
+            /** Account */
+            account: string;
+            /** Account Name */
+            account_name: string | null;
+            /** Currency Lc */
+            currency_lc: string;
+            /** Lines */
+            lines: number;
+            /** Zero Amount Lines */
+            zero_amount_lines: number;
+            /** Paired Lines */
+            paired_lines: number;
+            /** Recent Lines */
+            recent_lines: number;
+            /** Recent Net Lc */
+            recent_net_lc: number;
+            /** Recent Net Eur */
+            recent_net_eur: number;
+            /** Older Lines */
+            older_lines: number;
+            /** Older Net Lc */
+            older_net_lc: number;
+            /** Older Net Eur */
+            older_net_eur: number;
+            /**
+             * Fx Net Lc
+             * @default 0
+             */
+            fx_net_lc: number;
+            /**
+             * Fx Net Eur
+             * @default 0
+             */
+            fx_net_eur: number;
+            /** Net Lc */
+            net_lc: number;
+            /** Net Eur */
+            net_eur: number;
+            /** Estimated Rate */
+            estimated_rate: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -645,6 +791,26 @@ export interface components {
             inbox_views?: {
                 [key: string]: number;
             };
+        };
+        /**
+         * NormalSide
+         * @description ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A43): the side an account's balance
+         *     normally sits on, for every account of one ERP whose number starts with ``account_prefix``.
+         *     The longest matching prefix wins; an account no entry matches has an unknown side.
+         */
+        NormalSide: {
+            /**
+             * Erp
+             * @enum {string}
+             */
+            erp: "P20" | "BPP";
+            /** Account Prefix */
+            account_prefix: string;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "debit" | "credit";
         };
         /**
          * PaymentProfile
@@ -844,11 +1010,21 @@ export interface components {
              */
             missing_payment_lookback_months: number;
             /**
+             * Missing Payment Balance Check
+             * @default true
+             */
+            missing_payment_balance_check: boolean;
+            /**
              * Sentinel S1 Scope
              * @default people_only
              * @enum {string}
              */
             sentinel_s1_scope: "people_only" | "exempt_bot_upload" | "all";
+            /**
+             * Sentinel S1 Skip No Overdue Accounts
+             * @default false
+             */
+            sentinel_s1_skip_no_overdue_accounts: boolean;
             /**
              * Close Review Working Day
              * @default 5
@@ -914,6 +1090,11 @@ export interface components {
              * @default true
              */
             miner_by_user: boolean;
+            /**
+             * Miner Max Paired Share
+             * @default 1
+             */
+            miner_max_paired_share: number;
             /** Penalty Accounts */
             penalty_accounts?: string[];
             /**
@@ -932,7 +1113,21 @@ export interface components {
              */
             repeats_min_months: number;
             /** Inbox Always Types */
-            inbox_always_types?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster")[];
+            inbox_always_types?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster" | "open_balance" | "wrong_side_balance")[];
+            /**
+             * Fa Recent Days
+             * @default 60
+             */
+            fa_recent_days: number;
+            /** Unconfirmed Rate Currencies */
+            unconfirmed_rate_currencies?: string[];
+            /**
+             * New Since Days
+             * @default 7
+             */
+            new_since_days: number;
+            /** Account Normal Side */
+            account_normal_side?: components["schemas"]["NormalSide"][];
             /**
              * Error Type Severity
              * @default {
@@ -946,7 +1141,9 @@ export interface components {
              *       "label_mismatch": 0.5,
              *       "pulse_spike": 0.5,
              *       "miner_cluster": 0.4,
-             *       "typo": 0.2
+             *       "typo": 0.2,
+             *       "wrong_side_balance": 0.8,
+             *       "open_balance": 0.6
              *     }
              */
             error_type_severity: {
@@ -1230,7 +1427,7 @@ export interface operations {
     list_exceptions_api_exceptions_get: {
         parameters: {
             query?: {
-                type?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster") | null;
+                type?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster" | "open_balance" | "wrong_side_balance") | null;
                 workgroup?: ("Payroll" | "Fixed assets") | null;
                 entity?: string | null;
                 min_exposure?: number | null;
@@ -1389,6 +1586,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fixed_assets_exposure_api_exposure_fixed_assets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FixedAssetExposure"];
                 };
             };
         };
@@ -1557,6 +1774,26 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    assistant_api_assistant_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantState"];
                 };
             };
         };

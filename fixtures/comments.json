@@ -4,7 +4,7 @@
  "data": {
   "b80b0b905e1fe118": {
    "exception_id": "b80b0b905e1fe118",
-   "comment": "Standard note (no AI was used): The month-end balance for Oct 2026 is -2,534,699 EUR against an expected 0 EUR, a gap of -2,534,699 EUR. The gap has been at or above materiality since Jun 2025; the lowest was -705,292 EUR in Jun 2025. Check the unmatched accrual batches listed as evidence.",
+   "comment": "Standard note (no AI was used): The month-end balance for Oct 2026 is -2,534,699 EUR against an expected 0 EUR, a gap of -2,534,699 EUR. The liability is above the level its payment rhythm leaves: more was accrued than paid. The gap has been at or above materiality since Jun 2025; the lowest was -705,292 EUR in Jun 2025. Check the unmatched accrual batches listed as evidence.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],
@@ -57,6 +57,17 @@
    "rejected_draft": null,
    "rejected_reasons": []
   },
+  "233ad39a5cb011cd": {
+   "exception_id": "233ad39a5cb011cd",
+   "comment": "Standard note (no AI was used): Liability 2.06M still owed after matching. Rule: Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account. Check the documents behind the net and whether they are still open.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false,
+   "rejected_draft": null,
+   "rejected_reasons": []
+  },
   "ca26141f45d62ffe": {
    "exception_id": "ca26141f45d62ffe",
    "comment": "Standard note (no AI was used): The payment of 614,052 EUR is labelled Jan 2026 but settles the Feb 2026 batch. Check the payment text, and correct it if the label is wrong.",
@@ -82,6 +93,17 @@
   "0c7228820c2b5ca8": {
    "exception_id": "0c7228820c2b5ca8",
    "comment": "Standard note (no AI was used): No batch was posted for Aug 2025; a typical batch is 618,389 EUR. Check whether the accrual was booked elsewhere.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false,
+   "rejected_draft": null,
+   "rejected_reasons": []
+  },
+  "09009a7b2874e46d": {
+   "exception_id": "09009a7b2874e46d",
+   "comment": "Standard note (no AI was used): Asset 680K not yet used up after matching. Rule: Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account. Check the documents behind the net and whether they are still open.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],

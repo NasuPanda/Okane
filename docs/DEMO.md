@@ -64,17 +64,20 @@ cd backend; .venv\Scripts\python -m uvicorn app.main:app --port 8000   # then, i
   copy and runs every check. Nothing goes back to SAP or to the file."
 - **Screen:** the toast shows the run starting and finishing; the Inbox data-source line says
   the Payroll extract was **taken 23 Oct 2026** and arrived by upload. A new repeated manual
-  posting appears with it (14 findings in all, up from 13).
+  posting appears with it (16 findings in all, up from 15).
 
 ## Step 3: show real exposure (Exposure, then Inbox)
 
 - **Click:** "Show real exposure" on Exposure, then Inbox.
 - **Say:** "Once accruals are matched to what paid them, only a few accounts are really open.
   The inbox starts with the findings at or above the materiality limit."
-- **Screen:** **3 accounts remain** at 500K (of 6 with overdue lines) `[real: ____]`. The Inbox
-  header: "Today's report calls 72 lines overdue. After matching what was paid, only 3 accounts
-  are really open, and **6 findings at or above 500K** need a look first." `[real: ____ findings]`
-  The tabs: Above 500K **6**, Mistake prompts **3**, Repeated postings **1**, Everything **14**.
+- **Screen:** **3 accounts remain** at 500K (of 6 with overdue lines) `[real: ____]`. Each
+  says what its net means: C242 34900001 "owed (credit)", C192 179003 "asset not yet used up",
+  and the C192 social security gap; clicking one opens the finding about its balance (A43, A46).
+  The Inbox header: "Today's report calls 72 lines overdue. After matching what was paid, only 3
+  accounts are really open, and **8 findings at or above 500K** need a look first."
+  `[real: ____ findings]` The tabs: Above 500K **8**, Mistake prompts **3**, Repeated postings
+  **1**, Everything **16**.
 
 ## Step 4: the top finding (C192 social security)
 
@@ -107,8 +110,9 @@ cd backend; .venv\Scripts\python -m uvicorn app.main:app --port 8000   # then, i
   come into view; the change is logged with who, when and why."
 - **Screen:** Exposure shows **4 accounts** instead of 3 `[real: ____ instead of ____]`; the
   Rules log has one entry for materiality, 500,000 to 100,000, with the reason. The C192 gap
-  stays first. On the synthetic data the Inbox's "Above" tab stays at 6 (no synthetic finding
-  lies between 100K and 500K). `[real: ____ findings at 100K]`
+  stays first. On the synthetic data the Inbox's "Above" tab grows from 8 to 9: the HUF
+  account C172 279006 now nets to more than 100K and gets its own open-balance finding.
+  `[real: ____ findings at 100K]`
 
 ## Closing line
 

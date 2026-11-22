@@ -13,6 +13,8 @@ export const TYPE_LABEL: Record<ExceptionType, string> = {
   sentinel_reversal: "Reversal doesn't match",
   typo: "Possible typo",
   miner_cluster: "Repeated manual posting",
+  open_balance: "Still open after matching",
+  wrong_side_balance: "Balance on the wrong side",
 };
 
 /** One plain sentence per finding, with the accounting term kept in it. */
@@ -29,6 +31,10 @@ export const TYPE_HINT: Record<ExceptionType, string> = {
   typo: "A word or month label that looks like a slip of the keyboard.",
   miner_cluster:
     "The same posting is typed by hand month after month. It may be a correction; check whether the automated posting can do it.",
+  open_balance:
+    "After matching what paid what, this account's overdue lines still net to more than the limit. Today's ageing report lists them line by line; this is the net.",
+  wrong_side_balance:
+    "A liability in debit or an asset in credit: the whole balance sits on the wrong side for this kind of account.",
 };
 
 export type TypeGroup = "pulse" | "sentinel" | "mistakes" | "miner";
@@ -45,6 +51,8 @@ export const TYPE_GROUP: Record<ExceptionType, TypeGroup> = {
   sentinel_reversal: "sentinel",
   typo: "mistakes",
   miner_cluster: "miner",
+  open_balance: "pulse",
+  wrong_side_balance: "mistakes",
 };
 
 export const GROUP_LABEL: Record<TypeGroup, string> = {
@@ -89,6 +97,13 @@ const FACT_LABEL: Record<string, string> = {
   rule: "Rule that fired",
   gap_eur: "Gap",
   balance_eur: "Month-end balance",
+  balance_abs_eur: "Size of the balance",
+  normal_side: "Account normally sits on the",
+  gap_direction: "The gap points",
+  balance_side: "The balance sits on the",
+  wrong_side_balance: "Balance on the wrong side",
+  gap_explained: "What the gap means",
+  check: "What to check",
   expected_eur: "What we'd expect",
   latest_month: "Latest month-end",
   since_month: "Off since",
@@ -105,6 +120,10 @@ const FACT_LABEL: Record<string, string> = {
   lag_p90_days: "Usual payment delay (days)",
   grace_days: "Extra grace days",
   days_past_expected: "Days late",
+  balance_check_date: "Account balance checked on",
+  open_credit_eur: "Open credit balance that day",
+  later_batches_not_due_eur: "Later accruals not yet due",
+  unpaid_by_balance_eur: "Still unpaid, by the balance",
   median_eur: "A normal month",
   multiple: "Times a normal month",
   posting_date: "Posted on",
@@ -151,7 +170,16 @@ const FACT_LABEL: Record<string, string> = {
   documents: "Documents",
   people: "People involved",
   total_abs_eur: "Total posted by hand",
+  unpaired_net_eur: "Net of the lines that don't cancel",
   hint: "Our hypothesis",
+  net_eur: "Nets to, after matching",
+  overdue_abs_eur: "Old report adds up",
+  paired_lines: "Lines that cancel out",
+  debit_eur: "Overdue debits",
+  credit_eur: "Overdue credits",
+  oldest_posting_date: "Oldest overdue posting",
+  newest_posting_date: "Newest overdue posting",
+  wrong_side_since: "On the wrong side since",
   today_detection_basis: "Today's report would catch it via",
   lead_days: "Days earlier than today's report",
 };
@@ -167,6 +195,24 @@ export const ROUTE_LABEL: Record<string, string> = {
   startup: "picked up from the watched folder",
   manual: "picked up from the watched folder",
 };
+
+/** What an account's net means, by its normal side (A43): owed, not yet used up, or a balance
+ *  on the wrong side. Positive amounts are debits, negative are credits. */
+export function netMeaning(side: string | null | undefined, net: number): { text: string; wrong: boolean } {
+  if (net === 0) return { text: "nets to zero", wrong: false };
+  const debit = net > 0;
+  if (side === "credit") {
+    return debit
+      ? { text: "debit balance on a liability: paid more than booked", wrong: true }
+      : { text: "owed (credit)", wrong: false };
+  }
+  if (side === "debit") {
+    return debit
+      ? { text: "asset not yet used up", wrong: false }
+      : { text: "credit balance on an asset: used up more than booked", wrong: true };
+  }
+  return { text: debit ? "debit balance" : "credit balance", wrong: false };
+}
 
 export function weekdayName(day: number | null | undefined): string {
   return WEEKDAYS[day ?? 0] ?? WEEKDAYS[0];

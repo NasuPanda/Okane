@@ -2,14 +2,15 @@ import { ChevronRight, Eye, Layers, PartyPopper } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 
-import { useExposure, useRules } from "@/api/hooks";
-import type { ExposureGroup } from "@/api/types";
+import { useExposure, useFixedAssets, useRules } from "@/api/hooks";
+import type { ExposureGroup, FixedAssetGroup } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
 import { Card, Empty, PageHeader, Segmented, stagger } from "@/components/okane";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { netMeaning } from "@/lib/labels";
 import { cn, eur, shortEur } from "@/lib/utils";
 
 type View = "old" | "real";
@@ -44,7 +45,7 @@ function AccountStrip({ groups, view }: { groups: ExposureGroup[]; view: View })
               <TooltipContent>
                 {g.entity} {g.account} · {g.account_name}
                 <div className="num">
-                  old report {eur(g.overdue_abs)} · really open {eur(g.net_eur)}
+                  old report {eur(g.overdue_abs)} · really open {eur(g.net_eur)}, {netMeaning(g.normal_side, g.net_eur).text}
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -53,6 +54,12 @@ function AccountStrip({ groups, view }: { groups: ExposureGroup[]; view: View })
       </div>
     </div>
   );
+}
+
+/** What the net means for this account (A43), in place of a bare signed amount. */
+function NetLabel({ group }: { group: ExposureGroup }) {
+  const { text, wrong } = netMeaning(group.normal_side, group.net_eur);
+  return <div className={cn("text-[11px] leading-tight", wrong ? "text-hot" : "text-muted-foreground")}>{text}</div>;
 }
 
 function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: View; index: number; onOpen: () => void }) {
@@ -102,7 +109,7 @@ function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: 
             <div className={cn("num text-lg font-light md:text-xl", !group.above_materiality && "text-muted-foreground")}>
               {eur(group.net_eur)}
             </div>
-            <div className="text-[11px] text-muted-foreground md:hidden">really open</div>
+            <NetLabel group={group} />
             <div className="ml-auto h-1 w-full max-w-28 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full"
@@ -114,6 +121,106 @@ function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: 
         </button>
       </div>
     </div>
+  );
+}
+
+/** An amount in its own currency, without decimals: "62,456,836 JPY". */
+const local = (value: number, currency: string) =>
+  `${value.toLocaleString("en-GB", { maximumFractionDigits: 0 })} ${currency}`;
+
+/** "estimated rate" next to EUR figures whose rate is not yet confirmed (A11, A47). */
+function Estimated({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span className="ml-1.5 rounded-full bg-mistake-soft px-1.5 py-0.5 text-[10px] font-medium text-mistake">
+      estimated rate
+    </span>
+  );
+}
+
+function FixedAssetRow({ group, index }: { group: FixedAssetGroup; index: number }) {
+  // A47: older unpaired lines that net to (almost) nothing offset each other without a match.
+  const offset = group.older_lines > 0 && Math.abs(group.older_net_eur) < 1;
+  return (
+    <div
+      className="rise grid grid-cols-2 gap-x-4 gap-y-3 border-b px-4 py-4 text-sm md:grid-cols-[minmax(0,1fr)_110px_170px_170px_190px] md:gap-4"
+      style={stagger(index, 50)}
+    >
+      <div className="col-span-2 min-w-0 md:col-span-1">
+        <div className="text-[15px]">
+          {group.entity} {group.account}
+        </div>
+        <div className="truncate text-xs text-muted-foreground">
+          {group.erp} · {group.account_name ?? "Fixed assets"} · {group.currency_lc}
+        </div>
+      </div>
+      <div className="md:text-right">
+        <div className="num">{group.lines.toLocaleString("en-GB")}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {group.paired_lines.toLocaleString("en-GB")} cancel out
+          {group.zero_amount_lines ? ` · ${group.zero_amount_lines} FX valuations` : ""}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="num">{group.recent_lines ? local(group.recent_net_lc, group.currency_lc) : "–"}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {group.recent_lines} line{group.recent_lines === 1 ? "" : "s"}, timing: this month's accruals
+        </div>
+      </div>
+      <div className="md:text-right">
+        <div className="num">{group.older_lines ? local(group.older_net_lc, group.currency_lc) : "–"}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {group.older_lines} line{group.older_lines === 1 ? "" : "s"},{" "}
+          {offset ? "offset each other but never matched" : "older, never matched"}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="num text-lg font-light">{local(group.net_lc, group.currency_lc)}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {eur(group.net_eur)} EUR
+          <Estimated show={group.estimated_rate} />
+        </div>
+        {/* FX valuations and what exact pairs leave in local currency, so the parts add up. */}
+        {Math.round(group.fx_net_lc ?? 0) !== 0 && (
+          <div className="text-[11px] text-muted-foreground">
+            incl. {local(group.fx_net_lc ?? 0, group.currency_lc)} exchange differences
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** What is really open in Fixed assets once exact pairs fold away (A47). */
+function FixedAssetsSection() {
+  const fixed = useFixedAssets();
+  const data = fixed.data;
+  if (!data || data.lines === 0) return null;
+  const share = data.lines ? Math.round((data.paired_lines / data.lines) * 100) : 0;
+  return (
+    <Card data-tour="exposure-fixed-assets" className="space-y-3 p-0" style={stagger(4, 80)}>
+      <div className="space-y-1 px-4 pt-4">
+        <div className="eyebrow">Fixed assets · what's really still open</div>
+        <p className="text-sm text-muted-foreground">
+          <span className="num text-foreground">{data.paired_lines.toLocaleString("en-GB")}</span> of{" "}
+          <span className="num text-foreground">{data.lines.toLocaleString("en-GB")}</span> lines ({share}%) cancel out
+          in exact pairs. What is left: lines posted in the {data.recent_days} days before the extract (this
+          month's accruals) and older lines that never matched.
+        </p>
+      </div>
+      <div className="hidden grid-cols-[minmax(0,1fr)_110px_170px_170px_190px] gap-4 border-y px-4 py-3 md:grid">
+        <span className="eyebrow">Entity and account</span>
+        <span className="eyebrow text-right">Lines</span>
+        <span className="eyebrow text-right">Recent, unpaired</span>
+        <span className="eyebrow text-right">Older, unpaired</span>
+        <span className="eyebrow text-right">Net</span>
+      </div>
+      <div>
+        {data.groups.map((g, i) => (
+          <FixedAssetRow key={`${g.erp}${g.entity}${g.account}${g.currency_lc}`} group={g} index={i} />
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -140,7 +247,7 @@ export function ExposurePage() {
     <div className="space-y-8">
       <PageHeader
         title="Exposure"
-        trail={["Payroll", "What's really still owed"]}
+        trail={["Payroll", "What's really still open"]}
         tour="exposure-header"
         subtitle="The old report counts every line older than a year as overdue. Okane first matches each accrual to the payment that settled it, so you only see what's really still open."
         actions={
@@ -284,6 +391,8 @@ export function ExposurePage() {
           )}
         </Card>
       </div>
+
+      <FixedAssetsSection />
     </div>
   );
 }

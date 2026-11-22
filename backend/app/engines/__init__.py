@@ -17,7 +17,7 @@ from typing import Any
 
 import pandas as pd
 
-from app.schemas import ExceptionClass, ExceptionRecord, ExceptionType
+from app.schemas import ExceptionClass, ExceptionRecord, ExceptionType, Rules
 
 PENDING_RUN = ""
 
@@ -68,6 +68,90 @@ def short_money(value: float) -> str:
     if size >= 1_000:
         return f"{size / 1_000:.0f}K"
     return f"{size:.0f}"
+
+
+def normal_side(rules: Rules, erp: str, account: str) -> str:
+    """The side the account's balance normally sits on: "debit", "credit" or "unknown" (A43).
+
+    The ``Rules.account_normal_side`` entry with the longest matching account prefix wins.
+    """
+    best: tuple[int, str] = (0, "unknown")
+    for entry in rules.account_normal_side:
+        prefix = entry.account_prefix
+        if entry.erp == erp and account.startswith(prefix) and len(prefix) > best[0]:
+            best = (len(prefix), entry.side)
+    return best[1]
+
+
+def balance_side(amount: float) -> str:
+    """Positive amounts are debits, negative are credits (brief section 6)."""
+    return "debit" if amount > 0 else "credit"
+
+
+# What a gap means, by the account's normal side and the gap's direction (A43). The direction
+# is where the balance sits compared with what the payment rhythm leaves: "debit" when
+# balance - expected > 0 (more paid or debited), "credit" otherwise.
+GAP_WORDING: dict[tuple[str, str], dict[str, str]] = {
+    ("credit", "credit"): {
+        "noun": "Liability", "headline": "above expected", "meaning": "",
+        "explained": "The liability is above the level its payment rhythm leaves: more was "
+        "accrued than paid.",
+        "check": "the unmatched accrual batches listed as evidence",
+    },
+    ("credit", "debit"): {
+        "noun": "Liability", "headline": "below expected", "meaning": "more paid than accrued",
+        "explained": "The liability is below the level its payment rhythm leaves: more was paid "
+        "than accrued.",
+        "check": "missing or late accruals, payments booked to this account by mistake, and "
+        "whether a refund is due",
+    },
+    ("debit", "debit"): {
+        "noun": "Asset", "headline": "above expected", "meaning": "",
+        "explained": "The asset is above the level its rhythm leaves: more was booked than "
+        "used up or settled.",
+        "check": "the open debits that were not used up or settled",
+    },
+    ("debit", "credit"): {
+        "noun": "Asset", "headline": "below expected", "meaning": "more used up than booked",
+        "explained": "The asset is below the level its rhythm leaves: more was used up or "
+        "settled than booked.",
+        "check": "missing debits, credits booked to this account by mistake, and whether an "
+        "amount is owed back",
+    },
+    ("unknown", "debit"): {
+        "noun": "Balance", "headline": "more debit than expected", "meaning": "",
+        "explained": "The balance sits further on the debit side than its rhythm leaves.",
+        "check": "the evidence documents and the batches behind the gap",
+    },
+    ("unknown", "credit"): {
+        "noun": "Balance", "headline": "more credit than expected", "meaning": "",
+        "explained": "The balance sits further on the credit side than its rhythm leaves.",
+        "check": "the evidence documents and the batches behind the gap",
+    },
+}  # fmt: skip
+
+
+def gap_wording(gap: float, balance: float, side: str) -> dict[str, str]:
+    """Title and plain-language facts for a gap, by direction and normal side (A43)."""
+    direction = "debit" if gap > 0 else "credit"
+    words = GAP_WORDING[(side, direction)]
+    title = f"{words['noun']} {short_money(gap)} {words['headline']}"
+    if words["meaning"]:
+        title += f": {words['meaning']}"
+    held = balance_side(balance)
+    wrong = side in ("debit", "credit") and held != side and balance != 0
+    explained = words["explained"]
+    if wrong:
+        explained += f" The account has a {held} balance, the wrong side for a {side} account."
+    return {
+        "title": title,
+        "normal_side": side,
+        "gap_direction": f"toward {direction}",
+        "balance_side": held,
+        "wrong_side_balance": "yes" if wrong else "no",
+        "gap_explained": explained,
+        "check": words["check"],
+    }
 
 
 def is_person(user: object) -> bool:

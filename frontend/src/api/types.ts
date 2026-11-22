@@ -23,6 +23,9 @@ export type Run = S["Run"];
 export type ExtractSource = S["ExtractSource"];
 export type UploadResult = S["UploadResult"];
 export type Kpis = S["Kpis"];
+export type AssistantState = S["AssistantState"];
+export type FixedAssetExposure = S["FixedAssetExposure"];
+export type FixedAssetGroup = S["FixedAssetGroup"];
 
 export type ExceptionFilters = {
   type?: ExceptionType;

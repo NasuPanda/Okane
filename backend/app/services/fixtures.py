@@ -65,6 +65,7 @@ def export_fixtures(out: Path) -> list[str]:
                 "exception_details": details,
                 "comments": comments,
                 "exposure": client.get("/api/exposure/payroll").json(),
+                "fixed_assets": client.get("/api/exposure/fixed-assets").json(),
                 "timelines": timelines,
                 "rules": client.get("/api/rules").json(),
                 "rules_log": client.get("/api/rules/log").json(),

@@ -15,6 +15,8 @@ export const keys = {
 };
 
 export const useLatestRun = () => useQuery({ queryKey: keys.run, queryFn: api.latestRun });
+/** Whether the assistant can draft notes (A45); checked again every minute. */
+export const useAssistant = () => useQuery({ queryKey: ["assistant"], queryFn: api.assistant, refetchInterval: 60_000 });
 export const useKpis = () => useQuery({ queryKey: keys.kpis, queryFn: api.kpis });
 export const useExceptions = (filters: ExceptionFilters = {}) =>
   useQuery({ queryKey: keys.exceptions(filters), queryFn: () => api.exceptions(filters) });
@@ -26,6 +28,8 @@ export const useExposure = (materiality?: number) =>
     queryFn: () => api.exposure(materiality),
     placeholderData: keepPreviousData,
   });
+/** Fixed assets after exact pairing (A47). */
+export const useFixedAssets = () => useQuery({ queryKey: ["fixed-assets"], queryFn: api.fixedAssets });
 export const useTimeline = (key: string | null) =>
   useQuery({ queryKey: keys.timeline(key ?? ""), queryFn: () => api.timeline(key!), enabled: !!key });
 export const useRules = () => useQuery({ queryKey: keys.rules, queryFn: api.rules });
