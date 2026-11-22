@@ -39,11 +39,11 @@ so nobody re-investigates).
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 | A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare (a Worker with static assets) now; Oracle Always Free VM with the full app later, Cloudflare kept as the backup |
 | A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
-| A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
-| A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
+| A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026; departure from the brief signed off in the review of PR #73): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
+| A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026; departure from the brief signed off in the review of PR #73): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
 | A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
-| A47 | What is really open in Fixed assets | Decide | Decided (review of 22 Nov 2026): a Fixed assets section on Exposure from exact pairs; recent unpaired = this month's accruals (60 days); EUR marked "estimated rate" for JPY and PLN |
 | A46 | Open balances and balances on the wrong side | Decide | Decided (review of 22 Nov 2026): two new finding types: open_balance (3 at 500K on real data) and wrong_side_balance (5 new, 1 folded into the C192 gap) |
+| A47 | What is really open in Fixed assets | Decide | Decided (review of 22 Nov 2026): a Fixed assets section on Exposure from exact pairs; recent unpaired = this month's accruals (60 days); EUR marked "estimated rate" for JPY and PLN |
 
 ## Data and ingestion
 
@@ -278,7 +278,8 @@ not recognise (quarterly CFE and GARP payments or another ERP), not left unpaid.
 - Since A44 a batch is also checked against the account's balance: none of those 6 remains.
 Owner: team.
 
-**A44. Missing payments the balance shows as paid.** *Decided (review of 22 Nov 2026, fix 2).*
+**A44. Missing payments the balance shows as paid.** *Decided (review of 22 Nov 2026, fix 2;
+the departure from the brief signed off in the review of PR #73).*
 The 6 "payment not found" alerts at the extract date ranked #2, #3, #4, #6, #10 and #11 in the
 inbox, and each account's balance contradicted them:
 - C242 34900015 flagged February 2026 (-4.28M) and June 2026 (-4.35M). February's payments
@@ -301,7 +302,8 @@ Rule (`Rules.missing_payment_balance_check`, default on): before a missing payme
 - if available is below the batch tolerance (max(profile tolerance x batch, tolerance_eur)),
   nothing is raised;
 - otherwise the alert is raised with exposure -min(batch, available), titled "No payment found
-  for the X batch" when the whole batch is still held, or "Payment short by Y on the X batch".
+  for the X batch" when the whole batch is still held, or "Payment short by Y on the X batch"
+  when more than the batch tolerance has been paid (the same tolerance as above).
 - The check date, open credit, later accruals and the amount still unpaid are facts on the
   record. The matching statistics (lags, expected-by dates) do not change: C192 still has 21
   matched batches, median lag 30, 90th percentile 37.
@@ -326,7 +328,7 @@ signal is the month-end where the current unbroken run above materiality began (
 C192). Its evidence is the unmatched batches. Owner: team.
 
 **A43. A gap's direction and each account's normal side.** *Decided (review of 22 Nov 2026,
-fix 1).* The review found that the C192 social-security gap read "Liability 1.84M above
+fix 1; the departure from the brief signed off in the review of PR #73).* The review found that the C192 social-security gap read "Liability 1.84M above
 expected" with the note "check the unmatched accrual batches", which an accountant reads as
 "more is owed". On real data the opposite is true: at the end of Sep 2026 the account holds a
 debit balance of 1,324,638 against an expected credit of 513,823, so more was paid than

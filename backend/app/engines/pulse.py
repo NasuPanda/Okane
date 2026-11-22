@@ -476,12 +476,13 @@ def missing_payment_alerts(
         if due >= as_of or due < oldest_due:
             continue
         target = abs(m.batch.amount)
+        # The batch's own tolerance decides both whether anything is left and whether it is short.
+        tolerance = max(result.profile.tolerance_pct * target, rules.tolerance_eur)
         exposure, check_facts = m.batch.amount, {}
         # A44 (review of 22 Nov 2026): when the account's balance shows the money went out (the
         # payment did not match the batch's pattern, or came with a later one), say nothing.
         if rules.missing_payment_balance_check:
             check = balance_check(result, m, rules, as_of)
-            tolerance = max(result.profile.tolerance_pct * target, rules.tolerance_eur)
             if check.available < tolerance:
                 continue
             exposure, check_facts = -min(target, check.available), check.facts
@@ -490,7 +491,7 @@ def missing_payment_alerts(
         label = (
             period_label(*m.batch.period) if m.batch.period else m.batch.accrual_date.isoformat()
         )
-        short = abs(exposure) < target - max(result.profile.tolerance_pct * target, 0.0)
+        short = abs(exposure) < target - tolerance
         title = (
             f"Payment short by {short_money(exposure)} on the {label} batch"
             if short
