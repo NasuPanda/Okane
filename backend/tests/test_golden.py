@@ -648,6 +648,8 @@ def test_real_s2_fixed_assets_lead_time(real_all_lines: pd.DataFrame) -> None:
 
     Not run when #17 was built (the Fixed assets workbook was not available), so it checks
     the rule rather than fixed dates. #11 (S2 as built) was still open; S2 itself is on main.
+    Its close review falls before the 18 Nov analysis date, so the badge reads as a replay
+    (A8, review of 22 Nov 2026, fix 7).
     """
     from app.engines.leadtime import close_review_date, next_run_on_or_after
     from app.services.pipeline import run_engines
@@ -661,7 +663,10 @@ def test_real_s2_fixed_assets_lead_time(real_all_lines: pd.DataFrame) -> None:
     assert hit.today_detection == close_review_date(hit.first_signal, rules)
     run = next_run_on_or_after(hit.first_signal, rules.weekly_run_weekday)
     assert hit.lead_days == (hit.today_detection - run).days >= 0
-    assert hit.facts["lead_badge"] == f"Caught {hit.lead_days} days before the close review"
+    assert hit.today_detection < AS_OF and hit.facts["replay"] == "yes"
+    assert hit.facts["lead_badge"] == (
+        f"Would have been caught {hit.lead_days} days before the close review"
+    )
 
 
 def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
