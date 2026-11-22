@@ -41,7 +41,7 @@ TEMPLATE_LABEL = "Standard note (no AI was used):"
 # and the Miner score, as the comment may not give a score (A10; entities and months are shown).
 HIDDEN_FACTS = frozenset(
     {"today_detection_basis", "lead_days", "lead_days_daily", "lead_days_weekly",
-     "okane_run_date", "lead_view", "miner_score"}
+     "okane_run_date", "lead_view", "miner_score", "replay"}
 )  # fmt: skip
 
 # What each figure means, in accountant language, so the model names it correctly (#45 cause 4).

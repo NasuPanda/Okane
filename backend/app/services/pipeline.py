@@ -99,7 +99,7 @@ def run_engines(lines: pd.DataFrame, rules: Rules, as_of: Any) -> EngineOutput:
     records += run_sentinel(lines, rules)
     records += run_typos(lines, rules)
     records += run_miner(lines, rules)
-    records = apply_lead_time(records, lines, rules)
+    records = apply_lead_time(records, lines, rules, as_of)
     netting = payroll_netting(lines, rules.materiality_eur, rules)
     records = score_records(records, rules, as_of)
     records = [r.model_copy(update={"inbox_view": inbox_view(r, rules)}) for r in records]

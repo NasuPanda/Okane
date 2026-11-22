@@ -80,9 +80,11 @@ export function LeadBadge({ record, size = "sm", tip = true }: { record: Excepti
   const daily = record.facts.lead_days_daily;
   const weekly = record.facts.lead_view === "weekly";
   const big = size === "lg";
+  // A small badge may wrap onto two lines, so a long one ("Would have been caught ...") stays
+  // inside its column instead of running into the next one.
   const shape = cn(
-    "inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap",
-    big ? "px-3 py-1.5 text-sm" : "px-2.5 py-1 text-[11px]",
+    "inline-flex max-w-full items-center gap-1.5 font-medium",
+    big ? "rounded-full px-3 py-1.5 text-sm whitespace-nowrap" : "rounded-xl px-2.5 py-1 text-[11px] leading-tight",
   );
   const withTip = (pill: React.ReactNode, why: React.ReactNode) =>
     tip ? (
@@ -98,8 +100,8 @@ export function LeadBadge({ record, size = "sm", tip = true }: { record: Excepti
   if ((lead === null || lead === undefined) && record.today_detection) {
     return withTip(
       <span className={cn(shape, "bg-muted text-muted-foreground")}>
-        <Sparkles className={big ? "size-4" : "size-3"} />
-        {badge ?? "Also in today's report"}
+        <Sparkles className={cn("shrink-0", big ? "size-4" : "size-3")} />
+        <span>{badge ?? "Also in today's report"}</span>
       </span>,
       "Today's ageing report lists these lines one by one. Okane adds them up after matching.",
     );
@@ -107,8 +109,8 @@ export function LeadBadge({ record, size = "sm", tip = true }: { record: Excepti
   if (lead === null || lead === undefined) {
     return withTip(
       <span className={cn(shape, "bg-hot-soft text-hot")}>
-        <EyeOff className={big ? "size-4" : "size-3"} />
-        {badge ?? "Today's process would miss this"}
+        <EyeOff className={cn("shrink-0", big ? "size-4" : "size-3")} />
+        <span>{badge ?? "Today's process would miss this"}</span>
       </span>,
       "Neither the ageing rule nor the month-end close review looks for this. Only Okane does.",
     );
@@ -117,8 +119,10 @@ export function LeadBadge({ record, size = "sm", tip = true }: { record: Excepti
   const earlier = lead >= 0;
   return withTip(
     <span className={cn(shape, earlier ? "bg-dock text-white" : "bg-muted text-muted-foreground")}>
-      <Sparkles className={cn(big ? "size-4" : "size-3", earlier && "text-signal")} />
-      {badge ?? `${earlier ? "Caught" : "Seen"} ${Math.abs(lead)} days ${earlier ? "earlier" : "later"}`}
+      <Sparkles className={cn("shrink-0", big ? "size-4" : "size-3", earlier && "text-signal")} />
+      <span>
+        {badge ?? `${earlier ? "Caught" : "Seen"} ${Math.abs(lead)} days ${earlier ? "earlier" : "later"}`}
+      </span>
     </span>,
     <>
       {weekly && run ? (
@@ -128,9 +132,21 @@ export function LeadBadge({ record, size = "sm", tip = true }: { record: Excepti
       ) : (
         <>Okane can flag it on {day(record.first_signal)}. </>
       )}
-      Today it would surface through {what} on {day(record.today_detection)}.
+      {record.facts.replay === "yes"
+        ? `Today's process would have surfaced it through ${what} on ${day(record.today_detection)}: this is a replay of the extract's history.`
+        : `Today it would surface through ${what} on ${day(record.today_detection)}.`}
       {weekly && typeof daily === "number" ? ` (${daily} days earlier if Okane ran every day.)` : ""}
     </>,
+  );
+}
+
+/** "New this week" (fix 7): first seen within Rules.new_since_days of the analysis date. */
+export function NewTag({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span className="inline-flex items-center rounded-full bg-signal px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#0d0d0f] uppercase">
+      New this week
+    </span>
   );
 }
 

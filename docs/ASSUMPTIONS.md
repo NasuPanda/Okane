@@ -636,6 +636,13 @@ is pending mentor question 2).*
   (21 daily); under the earlier lead-time rule (month end + 5 calendar days, daily) it was 19.
 - Rejected: month end + 5 calendar days (it can fall on a weekend); a daily-only badge
   (overstates what a Monday run delivers by up to 6 days).
+- Replays (review of 22 Nov 2026, fix 7): Sentinel flagged 2019 postings "Caught N days before
+  the close review", a replay of the extract's history, not a catch. When today's detection
+  date lies before the analysis date, the badge now reads "Would have been caught N days
+  before ..." (fact `replay`), and the explanation says so. The median card is captioned
+  "replayed over the extract's history". A "New this week" tag (Inbox and Sentinel) and an
+  Inbox filter show findings first seen within `Rules.new_since_days` (7) before the analysis
+  date.
 Owner: team.
 
 **A9. Risk score.** *Decided (#18, 19 Nov 2026; the penalty-account list is pending mentor

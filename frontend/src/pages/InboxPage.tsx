@@ -18,6 +18,7 @@ import {
   Empty,
   Gauge,
   LeadBadge,
+  NewTag,
   PageHeader,
   ScoreBar,
   Segmented,
@@ -31,7 +32,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { GROUP_LABEL, GROUP_TONE, ROUTE_LABEL, TYPE_GROUP, greeting, weekdayName, type TypeGroup } from "@/lib/labels";
-import { PeriodPicker, inPeriod, usePeriod } from "@/lib/period";
+import { PeriodPicker, inPeriod, useIsNew, usePeriod } from "@/lib/period";
 import { cn, day, dueDay, eur, shortEur, stamp } from "@/lib/utils";
 
 const column = createColumnHelper<ExceptionRecord>();
@@ -85,6 +86,11 @@ function DataSources({ run }: { run: Run | null | undefined }) {
   );
 }
 
+function NewFlag({ record }: { record: ExceptionRecord }) {
+  const isNew = useIsNew();
+  return <NewTag show={isNew(record)} />;
+}
+
 const columns = [
   column.accessor("score", {
     header: "Priority",
@@ -99,7 +105,10 @@ const columns = [
         <div className="flex min-w-0 items-center gap-3">
           <TypeIcon type={r.type} />
           <div className="min-w-0 space-y-1">
-            <TypeLabel type={r.type} />
+            <div className="flex flex-wrap items-center gap-2">
+              <TypeLabel type={r.type} />
+              <NewFlag record={r} />
+            </div>
             <div className={cn("text-[15px]", wide ? "truncate" : "line-clamp-2")}>{r.title}</div>
             <div className="truncate text-xs text-muted-foreground">
               {r.workgroup} · {r.entity} {r.account} {r.account_name}
@@ -168,6 +177,8 @@ export function InboxPage() {
   const [view, setView] = useState<ViewFilter>("attention");
   const [workgroup, setWorkgroup] = useState<"all" | "Payroll" | "Fixed assets">("all");
   const [status, setStatus] = useState<StatusFilter>("open");
+  const [newOnly, setNewOnly] = useState(false);
+  const isNew = useIsNew();
   const [sorting, setSorting] = useState<SortingState>([{ id: "score", desc: true }]);
   const wide = useWide();
   const period = usePeriod();
@@ -180,9 +191,10 @@ export function InboxPage() {
         (r) =>
           (view === "all" || r.inbox_view === view) &&
           (workgroup === "all" || r.workgroup === workgroup) &&
-          (status === "all" || (status === "open" ? OPEN.includes(r.status) : !OPEN.includes(r.status))),
+          (status === "all" || (status === "open" ? OPEN.includes(r.status) : !OPEN.includes(r.status))) &&
+          (!newOnly || isNew(r)),
       ),
-    [scoped, view, workgroup, status],
+    [scoped, view, workgroup, status, newOnly, isNew],
   );
   const counts = useMemo(() => {
     const out: Record<string, number> = { all: 0 };
@@ -270,7 +282,7 @@ export function InboxPage() {
           label="Spotted earlier by"
           value={all.data ? (median ?? "–") : "–"}
           unit="days"
-          note={`median ${scope}, counted from the weekly ${weekdayName(rules.data?.weekly_run_weekday)} run`}
+          note={`median ${scope}, counted from the weekly ${weekdayName(rules.data?.weekly_run_weekday)} run, replayed over the extract's history`}
           icon={Sparkles}
           color="var(--pulse)"
           soft="var(--pulse-soft)"
@@ -329,6 +341,14 @@ export function InboxPage() {
               {v.value === "attention" ? `Above ${limit}` : v.label}
             </Chip>
           ))}
+          <Chip
+            active={newOnly}
+            onClick={() => setNewOnly(!newOnly)}
+            count={scoped.filter((r) => OPEN.includes(r.status) && isNew(r)).length}
+            dot="var(--signal)"
+          >
+            New this week
+          </Chip>
         </div>
         <div data-tour="inbox-filters" className="flex flex-wrap items-center gap-3">
           <Segmented

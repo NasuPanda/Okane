@@ -2473,6 +2473,11 @@
             "title": "Sentinel S1 Scope",
             "default": "people_only"
           },
+          "sentinel_s1_skip_no_overdue_accounts": {
+            "type": "boolean",
+            "title": "Sentinel S1 Skip No Overdue Accounts",
+            "default": false
+          },
           "close_review_working_day": {
             "type": "integer",
             "minimum": 1.0,
@@ -2625,6 +2630,12 @@
             },
             "type": "array",
             "title": "Unconfirmed Rate Currencies"
+          },
+          "new_since_days": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "New Since Days",
+            "default": 7
           },
           "account_normal_side": {
             "items": {

@@ -795,6 +795,19 @@ def test_badge_text() -> None:
     assert badge_text(310, "ageing", 365) == "Caught 310 days before the 365-day ageing rule"
     assert badge_text(-2, "close_review", 365) == "Seen 2 days after the close review"
     assert badge_text(None, "never", None) == "Today's process would miss this"
+    replay = badge_text(7, "close_review", 365, replay=True)
+    assert replay == "Would have been caught 7 days before the close review"
+
+
+def test_lead_time_marks_a_replay_before_the_analysis_date() -> None:
+    """Fix 7: today's process would already have seen it before the analysis date."""
+    record = _finding(facts={"posting_date": "2026-06-10"})  # close review early July 2026
+    lines = frame([{"account": "279006"}])
+    early = apply_lead_time([record], lines, Rules(), date(2026, 6, 30))[0]
+    late = apply_lead_time([record], lines, Rules(), date(2026, 10, 23))[0]
+    assert str(early.facts["lead_badge"]).startswith("Caught ")
+    assert str(late.facts["lead_badge"]).startswith("Would have been caught ")
+    assert late.facts["replay"] == "yes" and "replay" not in early.facts
 
 
 def test_lead_time_by_basis() -> None:

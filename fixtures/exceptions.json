@@ -4,7 +4,7 @@
  "data": [
   {
    "id": "b80b0b905e1fe118",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "pulse_gap",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -65,7 +65,7 @@
   },
   {
    "id": "5a2ed0b6c0c57484",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "pulse_spike",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -87,7 +87,8 @@
     "lead_days_weekly": 7.0,
     "okane_run_date": "2026-08-31",
     "lead_view": "weekly",
-    "lead_badge": "Caught 7 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 7 days before the close review"
    },
    "evidence": [
     "0000000016/2026"
@@ -116,7 +117,7 @@
   },
   {
    "id": "61ca766fbdf173e5",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -175,7 +176,7 @@
   },
   {
    "id": "4b75e13ab2dc5a8d",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "sentinel_outlier",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -200,7 +201,8 @@
     "lead_days_weekly": 32.0,
     "okane_run_date": "2026-10-05",
     "lead_view": "weekly",
-    "lead_badge": "Caught 32 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 32 days before the close review"
    },
    "evidence": [
     "0000000031/2026"
@@ -229,7 +231,7 @@
   },
   {
    "id": "5cb790939c58a948",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "sentinel_outlier",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -254,7 +256,8 @@
     "lead_days_weekly": 16.0,
     "okane_run_date": "2026-09-21",
     "lead_view": "weekly",
-    "lead_badge": "Caught 16 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 16 days before the close review"
    },
    "evidence": [
     "4900000001/2026"
@@ -283,7 +286,7 @@
   },
   {
    "id": "233ad39a5cb011cd",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "open_balance",
    "workgroup": "Payroll",
    "erp": "BPP",
@@ -339,7 +342,7 @@
   },
   {
    "id": "ca26141f45d62ffe",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "label_mismatch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -363,7 +366,8 @@
     "lead_days_weekly": 8.0,
     "okane_run_date": "2026-03-30",
     "lead_view": "weekly",
-    "lead_badge": "Caught 8 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 8 days before the close review"
    },
    "evidence": [
     "0000000006/2026",
@@ -393,7 +397,7 @@
   },
   {
    "id": "3267f451b8da112e",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -420,7 +424,8 @@
     "lead_days_weekly": 32.0,
     "okane_run_date": "2026-05-04",
     "lead_view": "weekly",
-    "lead_badge": "Caught 32 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 32 days before the close review"
    },
    "evidence": [
     "0000000008/2026"
@@ -449,7 +454,7 @@
   },
   {
    "id": "0c7228820c2b5ca8",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "pulse_missing_batch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -491,7 +496,7 @@
   },
   {
    "id": "09009a7b2874e46d",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "open_balance",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -545,7 +550,7 @@
   },
   {
    "id": "d00346a86e3ca1d6",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -609,7 +614,7 @@
   },
   {
    "id": "1578d0ba41872186",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "sentinel_currency_code",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -632,7 +637,8 @@
     "lead_days_weekly": 32.0,
     "okane_run_date": "2026-10-05",
     "lead_view": "weekly",
-    "lead_badge": "Caught 32 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 32 days before the close review"
    },
    "evidence": [
     "0000000053/2026"
@@ -661,7 +667,7 @@
   },
   {
    "id": "f04ae2adff34c19c",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "sentinel_currency_code",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -685,7 +691,8 @@
     "lead_days_weekly": 16.0,
     "okane_run_date": "2026-09-21",
     "lead_view": "weekly",
-    "lead_badge": "Caught 16 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 16 days before the close review"
    },
    "evidence": [
     "4900000002/2026"
@@ -714,7 +721,7 @@
   },
   {
    "id": "6c91062e6c599fb8",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "sentinel_two_currencies",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -736,7 +743,8 @@
     "lead_days_weekly": 9.0,
     "okane_run_date": "2026-09-28",
     "lead_view": "weekly",
-    "lead_badge": "Caught 9 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 9 days before the close review"
    },
    "evidence": [
     "4900000003/2026",
@@ -766,7 +774,7 @@
   },
   {
    "id": "0c33474c40046521",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "sentinel_two_currencies",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -788,7 +796,8 @@
     "lead_days_weekly": 23.0,
     "okane_run_date": "2026-09-14",
     "lead_view": "weekly",
-    "lead_badge": "Caught 23 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 23 days before the close review"
    },
    "evidence": [
     "0000000051/2026",
@@ -818,7 +827,7 @@
   },
   {
    "id": "f4d7086d081a2e09",
-   "run_id": "run_20261122T161354_f119e6",
+   "run_id": "run_20261122T162024_e768cb",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -845,7 +854,8 @@
     "lead_days_weekly": 4.0,
     "okane_run_date": "2024-06-03",
     "lead_view": "weekly",
-    "lead_badge": "Caught 4 days before the close review"
+    "replay": "yes",
+    "lead_badge": "Would have been caught 4 days before the close review"
    },
    "evidence": [
     "0000000016/2024"

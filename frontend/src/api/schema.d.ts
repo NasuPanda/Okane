@@ -995,6 +995,11 @@ export interface components {
              */
             sentinel_s1_scope: "people_only" | "exempt_bot_upload" | "all";
             /**
+             * Sentinel S1 Skip No Overdue Accounts
+             * @default false
+             */
+            sentinel_s1_skip_no_overdue_accounts: boolean;
+            /**
              * Close Review Working Day
              * @default 5
              */
@@ -1090,6 +1095,11 @@ export interface components {
             fa_recent_days: number;
             /** Unconfirmed Rate Currencies */
             unconfirmed_rate_currencies?: string[];
+            /**
+             * New Since Days
+             * @default 7
+             */
+            new_since_days: number;
             /** Account Normal Side */
             account_normal_side?: components["schemas"]["NormalSide"][];
             /**

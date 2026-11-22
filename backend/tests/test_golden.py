@@ -538,7 +538,9 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
     assert outlier.facts["okane_run_date"] == "2026-09-21"
     assert outlier.today_detection == date(2026, 10, 7)
     assert (outlier.lead_days, outlier.facts["lead_days_daily"]) == (16, 19)
-    assert outlier.facts["lead_badge"] == "Caught 16 days before the close review"
+    # Fix 7 (review of 22 Nov 2026): the close review (7 Oct) is before the analysis date
+    # (18 Nov), so this is a replay of the extract's history, not a catch.
+    assert outlier.facts["lead_badge"] == "Would have been caught 16 days before the close review"
     # Pulse: the unpaid June 2026 batch (the May 2025 one is past the 12-month cap, A15).
     # First signal the day after expected-by (Fri 21 Aug 2026), Monday run 24 Aug; the 365-day
     # ageing rule shows it 29 Jun 2027.

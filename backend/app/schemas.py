@@ -288,6 +288,9 @@ class Rules(BaseModel):
     unconfirmed_rate_currencies: list[str] = Field(
         default_factory=lambda: ["JPY", "PLN", "USD", "CNY"]
     )
+    # ADDITION (review of 22 Nov 2026, fix 7, docs/ASSUMPTIONS.md A8): a finding is "new this
+    # week" when its first signal falls within this many days before the analysis date.
+    new_since_days: int = Field(default=7, ge=1)
     # ADDITION (A43): each account's normal side, by ERP and account-number prefix. Used to
     # word a gap by direction ("more paid than accrued") and to label the Exposure page.
     account_normal_side: list[NormalSide] = Field(default_factory=default_normal_sides)

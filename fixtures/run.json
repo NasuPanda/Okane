@@ -2,8 +2,8 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261122T161354_f119e6",
-  "snapshot_id": "5574fbe94ba9a866",
+  "run_id": "run_20261122T162024_e768cb",
+  "snapshot_id": "d59022189b60c28d",
   "trigger": "manual",
   "status": "finished",
   "source_files": [
@@ -11,13 +11,13 @@
    "Payroll_sample.xlsx"
   ],
   "file_hashes": [
-   "30543084515acce6dffff97b860b9d021d3bc90042fcde862a2b2588318e0453",
-   "b9dd8d257b8d4f0c17a2047aad962107b01d6d491e8afcfcfd2240d767af9ec9"
+   "422277b41cea409a6e78955ad66c9f6b1f29695bb29029a987723a544a6e2e4b",
+   "bf0262159d627e9d60eb7b2afcb5868adcaef65b6e12361ed43d801ad54490f2"
   ],
   "synthetic": false,
   "as_of": "2026-11-18",
-  "started_at": "2026-11-22T16:13:54.479742",
-  "finished_at": "2026-11-22T16:13:54.929053",
+  "started_at": "2026-11-22T16:20:24.203034",
+  "finished_at": "2026-11-22T16:20:24.666307",
   "counts": {
    "lines": 244,
    "paired_lines": 42,
@@ -42,11 +42,11 @@
    {
     "kind": "Payroll",
     "file_name": "Payroll_sample.xlsx",
-    "file_hash": "b9dd8d257b8d4f0c17a2047aad962107b01d6d491e8afcfcfd2240d767af9ec9",
+    "file_hash": "bf0262159d627e9d60eb7b2afcb5868adcaef65b6e12361ed43d801ad54490f2",
     "extract_date": "2026-10-23",
     "route": "manual",
     "received_by": "controller",
-    "received_at": "2026-11-22T16:13:54.595449",
+    "received_at": "2026-11-22T16:20:24.316853",
     "rows": 209,
     "late": false,
     "next_due": "2026-11-23T06:00:00"
@@ -54,11 +54,11 @@
    {
     "kind": "Fixed assets",
     "file_name": "Fixed_assets_sample.xlsx",
-    "file_hash": "30543084515acce6dffff97b860b9d021d3bc90042fcde862a2b2588318e0453",
+    "file_hash": "422277b41cea409a6e78955ad66c9f6b1f29695bb29029a987723a544a6e2e4b",
     "extract_date": "2026-10-02",
     "route": "manual",
     "received_by": "controller",
-    "received_at": "2026-11-22T16:13:54.536284",
+    "received_at": "2026-11-22T16:20:24.259571",
     "rows": 35,
     "late": false,
     "next_due": "2026-11-23T06:00:00"

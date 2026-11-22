@@ -4,7 +4,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import { useLatestRun } from "@/api/hooks";
+import { useLatestRun, useRules } from "@/api/hooks";
 import type { ExceptionRecord } from "@/api/types";
 import { Segmented } from "@/components/okane";
 import { cn } from "@/lib/utils";
@@ -104,6 +104,23 @@ export const OPEN_BALANCE_TYPES: readonly ExceptionRecord["type"][] = [
   "open_balance", // A46: balances still open on the analysis date
   "wrong_side_balance",
 ];
+
+/** Fix 7 (review of 22 Nov 2026): first seen within ``days`` before the analysis date. */
+export function isNew(r: ExceptionRecord, asOf: string | null | undefined, days: number): boolean {
+  if (!asOf) return false;
+  const end = parse(asOf);
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - days);
+  const first = parse(r.first_signal);
+  return first > start && first <= end;
+}
+
+/** Whether a finding is new this week, from the latest run's analysis date and the Rules. */
+export function useIsNew() {
+  const run = useLatestRun();
+  const rules = useRules();
+  const days = rules.data?.new_since_days ?? 7;
+  return (r: ExceptionRecord) => isNew(r, run.data?.as_of, days);
+}
 
 export function inPeriod(r: ExceptionRecord, range: PeriodRange): boolean {
   if (!range || OPEN_BALANCE_TYPES.includes(r.type)) return true;

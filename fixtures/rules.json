@@ -68,6 +68,7 @@
   "missing_payment_lookback_months": 12,
   "missing_payment_balance_check": true,
   "sentinel_s1_scope": "people_only",
+  "sentinel_s1_skip_no_overdue_accounts": false,
   "close_review_working_day": 5,
   "close_review_holidays": [],
   "lead_time_view": "weekly",
@@ -104,6 +105,7 @@
    "USD",
    "CNY"
   ],
+  "new_since_days": 7,
   "account_normal_side": [
    {
     "erp": "P20",

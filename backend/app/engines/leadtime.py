@@ -20,6 +20,10 @@ Today's detection date, per type:
 Okane runs weekly, so with ``Rules.lead_time_view`` = "weekly" the lead days count from the run
 on or after the first signal (``Rules.weekly_run_weekday``); "daily" counts from the first
 signal itself. Both figures are kept in the facts. Nothing here reads the clock.
+
+When today's detection date already lies before the analysis date, the finding is a replay of
+the extract's history, not a catch: the badge says "Would have been caught N days before ..."
+(review of 22 Nov 2026, fix 7).
 """
 
 from __future__ import annotations
@@ -70,8 +74,9 @@ def next_run_on_or_after(day: date, weekday: int) -> date:
     return day + timedelta(days=(weekday - day.weekday()) % 7)
 
 
-def badge_text(lead: int | None, basis: str, allowed_age: int | None) -> str:
-    """The lead-time badge, in accountant language."""
+def badge_text(lead: int | None, basis: str, allowed_age: int | None, replay: bool = False) -> str:
+    """The lead-time badge, in accountant language. ``replay``: today's process would already
+    have seen it before the analysis date, so the lead is what Okane would have gained."""
     if lead is None:
         return "Today's process would miss this"
     what = (
@@ -80,6 +85,12 @@ def badge_text(lead: int | None, basis: str, allowed_age: int | None) -> str:
         else "the close review"
     )
     days = f"{abs(lead)} day{'' if abs(lead) == 1 else 's'}"
+    if replay:
+        return (
+            f"Would have been caught {days} before {what}"
+            if lead >= 0
+            else f"Would have been seen {days} after {what}"
+        )
     return f"Caught {days} before {what}" if lead >= 0 else f"Seen {days} after {what}"
 
 
@@ -119,9 +130,12 @@ def today_detection(
 
 
 def apply_lead_time(
-    records: list[ExceptionRecord], lines: pd.DataFrame, rules: Rules
+    records: list[ExceptionRecord], lines: pd.DataFrame, rules: Rules, as_of: date | None = None
 ) -> list[ExceptionRecord]:
-    """Fill today_detection and lead_days, and record the basis, both figures and the badge."""
+    """Fill today_detection and lead_days, and record the basis, both figures and the badge.
+
+    ``as_of`` (the analysis date) marks findings today's process would already have seen as a
+    replay of the extract's history (fix 7)."""
     ages = allowed_age_by_account(lines)
     out = []
     for record in records:
@@ -148,7 +162,10 @@ def apply_lead_time(
                     "lead_view": rules.lead_time_view,
                 }
             )
-        facts["lead_badge"] = badge_text(lead, basis, allowed)
+        replay = detected is not None and as_of is not None and detected < as_of
+        if replay:
+            facts["replay"] = "yes"
+        facts["lead_badge"] = badge_text(lead, basis, allowed, replay)
         out.append(
             record.model_copy(
                 update={"today_detection": detected, "lead_days": lead, "facts": facts}

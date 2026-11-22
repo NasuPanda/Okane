@@ -119,7 +119,8 @@ def assistant_status(settings: Settings, http: httpx.Client | None = None) -> He
     """Whether the assistant can draft notes: Ollama answers and the model is pulled (A45)."""
     if not settings.ai_enabled:
         return Health(assistant="off", model=settings.ollama_model, reason="turned off in settings")
-    client = http or httpx.Client(timeout=2.0)
+    # A short timeout: a refused connection can take seconds on Windows, and the run dock waits.
+    client = http or httpx.Client(timeout=1.0)
     try:
         response = client.get(f"{settings.ollama_url}/api/tags")
         names = {m.get("name", "") for m in response.json().get("models", [])}
