@@ -287,7 +287,12 @@ Rule (`Rules.missing_payment_balance_check`, default on): before a missing payme
 - check date = the earlier of the month-end of the batch's expected-by date and the analysis
   date;
 - available = max(0, the account's open credit balance on the check date - the credits of
-  later batches accrued by then but not yet past their own expected-by date);
+  later batches accrued by then, not yet past their own expected-by date and not yet paid on
+  the check date); a later batch already paid has left the balance with its payment, so it
+  is not subtracted again (review of PR #73; before, an unpaid batch followed by a paid one
+  could be hidden; no real or synthetic figure changed);
+- known limit: the open credit is not allocated batch by batch, so older unpaid batches
+  (outside the 12-month limit) can keep a newer batch's alert alive;
 - if available is below the batch tolerance (max(profile tolerance x batch, tolerance_eur)),
   nothing is raised;
 - otherwise the alert is raised with exposure -min(batch, available), titled "No payment found

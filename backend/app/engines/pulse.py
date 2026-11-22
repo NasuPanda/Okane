@@ -435,7 +435,12 @@ def balance_check(result: ProfileResult, match: Match, rules: Rules, as_of: date
 
     Check date = the earlier of the month-end of the batch's expected-by date and the analysis
     date. Available = max(0, open credit balance on that date - the credits of later batches
-    accrued by then but not yet past their own expected-by date).
+    accrued by then, not yet past their own expected-by date and not yet paid on that date).
+
+    A later batch already paid by the check date is left out: its accrual and its payment
+    cancel in the balance, so subtracting it again would hide an unpaid earlier batch (review of
+    PR #73). The open credit is not allocated batch by batch, so older unpaid batches can keep
+    a newer one's alert alive (A44).
     """
     due = expected_by(match.batch, result.profile, result.lag_p90, rules)
     check = min(month_end(due), as_of)
@@ -447,6 +452,8 @@ def balance_check(result: ProfileResult, match: Match, rules: Rules, as_of: date
     for other in result.matches:
         if other.batch.month() <= match.batch.month() or other.batch.accrual_date > check:
             continue
+        if other.matched and max(u.posting_date for u in other.units) <= check:
+            continue  # paid by the check date: already out of the balance
         if expected_by(other.batch, result.profile, result.lag_p90, rules) > check:
             later += abs(other.batch.amount)
     available = max(0.0, open_credit - later)

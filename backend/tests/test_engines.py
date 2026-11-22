@@ -442,6 +442,29 @@ def test_missing_payment_balance_check(
     assert missing == ([expected] if expected else [])
 
 
+def test_balance_check_ignores_later_batches_already_paid() -> None:
+    """A44 (review of PR #73): April 2026 is unpaid. On its check date (30 Jun) May's batch is
+    accrued and already paid, so only June's credit, not yet due, is set against the balance;
+    April is still raised for the whole batch. Each month's amount differs, so a payment can
+    only settle its own batch."""
+    rows: list[dict[str, object]] = []
+    for month in range(1, 7):
+        end = date(2026, month, 30 if month in (4, 6) else 28 if month == 2 else 31)
+        amount = 500_000.0 + 50_000.0 * month
+        rows.append({"text": f"Payroll2026{month:02d}", "amount_dc": -amount,
+                     "posting_date": end, "document_no": f"10000000{month:02d}"})  # fmt: skip
+        if month != 4:
+            paid_on = (pd.Timestamp(end) + pd.Timedelta(days=30)).date()
+            rows.append({"text": "URSSAF", "amount_dc": amount, "posting_date": paid_on,
+                         "document_no": f"20000000{month:02d}"})  # fmt: skip
+    rules = Rules(materiality_eur=100, payment_profiles=[_profile()])
+    records = run_pulse(frame(rows), rules, date(2026, 10, 23)).records
+    missing = [r for r in records if r.type == "pulse_missing_payment"]
+    assert [(r.title, r.exposure_eur) for r in missing] == [
+        ("No payment found for the 2026-04 batch", -700_000.0)]  # fmt: skip
+    assert missing[0].facts["later_batches_not_due_eur"] == 800_000.0  # June only, not May
+
+
 def test_months_before_clamps_to_month_end() -> None:
     assert months_before(date(2026, 11, 18), 12) == date(2025, 11, 18)
     assert months_before(date(2026, 3, 31), 1) == date(2026, 2, 28)
