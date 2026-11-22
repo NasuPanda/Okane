@@ -83,7 +83,9 @@ def run_miner(lines: pd.DataFrame, rules: Rules) -> list[ExceptionRecord]:
             continue
         # ASSUMPTION (A7): an accrual and its reversal typed by hand pair up line for line; when
         # that is most of the pattern it nets to little and is not a repeated correction.
-        if float(group["paired"].mean()) >= rules.miner_max_paired_share:
+        # A share of 1.0 turns the rule off (the default, A7).
+        share = rules.miner_max_paired_share
+        if share < 1.0 and float(group["paired"].mean()) >= share:
             continue
         # The record sits on the lowest entity code in the pattern; the others are listed in
         # the facts. Line counts never choose it, so the id (which hashes this entity) stays

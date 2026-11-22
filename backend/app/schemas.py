@@ -267,8 +267,10 @@ class Rules(BaseModel):
     miner_by_user: bool = True
     # ADDITION (review of 22 Nov 2026, fix 6, docs/ASSUMPTIONS.md A7): a pattern whose lines
     # mostly cancel in exact pairs (an accrual and its reversal) is a routine, not a repeated
-    # correction; it is dropped when this share of its lines or more is paired.
-    miner_max_paired_share: float = Field(default=0.5, gt=0, le=1)
+    # correction; it is dropped when this share of its lines or more is paired. 1.0 = off (the
+    # default, decided in the review of PR #73: on, it drops every Fixed assets card); 0.5 is
+    # the proposed setting.
+    miner_max_paired_share: float = Field(default=1.0, gt=0, le=1)
     # ADDITION / ASSUMPTION: risk score scaling.
     penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
     exposure_cap_multiple: float = 5.0

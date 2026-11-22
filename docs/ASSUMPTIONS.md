@@ -589,18 +589,22 @@ the name "CC06" is dropped.
 - Paired lines (review of 22 Nov 2026, fix 6): the top two Fixed assets cards were one routine,
   "IC Winshuttle" on C102: VA accruals (44 months, +33.6M) and VC reversals (53 months,
   -32.6M), shown as two findings with gross amounts although together they net to about 1M.
-  A pattern is now dropped when `Rules.miner_max_paired_share` (0.5) or more of its lines
-  belong to an exact pair (`engines/pairs.py`, anywhere on the account). A remaining card's
-  amount is the net of its unpaired lines (fact `unpaired_net_eur`; `paired_lines` is shown).
-  ASSUMPTION: dropping the whole pattern rather than only its paired lines, so a routine and
-  its reversal never leave two half-cards behind.
-  - Real Payroll: 6 cards at score 12 become 4 (13 instead of 16 at score 6; still 4 at 20).
-    The two dropped had 18 of 28 and 99 of 125 lines in exact pairs; the 4 kept have at most
-    3 paired lines each. Knock-on at the extract date: 45 findings instead of 47, 4 in the
-    "Repeated postings" tab instead of 6, blind spots 7 instead of 9.
-  - Real Fixed assets: not measured here (the workbook is not on the laptop that built this);
-    the IC Winshuttle pair is expected to drop. `test_real_miner_fixed_assets` (8 cards) will
-    fail until it is re-measured with the workbook present.
+  A switch, `Rules.miner_max_paired_share`, drops a pattern when that share or more of its
+  lines belong to an exact pair (`engines/pairs.py`, anywhere on the account). Every card's
+  amount is now the net of its unpaired lines (fact `unpaired_net_eur`; `paired_lines` is
+  shown), so a routine that nets to little shows a small amount either way.
+  - **Left off (1.0), decided in the review of PR #73.** At the proposed 0.5 the switch drops
+    every Fixed assets card: 9,980 of the 10,198 Fixed assets lines sit in exact pairs, so all
+    8 patterns at score 12+ are mostly pairs. An accrual and its reversal typed by hand every
+    month may also be exactly the repeated manual work the Miner exists to surface. The team
+    can turn it on from the Rules page.
+  - ASSUMPTION (when on): the whole pattern is dropped rather than only its paired lines, so a
+    routine and its reversal never leave two half-cards behind.
+  - Real Payroll: 6 cards at score 12 (16 at score 6, 4 at 20). At 0.5: 4 (13 at score 6); the
+    two dropped have 18 of 28 and 99 of 125 lines in exact pairs, the 4 kept at most 3 paired
+    lines each. With it on, the extract date has 2 fewer findings, 4 in the "Repeated
+    postings" tab instead of 6 and 7 blind spots instead of 9.
+  - Real Fixed assets: 8 cards (unchanged); 0 at 0.5.
   - Synthetic: the demo card (C132 and C192 279030, 6 months) has no paired line and stays.
 Owner: team.
 

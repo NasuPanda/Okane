@@ -210,8 +210,8 @@ def test_open_balance_skips_accounts_pulse_covers() -> None:
 
 def test_miner_drops_patterns_that_are_mostly_exact_pairs() -> None:
     """A7 (review of 22 Nov 2026): an accrual and its reversal typed by hand every month pair up
-    line for line; the pattern is dropped. A one-sided pattern stays, its exposure the net of
-    its unpaired lines."""
+    line for line; with the switch on (0.5) the pattern is dropped. A one-sided pattern stays,
+    its exposure the net of its unpaired lines. The switch is off by default (review of PR #73)."""
     from app.engines.miner import run_miner
 
     rows: list[dict[str, object]] = []
@@ -231,11 +231,11 @@ def test_miner_drops_patterns_that_are_mostly_exact_pairs() -> None:
                      "posting_date": date(2026, 6, 25), "user_name": "USER_901",
                      "header_text": "IC accrual", "doc_type": "SA"})  # fmt: skip
     lines = frame(rows)
-    cards = run_miner(lines, Rules())
+    cards = run_miner(lines, Rules(miner_max_paired_share=0.5))
     assert [c.account for c in cards] == ["279030"]
     assert cards[0].exposure_eur == 2 * 50.0 * sum(range(1, 7))
     assert cards[0].facts["paired_lines"] == 0
-    everything = run_miner(lines, Rules(miner_max_paired_share=1.0))
+    everything = run_miner(lines, Rules())  # the rule is off by default (A7)
     assert sorted(c.account for c in everything) == ["119001", "279030"]
     routine = next(c for c in everything if c.account == "119001")
     assert routine.exposure_eur == 2 * 777.0, "only the accruals not reversed are left"
