@@ -2,7 +2,7 @@
 // counted back from the analysis date (the day the extract was taken, A38). Changing it on one
 // page changes it on the others; the chosen grain is remembered in this browser (A40).
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { useLatestRun, useRules } from "@/api/hooks";
 import type { ExceptionRecord } from "@/api/types";
@@ -114,12 +114,16 @@ export function isNew(r: ExceptionRecord, asOf: string | null | undefined, days:
   return first > start && first <= end;
 }
 
-/** Whether a finding is new this week, from the latest run's analysis date and the Rules. */
+/** Whether a finding is new this week, from the latest run's analysis date and the Rules.
+ *  The function is stable while those two stay the same: the Inbox filters its table with it, and
+ *  a new function on every render rebuilt the table's data on every render, which re-rendered
+ *  the table again, in a loop that froze the page. */
 export function useIsNew() {
   const run = useLatestRun();
   const rules = useRules();
+  const asOf = run.data?.as_of;
   const days = rules.data?.new_since_days ?? 7;
-  return (r: ExceptionRecord) => isNew(r, run.data?.as_of, days);
+  return useCallback((r: ExceptionRecord) => isNew(r, asOf, days), [asOf, days]);
 }
 
 export function inPeriod(r: ExceptionRecord, range: PeriodRange): boolean {
