@@ -223,6 +223,10 @@ class Rules(BaseModel):
     # ADDITION (brief open item 2): which lines Sentinel S1 may flag. Decided in #9
     # (docs/ASSUMPTIONS.md A1): person-posted lines only.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
+    # ADDITION (review of 22 Nov 2026, fix 8, docs/ASSUMPTIONS.md A1): True skips S1 on accounts
+    # whose allowed age is "No Overdue" (pension-type provisions, where large one-off bookings
+    # are normal). Off: the brief's open-item-1 example (A2) is on such an account.
+    sentinel_s1_skip_no_overdue_accounts: bool = False
     # ADDITION (#16, docs/ASSUMPTIONS.md A8): today's close review falls on this working day
     # after month end. Working days are Monday to Friday minus close_review_holidays. (This
     # replaces close_review_days, month end + 5 calendar days; saved rules that still carry

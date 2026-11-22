@@ -480,6 +480,17 @@ def test_s1_scope_options() -> None:
     assert len(outlier_hits(lines, rules, "exempt_bot_upload")) == 2
 
 
+def test_s1_can_skip_no_overdue_accounts() -> None:
+    """A1 (review of 22 Nov 2026, fix 8): off by default; on, a "No Overdue" account (no
+    allowed age, pension-type) is skipped."""
+    lines = _sentinel_lines().assign(allowed_age=None)
+    rules = Rules(outlier_multiple=1000)
+    assert len(outlier_hits(lines, rules)) == 1
+    skipping = rules.model_copy(update={"sentinel_s1_skip_no_overdue_accounts": True})
+    assert len(outlier_hits(lines, skipping)) == 0
+    assert len(outlier_hits(_sentinel_lines(), skipping)) == 1, "a 365-day account is checked"
+
+
 def test_s1_records_carry_evidence_and_rule() -> None:
     records = [r for r in run_sentinel(_sentinel_lines(), Rules()) if r.type == "sentinel_outlier"]
     assert len(records) == 1

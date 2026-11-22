@@ -477,6 +477,12 @@ screen is pending mentor question 8).*
   #16) it is caught 16 days before that month's close review (weekly view; 21 days counted from
   the posting date). The alternative candidate (Fixed assets P20 C218 119001 document
   7750001797) needs the Fixed assets workbook.
+- Pension provisions (review of 22 Nov 2026, fix 8): the S1 hits on BPP C242 48900003 (6,527x)
+  and 48900002 (57,769x) are 2019 postings whose text refers to the 2018 pension provision,
+  probably valid one-off provision bookings. `Rules.sentinel_s1_skip_no_overdue_accounts`
+  skips accounts whose allowed age is "No Overdue". **It stays off**: the 48900002 hit is the
+  brief's open-item-1 example (A2). Turned on, real Payroll goes from 11 to 9 hits (those two
+  accounts); with the Fixed assets workbook, 12 to 10. The team decides.
 Owner: team.
 
 **A4. S2 two currencies.** *Decided (#10).* S2 flags the same amount posted in different

@@ -66,6 +66,12 @@ def outlier_hits(lines: pd.DataFrame, rules: Rules, scope: str | None = None) ->
     work["abs_lc"] = work["amount_lc"].abs()
     work["median_abs_lc"] = work.groupby(["erp", "entity", "account"])["abs_lc"].transform("median")
     work = work[work["median_abs_lc"] > 0]
+    if rules.sentinel_s1_skip_no_overdue_accounts:
+        from app.engines.leadtime import allowed_age_by_account
+
+        exempt = {key for key, age in allowed_age_by_account(lines).items() if age is None}
+        keys = zip(work["erp"], work["entity"], work["account"], strict=True)
+        work = work[[key not in exempt for key in keys]]
     work["multiple"] = work["abs_lc"] / work["median_abs_lc"]
     hits = work[work["abs_lc"] >= rules.outlier_multiple * work["median_abs_lc"]]
     in_scope = hits["user_name"].map(lambda u: _in_scope(u, scope)).astype(bool)
