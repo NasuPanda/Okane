@@ -1101,6 +1101,32 @@ def _mock_ollama(replies: list[str], calls: list[dict]):  # type: ignore[no-unty
     return httpx.Client(transport=httpx.MockTransport(handler))
 
 
+@pytest.mark.parametrize(
+    ("enabled", "tags", "state", "reason"),
+    [
+        (True, {"models": [{"name": "qwen2.5:7b-instruct"}]}, "on", None),
+        (True, {"models": [{"name": "llama3:8b"}]}, "offline", "the model is not installed"),
+        (True, None, "offline", "the local model server does not answer"),
+        (False, None, "off", "turned off in settings"),
+    ],
+)  # fmt: skip
+def test_assistant_status(enabled: bool, tags: dict | None, state: str, reason: str | None) -> None:  # type: ignore[type-arg]
+    """A45: the run dock says whether the assistant drafts notes."""
+    import httpx
+
+    from app.ai.client import assistant_status
+    from app.config import Settings
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if tags is None:
+            raise httpx.ConnectError("refused", request=request)
+        return httpx.Response(200, json=tags)
+
+    http = httpx.Client(transport=httpx.MockTransport(handler))
+    status = assistant_status(Settings(ai_enabled=enabled), http)
+    assert (status.assistant, status.model, status.reason) == (state, "qwen2.5:7b-instruct", reason)
+
+
 def _reply(text: str) -> str:
     import json as jsonlib
 

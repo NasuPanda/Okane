@@ -48,7 +48,8 @@ def by_type(client: TestClient, type_: str) -> list[dict[str, object]]:
 
 # ----- before the first run -----------------------------------------------------------------
 def test_empty_state(client: TestClient) -> None:
-    assert client.get("/api/health").json() == {"status": "ok"}
+    health = client.get("/api/health").json()  # A45: tests run with the assistant off
+    assert (health["status"], health["assistant"]) == ("ok", "off")
     assert client.get("/api/runs/latest").json() is None
     assert client.get("/api/exceptions").status_code == 404
     assert client.get("/api/exposure/payroll").status_code == 404
@@ -507,4 +508,4 @@ def test_serves_built_frontend(app_env: Path) -> None:
         assert "okane" in test_client.get("/inbox").text
         assert test_client.get("/assets/app.js").text == "console.log(1)"
         assert test_client.get("/api/nope").status_code == 404
-        assert test_client.get("/api/health").json() == {"status": "ok"}
+        assert test_client.get("/api/health").json()["status"] == "ok"

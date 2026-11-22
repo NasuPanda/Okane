@@ -37,7 +37,7 @@ from app.ai.prompts import (
 from app.ai.verifier import VerifierOutput, verify, wording_issues
 from app.config import Settings
 from app.database import Database
-from app.schemas import Comment, ExceptionRecord
+from app.schemas import Comment, ExceptionRecord, Health
 
 log = logging.getLogger("okane.ai")
 MAX_ATTEMPTS = 2
@@ -113,6 +113,26 @@ def ollama_available(settings: Settings, http: httpx.Client | None = None) -> bo
     finally:
         if http is None:
             client.close()
+
+
+def assistant_status(settings: Settings, http: httpx.Client | None = None) -> Health:
+    """Whether the assistant can draft notes: Ollama answers and the model is pulled (A45)."""
+    if not settings.ai_enabled:
+        return Health(assistant="off", model=settings.ollama_model, reason="turned off in settings")
+    client = http or httpx.Client(timeout=2.0)
+    try:
+        response = client.get(f"{settings.ollama_url}/api/tags")
+        names = {m.get("name", "") for m in response.json().get("models", [])}
+    except (httpx.HTTPError, ValueError):
+        return Health(assistant="offline", model=settings.ollama_model,
+                      reason="the local model server does not answer")  # fmt: skip
+    finally:
+        if http is None:
+            client.close()
+    wanted = settings.ollama_model
+    if wanted not in names and f"{wanted}:latest" not in names:
+        return Health(assistant="offline", model=wanted, reason="the model is not installed")
+    return Health(assistant="on", model=wanted)
 
 
 def chat[Output: BaseModel](

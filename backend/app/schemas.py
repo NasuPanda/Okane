@@ -524,6 +524,20 @@ class ExposureResponse(BaseModel):
     groups: list[ExposureGroup]
 
 
+class Health(BaseModel):
+    """ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/health.
+
+    ``assistant``: "on" when Ollama answers and the configured model is pulled; "offline" when
+    it is enabled but Ollama does not answer or lacks the model; "off" when disabled in the
+    settings. Without the assistant, notes use the labelled standard wording (A29).
+    """
+
+    status: Literal["ok"] = "ok"
+    assistant: Literal["on", "offline", "off"]
+    model: str
+    reason: str | None = None
+
+
 class Kpis(BaseModel):
     """GET /api/kpis: header statistics."""
 

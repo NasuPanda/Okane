@@ -1,11 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { FileUp, FolderInput, GraduationCap, Inbox, Layers, Loader2, Moon, Play, Radar, SlidersHorizontal, Sun } from "lucide-react";
+import { FileUp, FolderInput, GraduationCap, Inbox, Layers, Loader2, Moon, Play, Radar, SlidersHorizontal, Sparkles, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { API_MODE, api } from "@/api/client";
-import { useKpis, useLatestRun, useStartRun, useUploadExtract } from "@/api/hooks";
+import { useHealth, useKpis, useLatestRun, useStartRun, useUploadExtract } from "@/api/hooks";
 import { ExceptionDrawer } from "@/components/ExceptionDrawer";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
@@ -131,6 +131,22 @@ function TopBar() {
   );
 }
 
+/** Whether the assistant drafts notes (A45). Without it, notes use the standard wording. */
+function AssistantStatus() {
+  const health = useHealth();
+  const state = health.data;
+  if (!state) return null;
+  const on = state.assistant === "on";
+  return (
+    <div className={cn("flex min-w-0 items-center gap-1.5 truncate text-xs", on ? "text-signal" : "text-mistake")}>
+      <Sparkles className="size-3 shrink-0" />
+      <span className="truncate" title={state.reason ?? undefined}>
+        {on ? `Assistant on (${state.model})` : "Assistant offline: notes use standard wording"}
+      </span>
+    </div>
+  );
+}
+
 /** Floating run dock (bottom): last check, live state, "Check now". Toasts come from SSE. */
 function RunDock() {
   const run = useLatestRun();
@@ -191,6 +207,7 @@ function RunDock() {
                   </>
                 )}
               </div>
+              <AssistantStatus />
               <div className="hidden truncate text-xs text-white/50 sm:block">
                 {latest.source_files.join(", ") || "no workbook"} · Upload the weekly extract or drop it in the watched folder; I re-check every Monday at 06:00
                 {latest.synthetic && " · practice data"}

@@ -6,6 +6,7 @@
  *   comments and rule changes are kept in memory so every screen can be exercised offline.
  */
 import type {
+  Health,
   Comment,
   DecisionUpdate,
   ExceptionDetail,
@@ -34,6 +35,7 @@ export class ApiError extends Error {
 
 export interface Api {
   latestRun(): Promise<Run | null>;
+  health(): Promise<Health>;
   startRun(): Promise<Run>;
   /** Send this week's extract; the backend checks it, keeps a copy and starts a run (A38). */
   uploadExtract(file: File): Promise<UploadResult>;
@@ -80,6 +82,7 @@ function query(params: Record<string, string | number | boolean | undefined>): s
 
 const liveApi: Api = {
   latestRun: () => request("/api/runs/latest"),
+  health: () => request("/api/health"),
   startRun: () => request("/api/runs", { method: "POST" }),
   uploadExtract: async (file) =>
     parse(
@@ -167,6 +170,9 @@ const fixtureApi: Api = {
   async latestRun() {
     return later((await loadStore()).run);
   },
+  // The practice-data page has no model behind it: its notes are the stored standard wording.
+  health: () =>
+    later({ status: "ok" as const, assistant: "offline" as const, model: "", reason: "practice data has no model" }),
   async startRun() {
     const s = await loadStore();
     const run = { ...s.run, status: "running" as const, trigger: "manual" as const };

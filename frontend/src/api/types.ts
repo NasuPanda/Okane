@@ -23,6 +23,7 @@ export type Run = S["Run"];
 export type ExtractSource = S["ExtractSource"];
 export type UploadResult = S["UploadResult"];
 export type Kpis = S["Kpis"];
+export type Health = S["Health"];
 
 export type ExceptionFilters = {
   type?: ExceptionType;

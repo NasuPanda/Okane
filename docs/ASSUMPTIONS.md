@@ -28,6 +28,7 @@ so nobody re-investigates).
 | A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
 | A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; since A44 also only when the account's balance still holds the batch: 0 at the extract date |
+| A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
 | A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A25 | How short is the inbox | Decide | Decided (#21): default view = findings at or above materiality plus missing batches; prompts and repeated postings on their own tabs |
@@ -613,6 +614,23 @@ moves into `Rules` (no behaviour change at the default). Owner: team.
   a failed call logs only the kind of error.
 - The top 3 findings (`ai_predraft_top`) are pre-drafted during a run when Ollama is reachable.
 
+Owner: team.
+
+**A45. Is the assistant running?** *Info (review of 22 Nov 2026, fix 3).* The review found
+no finding with a drafted note: every verifier said "not run", and "Write a draft for me" gave
+the standard wording. Cause: Ollama was not installed on the laptop the app ran on (nothing
+answered on :11434), so every note fell back to the labelled template (A29) without saying so
+anywhere. The settings were right (`ai_enabled` on, `qwen2.5:7b-instruct`, the default URL,
+no `backend/.env`).
+- `GET /api/health` now also says whether the assistant can draft notes: "on" when Ollama
+  answers and the configured model is pulled, "offline" when Ollama does not answer or lacks
+  the model (with the reason), "off" when `ai_enabled` is false.
+- The run dock shows "Assistant on (model)" or "Assistant offline: notes use standard
+  wording", checked again every minute. The practice-data page (A41) has no model and says
+  offline.
+- Installing Ollama and pulling the model is a step on the demo laptop, not in the code
+  (`make ollama-check` reports it). Once a model answers, a run pre-drafts the top 3 findings
+  (`ai_predraft_top`).
 Owner: team.
 
 **A28. Verifier rule.** *Info (updated in #29).* The verifier runs on the comment after the

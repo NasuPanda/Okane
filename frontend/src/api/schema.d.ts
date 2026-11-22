@@ -289,7 +289,7 @@ export interface paths {
         };
         /**
          * Health
-         * @description Liveness probe.
+         * @description Liveness probe, plus whether the assistant can draft notes (A45).
          */
         get: operations["health_api_health_get"];
         put?: never;
@@ -620,6 +620,31 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * Health
+         * @description ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/health.
+         *
+         *     ``assistant``: "on" when Ollama answers and the configured model is pulled; "offline" when
+         *     it is enabled but Ollama does not answer or lacks the model; "off" when disabled in the
+         *     settings. Without the assistant, notes use the labelled standard wording (A29).
+         */
+        Health: {
+            /**
+             * Status
+             * @default ok
+             * @constant
+             */
+            status: "ok";
+            /**
+             * Assistant
+             * @enum {string}
+             */
+            assistant: "on" | "offline" | "off";
+            /** Model */
+            model: string;
+            /** Reason */
+            reason?: string | null;
         };
         /**
          * Kpis
@@ -1586,9 +1611,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
+                    "application/json": components["schemas"]["Health"];
                 };
             };
         };

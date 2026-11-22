@@ -782,7 +782,7 @@
           "meta"
         ],
         "summary": "Health",
-        "description": "Liveness probe.",
+        "description": "Liveness probe, plus whether the assistant can draft notes (A45).",
         "operationId": "health_api_health_get",
         "responses": {
           "200": {
@@ -790,11 +790,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object",
-                  "title": "Response Health Api Health Get"
+                  "$ref": "#/components/schemas/Health"
                 }
               }
             }
@@ -1798,6 +1794,47 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          },
+          "assistant": {
+            "type": "string",
+            "enum": [
+              "on",
+              "offline",
+              "off"
+            ],
+            "title": "Assistant"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assistant",
+          "model"
+        ],
+        "title": "Health",
+        "description": "ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/health.\n\n``assistant``: \"on\" when Ollama answers and the configured model is pulled; \"offline\" when\nit is enabled but Ollama does not answer or lacks the model; \"off\" when disabled in the\nsettings. Without the assistant, notes use the labelled standard wording (A29)."
       },
       "Kpis": {
         "properties": {

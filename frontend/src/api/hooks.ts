@@ -15,6 +15,8 @@ export const keys = {
 };
 
 export const useLatestRun = () => useQuery({ queryKey: keys.run, queryFn: api.latestRun });
+/** Whether the assistant can draft notes (A45); checked again every minute. */
+export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: api.health, refetchInterval: 60_000 });
 export const useKpis = () => useQuery({ queryKey: keys.kpis, queryFn: api.kpis });
 export const useExceptions = (filters: ExceptionFilters = {}) =>
   useQuery({ queryKey: keys.exceptions(filters), queryFn: () => api.exceptions(filters) });
