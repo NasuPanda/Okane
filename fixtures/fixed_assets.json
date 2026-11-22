@@ -2,7 +2,7 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261122T162024_e768cb",
+  "run_id": "run_20261122T170128_9aaf3d",
   "extract_date": "2026-10-02",
   "recent_days": 60,
   "lines": 35,
@@ -27,6 +27,8 @@
     "older_lines": 1,
     "older_net_lc": 14000.0,
     "older_net_eur": 14000.0,
+    "fx_net_lc": 0.0,
+    "fx_net_eur": 0.0,
     "net_lc": 14000.0,
     "net_eur": 14000.0,
     "estimated_rate": false
@@ -46,6 +48,8 @@
     "older_lines": 10,
     "older_net_lc": 16450000.0,
     "older_net_eur": 101230.76,
+    "fx_net_lc": 0.0,
+    "fx_net_eur": 0.0,
     "net_lc": 2416538000.0,
     "net_eur": 14871003.07,
     "estimated_rate": true
@@ -65,6 +69,8 @@
     "older_lines": 4,
     "older_net_lc": 168006.0,
     "older_net_eur": 39162.24,
+    "fx_net_lc": 0.0,
+    "fx_net_eur": 0.0,
     "net_lc": 234132.72,
     "net_eur": 54576.39,
     "estimated_rate": true

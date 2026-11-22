@@ -88,7 +88,7 @@
   "miner_min_repeats": 3,
   "miner_min_score": 12,
   "miner_by_user": true,
-  "miner_max_paired_share": 0.5,
+  "miner_max_paired_share": 1.0,
   "penalty_accounts": [
    "P20/C192/279006"
   ],

@@ -5,7 +5,7 @@
   "b80b0b905e1fe118": {
    "exception": {
     "id": "b80b0b905e1fe118",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "pulse_gap",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -585,7 +585,7 @@
   "5a2ed0b6c0c57484": {
    "exception": {
     "id": "5a2ed0b6c0c57484",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "pulse_spike",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1036,7 +1036,7 @@
   "61ca766fbdf173e5": {
    "exception": {
     "id": "61ca766fbdf173e5",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "pulse_missing_payment",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1494,7 +1494,7 @@
   "4b75e13ab2dc5a8d": {
    "exception": {
     "id": "4b75e13ab2dc5a8d",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "sentinel_outlier",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -1565,7 +1565,7 @@
   "5cb790939c58a948": {
    "exception": {
     "id": "5cb790939c58a948",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "sentinel_outlier",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -1636,7 +1636,7 @@
   "233ad39a5cb011cd": {
    "exception": {
     "id": "233ad39a5cb011cd",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "open_balance",
     "workgroup": "Payroll",
     "erp": "BPP",
@@ -1748,7 +1748,7 @@
   "ca26141f45d62ffe": {
    "exception": {
     "id": "ca26141f45d62ffe",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "label_mismatch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2222,7 +2222,7 @@
   "3267f451b8da112e": {
    "exception": {
     "id": "3267f451b8da112e",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -2658,7 +2658,7 @@
   "0c7228820c2b5ca8": {
    "exception": {
     "id": "0c7228820c2b5ca8",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "pulse_missing_batch",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3058,7 +3058,7 @@
   "09009a7b2874e46d": {
    "exception": {
     "id": "09009a7b2874e46d",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "open_balance",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3148,7 +3148,7 @@
   "d00346a86e3ca1d6": {
    "exception": {
     "id": "d00346a86e3ca1d6",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "miner_cluster",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3238,7 +3238,7 @@
   "1578d0ba41872186": {
    "exception": {
     "id": "1578d0ba41872186",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "sentinel_currency_code",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3307,7 +3307,7 @@
   "f04ae2adff34c19c": {
    "exception": {
     "id": "f04ae2adff34c19c",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "sentinel_currency_code",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3377,7 +3377,7 @@
   "6c91062e6c599fb8": {
    "exception": {
     "id": "6c91062e6c599fb8",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "sentinel_two_currencies",
     "workgroup": "Fixed assets",
     "erp": "P20",
@@ -3456,7 +3456,7 @@
   "0c33474c40046521": {
    "exception": {
     "id": "0c33474c40046521",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "sentinel_two_currencies",
     "workgroup": "Payroll",
     "erp": "P20",
@@ -3535,7 +3535,7 @@
   "f4d7086d081a2e09": {
    "exception": {
     "id": "f4d7086d081a2e09",
-    "run_id": "run_20261122T162024_e768cb",
+    "run_id": "run_20261122T170128_9aaf3d",
     "type": "typo",
     "workgroup": "Payroll",
     "erp": "P20",
