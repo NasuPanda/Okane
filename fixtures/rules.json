@@ -95,6 +95,38 @@
   "inbox_always_types": [
    "pulse_missing_batch"
   ],
+  "account_normal_side": [
+   {
+    "erp": "P20",
+    "account_prefix": "1",
+    "side": "debit"
+   },
+   {
+    "erp": "P20",
+    "account_prefix": "2",
+    "side": "credit"
+   },
+   {
+    "erp": "BPP",
+    "account_prefix": "1",
+    "side": "debit"
+   },
+   {
+    "erp": "BPP",
+    "account_prefix": "2",
+    "side": "debit"
+   },
+   {
+    "erp": "BPP",
+    "account_prefix": "3",
+    "side": "credit"
+   },
+   {
+    "erp": "BPP",
+    "account_prefix": "4",
+    "side": "credit"
+   }
+  ],
   "error_type_severity": {
    "pulse_gap": 1.0,
    "pulse_missing_payment": 0.9,

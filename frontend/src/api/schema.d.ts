@@ -555,6 +555,11 @@ export interface components {
             above_materiality: boolean;
             /** Exception Id */
             exception_id?: string | null;
+            /**
+             * Normal Side
+             * @default unknown
+             */
+            normal_side: string;
         };
         /**
          * ExposureResponse
@@ -645,6 +650,26 @@ export interface components {
             inbox_views?: {
                 [key: string]: number;
             };
+        };
+        /**
+         * NormalSide
+         * @description ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A43): the side an account's balance
+         *     normally sits on, for every account of one ERP whose number starts with ``account_prefix``.
+         *     The longest matching prefix wins; an account no entry matches has an unknown side.
+         */
+        NormalSide: {
+            /**
+             * Erp
+             * @enum {string}
+             */
+            erp: "P20" | "BPP";
+            /** Account Prefix */
+            account_prefix: string;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "debit" | "credit";
         };
         /**
          * PaymentProfile
@@ -933,6 +958,8 @@ export interface components {
             repeats_min_months: number;
             /** Inbox Always Types */
             inbox_always_types?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster")[];
+            /** Account Normal Side */
+            account_normal_side?: components["schemas"]["NormalSide"][];
             /**
              * Error Type Severity
              * @default {

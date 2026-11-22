@@ -111,7 +111,13 @@ def test_real_c192_pulse(real_pulse: PulseResult) -> None:
 def test_real_c192_alerts(real_pulse: PulseResult) -> None:
     c192 = [r for r in real_pulse.records if (r.entity, r.account) == ("C192", "279006")]
     gap = next(r for r in c192 if r.type == "pulse_gap")
-    assert gap.title == "Liability 1.84M above expected"
+    # A43 (review of 22 Nov 2026): the brief's "Liability 1.84M above expected" read as "more
+    # is owed". The gap points toward debit on a credit-normal account with a debit balance, so
+    # it now reads as below expected, more paid than accrued.
+    assert gap.title == "Liability 1.84M below expected: more paid than accrued"
+    assert (gap.facts["normal_side"], gap.facts["gap_direction"]) == ("credit", "toward debit")
+    assert (gap.facts["balance_side"], gap.facts["wrong_side_balance"]) == ("debit", "yes")
+    assert gap.facts["balance_abs_eur"] == pytest.approx(1_324_638.17)
     assert gap.first_signal == date(2025, 5, 31)
     spikes = [r for r in c192 if r.type == "pulse_spike"]
     assert [(r.facts["batch_period"], r.facts["multiple"]) for r in spikes] == [("2026-08", 4.1)]

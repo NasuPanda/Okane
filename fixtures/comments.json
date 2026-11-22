@@ -4,7 +4,7 @@
  "data": {
   "b80b0b905e1fe118": {
    "exception_id": "b80b0b905e1fe118",
-   "comment": "Standard note (no AI was used): The month-end balance for Oct 2026 is -2,534,699 EUR against an expected 0 EUR, a gap of -2,534,699 EUR. The gap has been at or above materiality since Jun 2025; the lowest was -705,292 EUR in Jun 2025. Check the unmatched accrual batches listed as evidence.",
+   "comment": "Standard note (no AI was used): The month-end balance for Oct 2026 is -2,534,699 EUR against an expected 0 EUR, a gap of -2,534,699 EUR. The liability is above the level its payment rhythm leaves: more was accrued than paid. The gap has been at or above materiality since Jun 2025; the lowest was -705,292 EUR in Jun 2025. Check the unmatched accrual batches listed as evidence.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],

@@ -19,8 +19,9 @@ def payroll_exposure(
     """Old-rule totals and per-account netting. ``materiality`` overrides the rule for a
     what-if view (the slider); it does not change the saved rules."""
     run = require_latest_run(state)
-    threshold = materiality if materiality is not None else state.db.get_rules().materiality_eur
-    result = payroll_netting(state.pipeline.lines(run.snapshot_id), threshold)
+    rules = state.db.get_rules()
+    threshold = materiality if materiality is not None else rules.materiality_eur
+    result = payroll_netting(state.pipeline.lines(run.snapshot_id), threshold, rules)
     linked: dict[tuple[str, str, str], str] = {}
     for record in state.db.list_exceptions(run.run_id):  # highest score first
         linked.setdefault((record.erp, record.entity, record.account), record.id)

@@ -16,6 +16,7 @@ from datetime import date
 
 import pandas as pd
 
+from app.engines import normal_side
 from app.engines.pairs import find_pairs
 from app.schemas import ExceptionRecord, ExposureGroup, InboxView, Rules
 
@@ -31,8 +32,14 @@ class NettingResult:
         return sum(g.above_materiality for g in self.groups)
 
 
-def payroll_netting(lines: pd.DataFrame, materiality_eur: float) -> NettingResult:
-    """Net the overdue Payroll lines per account and flag groups at or above materiality."""
+def payroll_netting(
+    lines: pd.DataFrame, materiality_eur: float, rules: Rules | None = None
+) -> NettingResult:
+    """Net the overdue Payroll lines per account and flag groups at or above materiality.
+
+    Each group carries its account's normal side from ``rules`` (A43; default Rules if None).
+    """
+    rules = rules or Rules()
     payroll = lines[lines["workbook"] == "Payroll"].copy()
     payroll["pair_id"] = find_pairs(payroll)
     overdue = payroll[payroll["overdue_abs"].fillna(0) > 0]
@@ -60,6 +67,7 @@ def payroll_netting(lines: pd.DataFrame, materiality_eur: float) -> NettingResul
             net_eur=round(float(row.net_eur), 2),
             paired_lines=int(row.paired_lines),
             above_materiality=bool(row.abs_net >= materiality_eur),
+            normal_side=normal_side(rules, str(row.erp), str(row.account)),
         )
         for row in grouped.itertuples()
     ]

@@ -38,6 +38,7 @@ so nobody re-investigates).
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 | A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare (a Worker with static assets) now; Oracle Always Free VM with the full app later, Cloudflare kept as the backup |
+| A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
 | A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
 
 ## Data and ingestion
@@ -249,6 +250,40 @@ Owner: team.
 **A23. Gap alert.** *Info.* Fires when the latest |gap| is at or above materiality. Its first
 signal is the month-end where the current unbroken run above materiality began (31 May 2025 for
 C192). Its evidence is the unmatched batches. Owner: team.
+
+**A43. A gap's direction and each account's normal side.** *Decided (review of 22 Nov 2026,
+fix 1).* The review found that the C192 social-security gap read "Liability 1.84M above
+expected" with the note "check the unmatched accrual batches", which an accountant reads as
+"more is owed". On real data the opposite is true: at the end of Sep 2026 the account holds a
+debit balance of 1,324,638 against an expected credit of 513,823, so more was paid than
+accrued. The Exposure page also called every net "really still owed", including a prepaid
+asset (C192 179003).
+- New setting `Rules.account_normal_side`: a list of (ERP, account prefix, side); the longest
+  matching prefix wins. ASSUMPTION, pending mentor question 10: P20 1 = debit, 2 = credit;
+  BPP 1 and 2 = debit, 3 and 4 = credit; anything else is unknown and gets neutral wording.
+  This covers all 104 payroll accounts on the real Payroll workbook (none unknown) and both
+  Fixed assets accounts (P20 119001 and BPP 23900002, debit).
+- A gap is worded by its direction (balance minus expected: toward debit or toward credit)
+  and the account's normal side:
+  - credit-normal, toward credit: "Liability X above expected"; check the unmatched batches.
+  - credit-normal, toward debit: "Liability X below expected: more paid than accrued"; check
+    missing or late accruals, payments booked to the account by mistake, and whether a refund
+    is due. When the balance itself is a debit, the note adds "the account has a debit balance
+    of Y, the wrong side for a credit account".
+  - debit-normal accounts mirror this ("Asset X above expected" / "below expected: more used
+    up than booked"); an unknown side reads "Balance X more debit (credit) than expected".
+- The direction, normal side, balance side and suggested check are facts on the record
+  (`gap_direction`, `normal_side`, `balance_side`, `wrong_side_balance`, `gap_explained`,
+  `check`). The title, the template note (A29) and the model's prompt all use them;
+  `PROMPT_VERSION` moved to v4, so cached drafts are written again.
+- Exposure page: retitled "What's really still open". Each account's net says what it
+  means: "owed (credit)", "debit balance on a liability: paid more than booked" (in red),
+  "asset not yet used up", or "credit balance on an asset: used up more than booked" (in red).
+- **Departure from the brief:** the brief's example title "Liability 1.84M above expected" now
+  reads "Liability 1.84M below expected: more paid than accrued" on real data. The golden test
+  asserts the new title on purpose. The synthetic C192 gap still points toward credit (unpaid
+  batches), so it keeps "above expected". The gap stays first in the inbox.
+Owner: team.
 
 **A24. Spike.** *Info.* Needs at least 3 earlier batches in the trailing window; otherwise no
 median is computed. Real data: August 2026 for C192 (4.1x of 620,878), as expected, and
@@ -684,3 +719,4 @@ Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default
 | 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |
 | 8 | May the video and deck show the real (scaled) data, or must they use the synthetic sample? | #25 (then #26, #37, #38) | drafted, not yet sent | Synthetic sample on screen; real figures only as the aggregates the brief quotes | | |
 | 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | no answer, default applied | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | Default applied in #23 (A38); revisit A38 if the mentor answers, especially on cloud folders | 19 Nov 2026 |
+| 10 | Which side each payroll account normally sits on: are P20 1xxxxx and BPP 1x/2x accounts assets (debit) and P20 2xxxxx and BPP 3x/4x accounts liabilities (credit)? | Review of 22 Nov 2026, fixes 1 and 4 | drafted, not yet sent | The prefix rule in A43 | | |

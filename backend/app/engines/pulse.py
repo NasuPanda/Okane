@@ -31,11 +31,12 @@ from app.engines import (
     account_lines,
     doc_ref,
     doc_refs,
+    gap_wording,
     make_record,
     month_end,
+    normal_side,
     period_end,
     period_label,
-    short_money,
 )
 from app.schemas import (
     BatchMatch,
@@ -373,17 +374,27 @@ def gap_alert(result: ProfileResult, rules: Rules) -> ExceptionRecord | None:
     since = date.fromisoformat(run[0].month + "-01")
     open_batches = [m for m in result.matches if not m.matched]
     evidence = [r for m in open_batches for r in doc_refs(m.batch.lines)]
-    direction = "above" if latest.gap > 0 else "below"
+    # A43: worded by the gap's direction and the account's normal side, so a liability with
+    # more paid than accrued (a debit balance) never reads as "more is owed".
+    side = normal_side(rules, result.profile.erp, result.profile.account)
+    words = gap_wording(latest.gap, latest.balance, side)
     return make_record(
         type_="pulse_gap",
         lines=result.acct,
-        title=f"Liability {short_money(latest.gap)} {direction} expected",
+        title=words["title"],
         exposure_eur=latest.gap,
         facts={
             "rule": "Latest month-end gap at or above materiality",
             "gap_eur": latest.gap,
             "balance_eur": latest.balance,
+            "balance_abs_eur": abs(latest.balance),
             "expected_eur": latest.expected,
+            "normal_side": words["normal_side"],
+            "gap_direction": words["gap_direction"],
+            "balance_side": words["balance_side"],
+            "wrong_side_balance": words["wrong_side_balance"],
+            "gap_explained": words["gap_explained"],
+            "check": words["check"],
             "latest_month": latest.month,
             "since_month": run[0].month,
             "months_above_materiality": len(run),

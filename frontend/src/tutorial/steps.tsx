@@ -2,6 +2,7 @@
 // figures from the data on screen (never typed in here), and fall back to general words when
 // there is no such finding. Nothing here changes data: the tour only highlights and explains.
 import type { ExceptionRecord, ExposureGroup, ExposureResponse, Kpis, Rules, Run } from "@/api/types";
+import { netMeaning } from "@/lib/labels";
 import { eur, shortEur } from "@/lib/utils";
 import type { Pose } from "@/tutorial/Kentaro";
 
@@ -38,7 +39,7 @@ export type Step = {
 export const MODULES: { id: ModuleId; name: string; page: TourPage; about: string }[] = [
   { id: "start", name: "Getting started", page: "/", about: "What Okane is for, and the buttons at the top" },
   { id: "inbox", name: "Inbox", page: "/", about: "Your list of findings, and how to work through one" },
-  { id: "exposure", name: "Exposure", page: "/exposure", about: "How much is really still owed" },
+  { id: "exposure", name: "Exposure", page: "/exposure", about: "How much is really still open" },
   { id: "sentinel", name: "Sentinel", page: "/sentinel", about: "Slips caught on the day they're posted" },
   { id: "rules", name: "Rules", page: "/rules", about: "Your settings, one by one, in order" },
 ];
@@ -124,7 +125,7 @@ export const STEPS: Step[] = [
       <List
         items={[
           <><B>Inbox</B>: what needs you, sorted by priority.</>,
-          <><B>Exposure</B>: how much is really still owed.</>,
+          <><B>Exposure</B>: how much is really still open.</>,
           <><B>Sentinel</B>: slips caught on the day they are posted.</>,
           <><B>Rules</B>: your settings. You decide what counts.</>,
         ]}
@@ -387,7 +388,7 @@ export const STEPS: Step[] = [
   {
     page: "/exposure",
     targets: ["exposure-header"],
-    title: "Exposure: what's really still owed",
+    title: "Exposure: what's really still open",
     body: () => (
       <>
         This page compares the old report with what is really open. The button at the top right switches
@@ -426,7 +427,9 @@ export const STEPS: Step[] = [
     body: () => (
       <>
         One row per payroll account: how many lines the old report flags, the old total, and what's{" "}
-        <B>really open</B> after matching. Click an account to open its finding.
+        <B>really open</B> after matching. Under each net it says what the net means: <B>owed</B> on a
+        liability, <B>not yet used up</B> on an asset, or in red when the balance is on the{" "}
+        <B>wrong side</B>. Click an account to open its finding.
       </>
     ),
   },
@@ -442,12 +445,16 @@ export const STEPS: Step[] = [
     body: (c) => {
       const g = bigGroup(c);
       if (!g) return <>When an account is above the limit, it shows at the top of this list.</>;
+      const meaning = netMeaning(g.normal_side, g.net_eur);
       return (
         <>
           <B>{g.entity} {g.account}</B>
-          {g.account_name ? ` (${g.account_name})` : ""} still nets to <B>{eur(g.net_eur)}</B> after matching. That
-          money was accrued but never settled. To solve it: click the row, look at which months didn't get a
-          payment, and ask payroll whether the payment was booked somewhere else.
+          {g.account_name ? ` (${g.account_name})` : ""} still nets to <B>{eur(g.net_eur)}</B> after matching:{" "}
+          <B>{meaning.text}</B>.{" "}
+          {meaning.wrong
+            ? "More went out than was booked, so look for a missing accrual or a posting that belongs elsewhere."
+            : "That money was booked but never settled or used up."}{" "}
+          To solve it: click the row and look at the documents behind the net.
         </>
       );
     },

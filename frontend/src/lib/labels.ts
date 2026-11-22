@@ -89,6 +89,13 @@ const FACT_LABEL: Record<string, string> = {
   rule: "Rule that fired",
   gap_eur: "Gap",
   balance_eur: "Month-end balance",
+  balance_abs_eur: "Size of the balance",
+  normal_side: "Account normally sits on the",
+  gap_direction: "The gap points",
+  balance_side: "The balance sits on the",
+  wrong_side_balance: "Balance on the wrong side",
+  gap_explained: "What the gap means",
+  check: "What to check",
   expected_eur: "What we'd expect",
   latest_month: "Latest month-end",
   since_month: "Off since",
@@ -167,6 +174,24 @@ export const ROUTE_LABEL: Record<string, string> = {
   startup: "picked up from the watched folder",
   manual: "picked up from the watched folder",
 };
+
+/** What an account's net means, by its normal side (A43): owed, not yet used up, or a balance
+ *  on the wrong side. Positive amounts are debits, negative are credits. */
+export function netMeaning(side: string | null | undefined, net: number): { text: string; wrong: boolean } {
+  if (net === 0) return { text: "nets to zero", wrong: false };
+  const debit = net > 0;
+  if (side === "credit") {
+    return debit
+      ? { text: "debit balance on a liability: paid more than booked", wrong: true }
+      : { text: "owed (credit)", wrong: false };
+  }
+  if (side === "debit") {
+    return debit
+      ? { text: "asset not yet used up", wrong: false }
+      : { text: "credit balance on an asset: used up more than booked", wrong: true };
+  }
+  return { text: debit ? "debit balance" : "credit balance", wrong: false };
+}
 
 export function weekdayName(day: number | null | undefined): string {
   return WEEKDAYS[day ?? 0] ?? WEEKDAYS[0];

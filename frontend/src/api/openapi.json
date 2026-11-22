@@ -1614,6 +1614,11 @@
               }
             ],
             "title": "Exception Id"
+          },
+          "normal_side": {
+            "type": "string",
+            "title": "Normal Side",
+            "default": "unknown"
           }
         },
         "type": "object",
@@ -1871,6 +1876,39 @@
         ],
         "title": "Kpis",
         "description": "GET /api/kpis: header statistics."
+      },
+      "NormalSide": {
+        "properties": {
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "account_prefix": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Account Prefix"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "debit",
+              "credit"
+            ],
+            "title": "Side"
+          }
+        },
+        "type": "object",
+        "required": [
+          "erp",
+          "account_prefix",
+          "side"
+        ],
+        "title": "NormalSide",
+        "description": "ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A43): the side an account's balance\nnormally sits on, for every account of one ERP whose number starts with ``account_prefix``.\nThe longest matching prefix wins; an account no entry matches has an unknown side."
       },
       "PaymentProfile": {
         "properties": {
@@ -2322,6 +2360,13 @@
             },
             "type": "array",
             "title": "Inbox Always Types"
+          },
+          "account_normal_side": {
+            "items": {
+              "$ref": "#/components/schemas/NormalSide"
+            },
+            "type": "array",
+            "title": "Account Normal Side"
           },
           "error_type_severity": {
             "additionalProperties": {

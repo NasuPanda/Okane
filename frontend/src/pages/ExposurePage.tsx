@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { netMeaning } from "@/lib/labels";
 import { cn, eur, shortEur } from "@/lib/utils";
 
 type View = "old" | "real";
@@ -44,7 +45,7 @@ function AccountStrip({ groups, view }: { groups: ExposureGroup[]; view: View })
               <TooltipContent>
                 {g.entity} {g.account} · {g.account_name}
                 <div className="num">
-                  old report {eur(g.overdue_abs)} · really open {eur(g.net_eur)}
+                  old report {eur(g.overdue_abs)} · really open {eur(g.net_eur)}, {netMeaning(g.normal_side, g.net_eur).text}
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -53,6 +54,12 @@ function AccountStrip({ groups, view }: { groups: ExposureGroup[]; view: View })
       </div>
     </div>
   );
+}
+
+/** What the net means for this account (A43), in place of a bare signed amount. */
+function NetLabel({ group }: { group: ExposureGroup }) {
+  const { text, wrong } = netMeaning(group.normal_side, group.net_eur);
+  return <div className={cn("text-[11px] leading-tight", wrong ? "text-hot" : "text-muted-foreground")}>{text}</div>;
 }
 
 function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: View; index: number; onOpen: () => void }) {
@@ -102,7 +109,7 @@ function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: 
             <div className={cn("num text-lg font-light md:text-xl", !group.above_materiality && "text-muted-foreground")}>
               {eur(group.net_eur)}
             </div>
-            <div className="text-[11px] text-muted-foreground md:hidden">really open</div>
+            <NetLabel group={group} />
             <div className="ml-auto h-1 w-full max-w-28 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full"
@@ -140,7 +147,7 @@ export function ExposurePage() {
     <div className="space-y-8">
       <PageHeader
         title="Exposure"
-        trail={["Payroll", "What's really still owed"]}
+        trail={["Payroll", "What's really still open"]}
         tour="exposure-header"
         subtitle="The old report counts every line older than a year as overdue. Okane first matches each accrual to the payment that settled it, so you only see what's really still open."
         actions={

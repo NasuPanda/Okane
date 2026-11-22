@@ -156,6 +156,35 @@ def default_payment_profiles() -> list[PaymentProfile]:
     ]
 
 
+Side = Literal["debit", "credit"]
+
+
+class NormalSide(BaseModel):
+    """ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A43): the side an account's balance
+    normally sits on, for every account of one ERP whose number starts with ``account_prefix``.
+    The longest matching prefix wins; an account no entry matches has an unknown side."""
+
+    erp: Erp
+    account_prefix: str = Field(min_length=1)
+    side: Side
+
+
+def default_normal_sides() -> list[NormalSide]:
+    """ASSUMPTION (A43): the chart-of-accounts ranges, pending mentor question 10.
+
+    P20: 1xxxxx assets (debit), 2xxxxx liabilities (credit). BPP: 1x and 2x assets (debit),
+    3x and 4x liabilities (credit). Fits every payroll account and both Fixed assets accounts.
+    """
+    return [
+        NormalSide(erp="P20", account_prefix="1", side="debit"),
+        NormalSide(erp="P20", account_prefix="2", side="credit"),
+        NormalSide(erp="BPP", account_prefix="1", side="debit"),
+        NormalSide(erp="BPP", account_prefix="2", side="debit"),
+        NormalSide(erp="BPP", account_prefix="3", side="credit"),
+        NormalSide(erp="BPP", account_prefix="4", side="credit"),
+    ]
+
+
 class Rules(BaseModel):
     """Controller-set parameters. Brief fields first; every engine threshold lives here."""
 
@@ -234,6 +263,9 @@ class Rules(BaseModel):
     # ADDITION (#21, A25): finding types shown in the inbox's default view whatever their amount
     # (a missing payroll batch has no amount because it was never booked).
     inbox_always_types: list[ExceptionType] = Field(default_factory=lambda: ["pulse_missing_batch"])
+    # ADDITION (A43): each account's normal side, by ERP and account-number prefix. Used to
+    # word a gap by direction ("more paid than accrued") and to label the Exposure page.
+    account_normal_side: list[NormalSide] = Field(default_factory=default_normal_sides)
     error_type_severity: dict[str, float] = {
         "pulse_gap": 1.0,
         "pulse_missing_payment": 0.9,
@@ -471,6 +503,9 @@ class ExposureGroup(BaseModel):
     paired_lines: int
     above_materiality: bool
     exception_id: str | None = None
+    # ADDITION (A43): the account's normal side, "debit", "credit" or "unknown", so the Exposure
+    # page can say whether the net is owed, an asset not yet used up, or on the wrong side.
+    normal_side: str = "unknown"
 
 
 class ExposureResponse(BaseModel):

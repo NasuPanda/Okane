@@ -109,6 +109,93 @@ def test_netting_uses_overdue_lines_and_live_materiality() -> None:
     assert payroll_netting(lines, materiality_eur=100).groups_above() == 2
 
 
+@pytest.mark.parametrize(
+    ("erp", "account", "side"),
+    [
+        ("P20", "279006", "credit"), ("P20", "179003", "debit"), ("BPP", "34900015", "credit"),
+        ("BPP", "48900004", "credit"), ("BPP", "23900002", "debit"), ("BPP", "13900001", "debit"),
+        ("P20", "119001", "debit"), ("P20", "999999", "unknown"),
+    ],
+)  # fmt: skip
+def test_normal_side_by_prefix(erp: str, account: str, side: str) -> None:
+    from app.engines import normal_side
+
+    assert normal_side(Rules(), erp, account) == side
+
+
+def test_normal_side_longest_prefix_wins() -> None:
+    from app.engines import normal_side
+    from app.schemas import NormalSide
+
+    rules = Rules(
+        account_normal_side=[
+            NormalSide(erp="P20", account_prefix="2", side="credit"),
+            NormalSide(erp="P20", account_prefix="279", side="debit"),
+        ]
+    )
+    assert normal_side(rules, "P20", "279006") == "debit"
+    assert normal_side(rules, "P20", "200001") == "credit"
+
+
+@pytest.mark.parametrize(
+    ("side", "gap", "balance", "title", "wrong"),
+    [
+        ("credit", -1_838_462, -2_000_000, "Liability 1.84M above expected", "no"),
+        ("credit", 1_838_462, 1_324_638, "Liability 1.84M below expected: more paid than accrued",
+         "yes"),
+        ("credit", 600_000, -100_000, "Liability 600K below expected: more paid than accrued",
+         "no"),
+        ("debit", 700_000, 900_000, "Asset 700K above expected", "no"),
+        ("debit", -700_000, -50_000, "Asset 700K below expected: more used up than booked", "yes"),
+        ("unknown", 700_000, 900_000, "Balance 700K more debit than expected", "no"),
+    ],
+)  # fmt: skip
+def test_gap_wording_by_direction_and_side(
+    side: str, gap: float, balance: float, title: str, wrong: str
+) -> None:
+    from app.engines import gap_wording
+
+    words = gap_wording(gap, balance, side)
+    assert words["title"] == title
+    assert words["wrong_side_balance"] == wrong
+    assert words["gap_direction"] == ("toward debit" if gap > 0 else "toward credit")
+
+
+def test_netting_groups_carry_normal_side() -> None:
+    lines = frame([
+        {"account": "279006", "amount_dc": 900.0, "overdue_abs": 900.0},
+        {"account": "179003", "amount_dc": 900.0, "overdue_abs": 900.0},
+    ])  # fmt: skip
+    sides = {g.account: g.normal_side for g in payroll_netting(lines, 500).groups}
+    assert sides == {"279006": "credit", "179003": "debit"}
+
+
+def test_gap_note_and_prompt_use_the_direction() -> None:
+    from app.ai.prompts import next_check, template_comment, user_prompt
+    from app.engines import gap_wording
+
+    words = gap_wording(1_838_461.53, 1_324_638.17, "credit")
+    record = _finding(exposure=1_838_461.53).model_copy(
+        update={
+            "type": "pulse_gap",
+            "facts": {
+                "gap_eur": 1_838_461.53, "balance_eur": 1_324_638.17,
+                "balance_abs_eur": 1_324_638.17, "expected_eur": -513_823.36,
+                "latest_month": "2026-09", "since_month": "2025-05",
+                "lowest_gap_eur": 1_058_373.0, "lowest_gap_month": "2025-07",
+                **{k: v for k, v in words.items() if k != "title"},
+            },
+        }
+    )  # fmt: skip
+    note = template_comment(record)
+    assert "more was paid than accrued" in note
+    assert "debit balance of 1,324,638 EUR" in note
+    assert "unmatched accrual batches" not in note
+    assert next_check(record).startswith("missing or late accruals")
+    prompt = user_prompt(record)
+    assert "more was paid than accrued" in prompt and "missing or late accruals" in prompt
+
+
 # ----- pulse --------------------------------------------------------------------------------
 @pytest.mark.parametrize(
     ("text", "expected"),
