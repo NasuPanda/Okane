@@ -261,6 +261,10 @@ class Rules(BaseModel):
     # ADDITION (#14, A7): True = the person who posted is part of the fingerprint (the original
     # rule); False = the same header text by anyone on the account forms one pattern.
     miner_by_user: bool = True
+    # ADDITION (review of 22 Nov 2026, fix 6, docs/ASSUMPTIONS.md A7): a pattern whose lines
+    # mostly cancel in exact pairs (an accrual and its reversal) is a routine, not a repeated
+    # correction; it is dropped when this share of its lines or more is paired.
+    miner_max_paired_share: float = Field(default=0.5, gt=0, le=1)
     # ADDITION / ASSUMPTION: risk score scaling.
     penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
     exposure_cap_multiple: float = 5.0

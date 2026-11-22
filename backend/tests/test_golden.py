@@ -306,15 +306,23 @@ def test_real_typo_prompts(real_all_lines: pd.DataFrame) -> None:
 
 
 def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
-    """A7 (decided, #14), aggregates only: 6 patterns reach the Inbox at score 12 (16 at 6, 4 at
-    20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242."""
+    """A7 (decided, #14), aggregates only: 4 patterns reach the Inbox at score 12 (13 at 6, 4 at
+    20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242.
+
+    Review of 22 Nov 2026: 2 of the 6 patterns at score 12 were mostly exact pairs (18 of 28
+    and 99 of 125 lines), an accrual and its reversal, so they are dropped
+    (``Rules.miner_max_paired_share`` 0.5). Without that rule: 6 at 12, 16 at 6, 4 at 20.
+    """
     rules = Rules()
     records = run_miner(real_lines, rules)
-    assert len(records) == 6
+    assert len(records) == 4
+    assert all(float(r.facts["paired_lines"]) / float(r.facts["lines"]) < 0.5 for r in records)
+    unpaired = rules.model_copy(update={"miner_max_paired_share": 1.0})
+    assert len(run_miner(real_lines, unpaired)) == 6
     assert all(r.workgroup == "Payroll" for r in records)
     assert all(float(r.facts["miner_score"]) >= 12 for r in records)
     lower = rules.model_copy(update={"miner_min_score": 6})
-    assert len(run_miner(real_lines, lower)) == 16
+    assert len(run_miner(real_lines, lower)) == 13
     assert len(run_miner(real_lines, rules.model_copy(update={"miner_min_score": 20}))) == 4
     top = records[0]
     assert (top.erp, top.entity, top.account) == ("BPP", "C242", "48900002")
@@ -567,13 +575,14 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
 
 
 def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
-    """A8, aggregates only: weekly median 11 days earlier over 36 dated findings, 9 blind.
+    """A8, aggregates only: weekly median 11 days earlier over 36 dated findings, 7 blind.
 
     History: 62 / 17.5 before the typo rule (A6, #12) cut the typo prompts from 22 to 11;
     51 / 25 before the missing-payment cap (A15, #20) cut missing payments from 21 to 7;
     37 / 11 (daily 17) before the balance check (A44) cut them from 7 to 1 (31 / 10, daily 13);
     the 5 wrong-side balances (A46) are dated by the close review and add 5. Open balances are
-    in today's ageing report, so they are neither dated nor blind.
+    in today's ageing report, so they are neither dated nor blind. Blind spots went from 9 to
+    7 when the Miner dropped its 2 mostly-paired patterns (A7, review of 22 Nov 2026).
     """
     import statistics
 
@@ -582,7 +591,7 @@ def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
     records = run_engines(real_lines, Rules(), AS_OF).records
     leads = [r.lead_days for r in records if r.lead_days is not None]
     assert (len(leads), statistics.median(leads)) == (36, 11)
-    assert sum(r.today_detection is None for r in records) == 9
+    assert sum(r.today_detection is None for r in records) == 7
     assert min(leads) >= 0
     daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
     assert statistics.median(daily) == 14.5
@@ -665,10 +674,11 @@ def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
 
 
 def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
-    """A25 (#21), aggregates only: 48 findings; the default view holds 21 at 500K (31 at 100K),
-    with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs.
+    """A25 (#21), aggregates only: 46 findings; the default view holds 21 at 500K (31 at 100K),
+    with the C192 gap first; 17 mistake prompts and 4 repeated postings sit on their own tabs.
     (46, 19 and 24 before the balance check, A44, removed 6 missing payments; A46 then added 3
-    open balances and 5 wrong-side balances at 500K, 6 and 7 at 100K.)"""
+    open balances and 5 wrong-side balances at 500K, 6 and 7 at 100K; the Miner then dropped 2
+    mostly-paired patterns, A7.)"""
     from collections import Counter
 
     from app.services.pipeline import run_engines
@@ -678,10 +688,10 @@ def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
         records = run_engines(real_lines, rules, AS_OF).records
         views = Counter(r.inbox_view for r in records)
         assert views["attention"] == expected
-        assert (views["prompts"], views["repeats"]) == (17, 6)
+        assert (views["prompts"], views["repeats"]) == (17, 4)
         first = next(r for r in records if r.inbox_view == "attention")
         assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
-    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 48
+    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 46
 
 
 # ----- account balances (A46, review of 22 Nov 2026) ----------------------------------------

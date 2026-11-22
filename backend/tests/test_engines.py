@@ -208,6 +208,39 @@ def test_open_balance_skips_accounts_pulse_covers() -> None:
         ("279014", -900.0, "Liability 900 still owed after matching")]  # fmt: skip
 
 
+def test_miner_drops_patterns_that_are_mostly_exact_pairs() -> None:
+    """A7 (review of 22 Nov 2026): an accrual and its reversal typed by hand every month pair up
+    line for line; the pattern is dropped. A one-sided pattern stays, its exposure the net of
+    its unpaired lines."""
+    from app.engines.miner import run_miner
+
+    rows: list[dict[str, object]] = []
+    for month in range(1, 7):
+        for entity in ("C101", "C102"):
+            for sign in (1, -1):  # the accrual and its reversal
+                rows.append({"entity": entity, "account": "119001",
+                             "amount_dc": sign * 1000.0 * month,
+                             "posting_date": date(2026, month, 10 + (sign < 0)),
+                             "user_name": "USER_901", "header_text": "IC accrual",
+                             "doc_type": "SA"})  # fmt: skip
+            rows.append({"entity": entity, "account": "279030", "amount_dc": 50.0 * month,
+                         "posting_date": date(2026, month, 20), "user_name": "USER_902",
+                         "header_text": "Corr. reclass", "doc_type": "SA"})  # fmt: skip
+    for entity in ("C101", "C102"):  # one accrual not reversed yet, per company code
+        rows.append({"entity": entity, "account": "119001", "amount_dc": 777.0,
+                     "posting_date": date(2026, 6, 25), "user_name": "USER_901",
+                     "header_text": "IC accrual", "doc_type": "SA"})  # fmt: skip
+    lines = frame(rows)
+    cards = run_miner(lines, Rules())
+    assert [c.account for c in cards] == ["279030"]
+    assert cards[0].exposure_eur == 2 * 50.0 * sum(range(1, 7))
+    assert cards[0].facts["paired_lines"] == 0
+    everything = run_miner(lines, Rules(miner_max_paired_share=1.0))
+    assert sorted(c.account for c in everything) == ["119001", "279030"]
+    routine = next(c for c in everything if c.account == "119001")
+    assert routine.exposure_eur == 2 * 777.0, "only the accruals not reversed are left"
+
+
 def test_gap_note_and_prompt_use_the_direction() -> None:
     from app.ai.prompts import next_check, template_comment, user_prompt
     from app.engines import gap_wording

@@ -170,6 +170,7 @@ const FACT_LABEL: Record<string, string> = {
   documents: "Documents",
   people: "People involved",
   total_abs_eur: "Total posted by hand",
+  unpaired_net_eur: "Net of the lines that don't cancel",
   hint: "Our hypothesis",
   net_eur: "Nets to, after matching",
   overdue_abs_eur: "Old report adds up",

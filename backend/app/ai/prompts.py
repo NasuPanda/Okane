@@ -103,6 +103,7 @@ FIGURE_LABELS: dict[str, str] = {
     "overdue_abs_eur": "what the old ageing report adds up (every overdue line, as a positive "
     "amount)",
     "paired_lines": "number of lines that cancel each other out",
+    "unpaired_net_eur": "the net of the lines that do not cancel each other out",
     "debit_eur": "the overdue debits",
     "credit_eur": "the overdue credits",
     "oldest_posting_date": "the oldest overdue posting",

@@ -2561,6 +2561,13 @@
             "title": "Miner By User",
             "default": true
           },
+          "miner_max_paired_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Miner Max Paired Share",
+            "default": 0.5
+          },
           "penalty_accounts": {
             "items": {
               "type": "string"

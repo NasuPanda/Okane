@@ -580,6 +580,22 @@ the name "CC06" is dropped.
   by hand) and what fixing the source would remove, all read from the record's facts and
   labelled a hypothesis. The model-written text (A10, contract merged in #61 and #62) is
   still to be built.
+- Paired lines (review of 22 Nov 2026, fix 6): the top two Fixed assets cards were one routine,
+  "IC Winshuttle" on C102: VA accruals (44 months, +33.6M) and VC reversals (53 months,
+  -32.6M), shown as two findings with gross amounts although together they net to about 1M.
+  A pattern is now dropped when `Rules.miner_max_paired_share` (0.5) or more of its lines
+  belong to an exact pair (`engines/pairs.py`, anywhere on the account). A remaining card's
+  amount is the net of its unpaired lines (fact `unpaired_net_eur`; `paired_lines` is shown).
+  ASSUMPTION: dropping the whole pattern rather than only its paired lines, so a routine and
+  its reversal never leave two half-cards behind.
+  - Real Payroll: 6 cards at score 12 become 4 (13 instead of 16 at score 6; still 4 at 20).
+    The two dropped had 18 of 28 and 99 of 125 lines in exact pairs; the 4 kept have at most
+    3 paired lines each. Knock-on at the extract date: 45 findings instead of 47, 4 in the
+    "Repeated postings" tab instead of 6, blind spots 7 instead of 9.
+  - Real Fixed assets: not measured here (the workbook is not on the laptop that built this);
+    the IC Winshuttle pair is expected to drop. `test_real_miner_fixed_assets` (8 cards) will
+    fail until it is re-measured with the workbook present.
+  - Synthetic: the demo card (C132 and C192 279030, 6 months) has no paired line and stays.
 Owner: team.
 
 ## Lead time and score

@@ -1059,6 +1059,11 @@ export interface components {
              * @default true
              */
             miner_by_user: boolean;
+            /**
+             * Miner Max Paired Share
+             * @default 0.5
+             */
+            miner_max_paired_share: number;
             /** Penalty Accounts */
             penalty_accounts?: string[];
             /**
