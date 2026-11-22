@@ -554,15 +554,16 @@ class ExposureResponse(BaseModel):
     groups: list[ExposureGroup]
 
 
-class Health(BaseModel):
-    """ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/health.
+class AssistantState(BaseModel):
+    """ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/assistant.
 
     ``assistant``: "on" when Ollama answers and the configured model is pulled; "offline" when
     it is enabled but Ollama does not answer or lacks the model; "off" when disabled in the
-    settings. Without the assistant, notes use the labelled standard wording (A29).
+    settings. Without the assistant, notes use the labelled standard wording (A29). Kept apart
+    from the liveness probe ``/api/health``, which is open without a password on the hosted
+    demo (A41) and must not call out to the model server.
     """
 
-    status: Literal["ok"] = "ok"
     assistant: Literal["on", "offline", "off"]
     model: str
     reason: str | None = None

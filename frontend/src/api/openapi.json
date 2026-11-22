@@ -806,7 +806,7 @@
           "meta"
         ],
         "summary": "Health",
-        "description": "Liveness probe, plus whether the assistant can draft notes (A45).",
+        "description": "Liveness probe. It calls nothing else: the hosted demo leaves it open (A41).",
         "operationId": "health_api_health_get",
         "responses": {
           "200": {
@@ -814,7 +814,33 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Health"
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assistant": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Assistant",
+        "description": "Whether the assistant can draft notes (A45).",
+        "operationId": "assistant_api_assistant_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantState"
                 }
               }
             }
@@ -825,6 +851,41 @@
   },
   "components": {
     "schemas": {
+      "AssistantState": {
+        "properties": {
+          "assistant": {
+            "type": "string",
+            "enum": [
+              "on",
+              "offline",
+              "off"
+            ],
+            "title": "Assistant"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assistant",
+          "model"
+        ],
+        "title": "AssistantState",
+        "description": "ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/assistant.\n\n``assistant``: \"on\" when Ollama answers and the configured model is pulled; \"offline\" when\nit is enabled but Ollama does not answer or lacks the model; \"off\" when disabled in the\nsettings. Without the assistant, notes use the labelled standard wording (A29). Kept apart\nfrom the liveness probe ``/api/health``, which is open without a password on the hosted\ndemo (A41) and must not call out to the model server."
+      },
       "BatchMatch": {
         "properties": {
           "period": {
@@ -2005,47 +2066,6 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
-      },
-      "Health": {
-        "properties": {
-          "status": {
-            "type": "string",
-            "const": "ok",
-            "title": "Status",
-            "default": "ok"
-          },
-          "assistant": {
-            "type": "string",
-            "enum": [
-              "on",
-              "offline",
-              "off"
-            ],
-            "title": "Assistant"
-          },
-          "model": {
-            "type": "string",
-            "title": "Model"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason"
-          }
-        },
-        "type": "object",
-        "required": [
-          "assistant",
-          "model"
-        ],
-        "title": "Health",
-        "description": "ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/health.\n\n``assistant``: \"on\" when Ollama answers and the configured model is pulled; \"offline\" when\nit is enabled but Ollama does not answer or lacks the model; \"off\" when disabled in the\nsettings. Without the assistant, notes use the labelled standard wording (A29)."
       },
       "Kpis": {
         "properties": {

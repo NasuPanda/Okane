@@ -5,7 +5,7 @@ import { NavLink, Outlet, useLocation, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { API_MODE, api } from "@/api/client";
-import { useHealth, useKpis, useLatestRun, useStartRun, useUploadExtract } from "@/api/hooks";
+import { useAssistant, useKpis, useLatestRun, useStartRun, useUploadExtract } from "@/api/hooks";
 import { ExceptionDrawer } from "@/components/ExceptionDrawer";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
@@ -133,8 +133,8 @@ function TopBar() {
 
 /** Whether the assistant drafts notes (A45). Without it, notes use the standard wording. */
 function AssistantStatus() {
-  const health = useHealth();
-  const state = health.data;
+  const assistant = useAssistant();
+  const state = assistant.data;
   if (!state) return null;
   const on = state.assistant === "on";
   return (

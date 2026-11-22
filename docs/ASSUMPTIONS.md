@@ -737,9 +737,12 @@ the standard wording. Cause: Ollama was not installed on the laptop the app ran 
 answered on :11434), so every note fell back to the labelled template (A29) without saying so
 anywhere. The settings were right (`ai_enabled` on, `qwen2.5:7b-instruct`, the default URL,
 no `backend/.env`).
-- `GET /api/health` now also says whether the assistant can draft notes: "on" when Ollama
-  answers and the configured model is pulled, "offline" when Ollama does not answer or lacks
-  the model (with the reason), "off" when `ai_enabled` is false.
+- `GET /api/assistant` says whether the assistant can draft notes: "on" when Ollama answers
+  and the configured model is pulled, "offline" when Ollama does not answer or lacks the
+  model (with the reason), "off" when `ai_enabled` is false.
+- `GET /api/health` stays a bare liveness probe (`{"status": "ok"}`), decided in the review of
+  PR #73: the hosted demo leaves it open without a password and pings it to stay awake (A41),
+  so it must not show the model's name or state, nor call the model server on every check.
 - The run dock shows "Assistant on (model)" or "Assistant offline: notes use standard
   wording", checked again every minute. The practice-data page (A41) has no model and says
   offline.

@@ -310,9 +310,29 @@ export interface paths {
         };
         /**
          * Health
-         * @description Liveness probe, plus whether the assistant can draft notes (A45).
+         * @description Liveness probe. It calls nothing else: the hosted demo leaves it open (A41).
          */
         get: operations["health_api_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assistant
+         * @description Whether the assistant can draft notes (A45).
+         */
+        get: operations["assistant_api_assistant_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -325,6 +345,27 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AssistantState
+         * @description ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/assistant.
+         *
+         *     ``assistant``: "on" when Ollama answers and the configured model is pulled; "offline" when
+         *     it is enabled but Ollama does not answer or lacks the model; "off" when disabled in the
+         *     settings. Without the assistant, notes use the labelled standard wording (A29). Kept apart
+         *     from the liveness probe ``/api/health``, which is open without a password on the hosted
+         *     demo (A41) and must not call out to the model server.
+         */
+        AssistantState: {
+            /**
+             * Assistant
+             * @enum {string}
+             */
+            assistant: "on" | "offline" | "off";
+            /** Model */
+            model: string;
+            /** Reason */
+            reason?: string | null;
+        };
         /**
          * BatchMatch
          * @description One accrual batch and the payments that settled it, if any.
@@ -720,31 +761,6 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /**
-         * Health
-         * @description ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/health.
-         *
-         *     ``assistant``: "on" when Ollama answers and the configured model is pulled; "offline" when
-         *     it is enabled but Ollama does not answer or lacks the model; "off" when disabled in the
-         *     settings. Without the assistant, notes use the labelled standard wording (A29).
-         */
-        Health: {
-            /**
-             * Status
-             * @default ok
-             * @constant
-             */
-            status: "ok";
-            /**
-             * Assistant
-             * @enum {string}
-             */
-            assistant: "on" | "offline" | "off";
-            /** Model */
-            model: string;
-            /** Reason */
-            reason?: string | null;
         };
         /**
          * Kpis
@@ -1755,7 +1771,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Health"];
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    assistant_api_assistant_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantState"];
                 };
             };
         };

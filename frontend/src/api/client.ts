@@ -7,7 +7,7 @@
  */
 import type {
   FixedAssetExposure,
-  Health,
+  AssistantState,
   Comment,
   DecisionUpdate,
   ExceptionDetail,
@@ -36,7 +36,8 @@ export class ApiError extends Error {
 
 export interface Api {
   latestRun(): Promise<Run | null>;
-  health(): Promise<Health>;
+  /** Whether the assistant can draft notes (A45). */
+  assistant(): Promise<AssistantState>;
   startRun(): Promise<Run>;
   /** Send this week's extract; the backend checks it, keeps a copy and starts a run (A38). */
   uploadExtract(file: File): Promise<UploadResult>;
@@ -84,7 +85,7 @@ function query(params: Record<string, string | number | boolean | undefined>): s
 
 const liveApi: Api = {
   latestRun: () => request("/api/runs/latest"),
-  health: () => request("/api/health"),
+  assistant: () => request("/api/assistant"),
   startRun: () => request("/api/runs", { method: "POST" }),
   uploadExtract: async (file) =>
     parse(
@@ -177,8 +178,8 @@ const fixtureApi: Api = {
     return later((await loadStore()).run);
   },
   // The practice-data page has no model behind it: its notes are the stored standard wording.
-  health: () =>
-    later({ status: "ok" as const, assistant: "offline" as const, model: "", reason: "practice data has no model" }),
+  assistant: () =>
+    later({ assistant: "offline" as const, model: "", reason: "practice data has no model" }),
   async startRun() {
     const s = await loadStore();
     const run = { ...s.run, status: "running" as const, trigger: "manual" as const };
