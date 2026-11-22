@@ -158,7 +158,7 @@ def test_inbox_default_view_and_show_all(ran: TestClient) -> None:
     assert sorted(ids) == sorted(r["id"] for r in everything), "every finding on exactly one tab"
 
     attention = tabs["attention"]
-    assert (len(attention), len(everything)) == (6, 14)
+    assert (len(attention), len(everything)) == (8, 16)  # A46 adds 2 open balances
     top = attention[0]
     assert (top["type"], top["entity"], top["account"]) == ("pulse_gap", "C192", "279006")
     assert [r["score"] for r in attention] == sorted((r["score"] for r in attention), reverse=True)
@@ -170,20 +170,20 @@ def test_inbox_default_view_and_show_all(ran: TestClient) -> None:
     assert ran.get("/api/exceptions", params={"view": "nonsense"}).status_code == 422
 
     kpis = ran.get("/api/kpis").json()
-    assert kpis["inbox_views"] == {"attention": 6, "prompts": len(tabs["prompts"]),
+    assert kpis["inbox_views"] == {"attention": 8, "prompts": len(tabs["prompts"]),
                                    "repeats": len(tabs["repeats"]), "other": len(tabs["other"]),
-                                   "all": 14}  # fmt: skip
+                                   "all": 16}  # fmt: skip
     body = {"status": "dismissed", "decision_reason": "Known timing difference"}
     ran.patch(f"/api/exceptions/{top['id']}", json=body)
     kpis = ran.get("/api/kpis").json()
-    assert (kpis["inbox_views"]["attention"], kpis["inbox_views"]["all"]) == (5, 13), "to review"
+    assert (kpis["inbox_views"]["attention"], kpis["inbox_views"]["all"]) == (7, 15), "to review"
 
     rules = ran.get("/api/rules").json()
     body = {"rules": {**rules, "inbox_always_types": []}, "reason": "Amounts only"}
     assert ran.put("/api/rules", json=body).status_code == 200
     wait_for_run(ran)
     attention = ran.get("/api/exceptions", params={"view": "attention"}).json()
-    assert len(attention) == 5 and all(abs(r["exposure_eur"]) >= 500_000 for r in attention)
+    assert len(attention) == 7 and all(abs(r["exposure_eur"]) >= 500_000 for r in attention)
 
 
 def test_exception_detail(ran: TestClient) -> None:

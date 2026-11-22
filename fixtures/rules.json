@@ -139,7 +139,9 @@
    "label_mismatch": 0.5,
    "pulse_spike": 0.5,
    "miner_cluster": 0.4,
-   "typo": 0.2
+   "typo": 0.2,
+   "wrong_side_balance": 0.8,
+   "open_balance": 0.6
   }
  }
 }

@@ -24,6 +24,10 @@ ExceptionType = Literal[
     "sentinel_reversal",
     "typo",
     "miner_cluster",
+    # ADDITION (review of 22 Nov 2026, fix 4, docs/ASSUMPTIONS.md A46): a netting group at or
+    # above materiality with no Pulse finding, and a full balance on the wrong side.
+    "open_balance",
+    "wrong_side_balance",
 ]
 Workgroup = Literal["Payroll", "Fixed assets"]
 Erp = Literal["P20", "BPP"]
@@ -282,6 +286,10 @@ class Rules(BaseModel):
         "pulse_spike": 0.5,
         "miner_cluster": 0.4,
         "typo": 0.2,
+        # ADDITION (A46): a liability in debit or an asset in credit is a likely posting error;
+        # an open net is real exposure the ageing report already lists line by line.
+        "wrong_side_balance": 0.8,
+        "open_balance": 0.6,
     }
 
 

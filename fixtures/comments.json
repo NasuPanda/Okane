@@ -57,6 +57,17 @@
    "rejected_draft": null,
    "rejected_reasons": []
   },
+  "233ad39a5cb011cd": {
+   "exception_id": "233ad39a5cb011cd",
+   "comment": "Standard note (no AI was used): Liability 2.06M still owed after matching. Rule: Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account. Check the documents behind the net and whether they are still open.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false,
+   "rejected_draft": null,
+   "rejected_reasons": []
+  },
   "ca26141f45d62ffe": {
    "exception_id": "ca26141f45d62ffe",
    "comment": "Standard note (no AI was used): The payment of 614,052 EUR is labelled Jan 2026 but settles the Feb 2026 batch. Check the payment text, and correct it if the label is wrong.",
@@ -82,6 +93,17 @@
   "0c7228820c2b5ca8": {
    "exception_id": "0c7228820c2b5ca8",
    "comment": "Standard note (no AI was used): No batch was posted for Aug 2025; a typical batch is 618,389 EUR. Check whether the accrual was booked elsewhere.",
+   "source": "template",
+   "verifier": "not_run",
+   "checked_figures": [],
+   "failed_figures": [],
+   "cached": false,
+   "rejected_draft": null,
+   "rejected_reasons": []
+  },
+  "09009a7b2874e46d": {
+   "exception_id": "09009a7b2874e46d",
+   "comment": "Standard note (no AI was used): Asset 680K not yet used up after matching. Rule: Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account. Check the documents behind the net and whether they are still open.",
    "source": "template",
    "verifier": "not_run",
    "checked_figures": [],

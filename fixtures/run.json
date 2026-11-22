@@ -2,8 +2,8 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261122T155235_86cdcc",
-  "snapshot_id": "9427fbd5e885386c",
+  "run_id": "run_20261122T160457_31a700",
+  "snapshot_id": "cff495603c30d19e",
   "trigger": "manual",
   "status": "finished",
   "source_files": [
@@ -11,21 +11,22 @@
    "Payroll_sample.xlsx"
   ],
   "file_hashes": [
-   "d3cc74adcc18015715870ea8886aeb403b1c424c3391a3784b5aeacf800238c0",
-   "8d63444f8112a82e266374fe7fdfc6f453b2ec1b7084f1fe31f1e25edc748231"
+   "9ce670e41a81c0c3a000eb013512079ec0ee3f74ac97d4a397947cb79169bf6b",
+   "1dde70ba74a4c29628e3d94de1801f744fdb9fa0175815464cdcfd03170f4e29"
   ],
   "synthetic": false,
   "as_of": "2026-11-18",
-  "started_at": "2026-11-22T15:52:35.995739",
-  "finished_at": "2026-11-22T15:52:36.434175",
+  "started_at": "2026-11-22T16:04:57.008854",
+  "finished_at": "2026-11-22T16:04:57.454622",
   "counts": {
    "lines": 244,
    "paired_lines": 42,
-   "exceptions": 14,
+   "exceptions": 16,
    "old_rule_lines": 72,
    "exposure_groups_above": 3,
    "type:label_mismatch": 1,
    "type:miner_cluster": 1,
+   "type:open_balance": 2,
    "type:pulse_gap": 1,
    "type:pulse_missing_batch": 1,
    "type:pulse_missing_payment": 1,
@@ -41,11 +42,11 @@
    {
     "kind": "Payroll",
     "file_name": "Payroll_sample.xlsx",
-    "file_hash": "8d63444f8112a82e266374fe7fdfc6f453b2ec1b7084f1fe31f1e25edc748231",
+    "file_hash": "1dde70ba74a4c29628e3d94de1801f744fdb9fa0175815464cdcfd03170f4e29",
     "extract_date": "2026-10-23",
     "route": "manual",
     "received_by": "controller",
-    "received_at": "2026-11-22T15:52:36.115964",
+    "received_at": "2026-11-22T16:04:57.126387",
     "rows": 209,
     "late": false,
     "next_due": "2026-11-23T06:00:00"
@@ -53,11 +54,11 @@
    {
     "kind": "Fixed assets",
     "file_name": "Fixed_assets_sample.xlsx",
-    "file_hash": "d3cc74adcc18015715870ea8886aeb403b1c424c3391a3784b5aeacf800238c0",
+    "file_hash": "9ce670e41a81c0c3a000eb013512079ec0ee3f74ac97d4a397947cb79169bf6b",
     "extract_date": "2026-10-02",
     "route": "manual",
     "received_by": "controller",
-    "received_at": "2026-11-22T15:52:36.054682",
+    "received_at": "2026-11-22T16:04:57.066332",
     "rows": 35,
     "late": false,
     "next_due": "2026-11-23T06:00:00"

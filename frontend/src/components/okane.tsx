@@ -6,12 +6,14 @@ import {
   Coins,
   EyeOff,
   FileWarning,
+  FlipVertical2,
   Repeat2,
   Scale,
   Sparkles,
   SpellCheck,
   TrendingUp,
   Undo2,
+  Wallet,
 } from "lucide-react";
 import type * as React from "react";
 
@@ -32,6 +34,8 @@ const TYPE_ICON: Record<ExceptionType, React.ComponentType<{ className?: string 
   sentinel_reversal: Undo2,
   typo: SpellCheck,
   miner_cluster: Repeat2,
+  open_balance: Wallet,
+  wrong_side_balance: FlipVertical2,
 };
 
 /** Delay helper for the staggered fade-in (`rise` utility). */
@@ -89,6 +93,17 @@ export function LeadBadge({ record, size = "sm", tip = true }: { record: Excepti
     ) : (
       pill
     );
+  // A46: a finding today's ageing report lists line by line has no lead time, but it is no
+  // blind spot either.
+  if ((lead === null || lead === undefined) && record.today_detection) {
+    return withTip(
+      <span className={cn(shape, "bg-muted text-muted-foreground")}>
+        <Sparkles className={big ? "size-4" : "size-3"} />
+        {badge ?? "Also in today's report"}
+      </span>,
+      "Today's ageing report lists these lines one by one. Okane adds them up after matching.",
+    );
+  }
   if (lead === null || lead === undefined) {
     return withTip(
       <span className={cn(shape, "bg-hot-soft text-hot")}>

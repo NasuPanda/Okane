@@ -101,6 +101,8 @@ export const OPEN_BALANCE_TYPES: readonly ExceptionRecord["type"][] = [
   "pulse_gap",
   "pulse_missing_batch",
   "pulse_missing_payment",
+  "open_balance", // A46: balances still open on the analysis date
+  "wrong_side_balance",
 ];
 
 export function inPeriod(r: ExceptionRecord, range: PeriodRange): boolean {

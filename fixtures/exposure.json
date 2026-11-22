@@ -2,7 +2,7 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261122T155235_86cdcc",
+  "run_id": "run_20261122T160457_31a700",
   "materiality_eur": 500000.0,
   "old_rule_lines": 72,
   "old_rule_overdue_abs": 11358855.29,
@@ -19,7 +19,7 @@
     "net_eur": -2060000.0,
     "paired_lines": 0,
     "above_materiality": true,
-    "exception_id": null,
+    "exception_id": "233ad39a5cb011cd",
     "normal_side": "credit"
    },
    {
@@ -45,7 +45,7 @@
     "net_eur": 679839.48,
     "paired_lines": 0,
     "above_materiality": true,
-    "exception_id": null,
+    "exception_id": "09009a7b2874e46d",
     "normal_side": "debit"
    },
    {

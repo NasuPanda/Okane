@@ -515,11 +515,13 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
 
 
 def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
-    """A8, aggregates only: weekly median 10 days earlier over 31 dated findings, 9 blind.
+    """A8, aggregates only: weekly median 11 days earlier over 36 dated findings, 9 blind.
 
     History: 62 / 17.5 before the typo rule (A6, #12) cut the typo prompts from 22 to 11;
     51 / 25 before the missing-payment cap (A15, #20) cut missing payments from 21 to 7;
-    37 / 11 (daily 17) before the balance check (A44) cut them from 7 to 1.
+    37 / 11 (daily 17) before the balance check (A44) cut them from 7 to 1 (31 / 10, daily 13);
+    the 5 wrong-side balances (A46) are dated by the close review and add 5. Open balances are
+    in today's ageing report, so they are neither dated nor blind.
     """
     import statistics
 
@@ -527,11 +529,11 @@ def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
 
     records = run_engines(real_lines, Rules(), AS_OF).records
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (31, 10)
+    assert (len(leads), statistics.median(leads)) == (36, 11)
     assert sum(r.today_detection is None for r in records) == 9
     assert min(leads) >= 0
     daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
-    assert statistics.median(daily) == 13
+    assert statistics.median(daily) == 14.5
 
 
 def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
@@ -611,14 +613,15 @@ def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
 
 
 def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
-    """A25 (#21), aggregates only: 40 findings; the default view holds 13 at 500K (18 at 100K),
+    """A25 (#21), aggregates only: 48 findings; the default view holds 21 at 500K (31 at 100K),
     with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs.
-    (46, 19 and 24 before the balance check, A44, removed 6 missing payments.)"""
+    (46, 19 and 24 before the balance check, A44, removed 6 missing payments; A46 then added 3
+    open balances and 5 wrong-side balances at 500K, 6 and 7 at 100K.)"""
     from collections import Counter
 
     from app.services.pipeline import run_engines
 
-    for materiality, expected in ((500_000, 13), (100_000, 18)):
+    for materiality, expected in ((500_000, 21), (100_000, 31)):
         rules = Rules(materiality_eur=materiality)
         records = run_engines(real_lines, rules, AS_OF).records
         views = Counter(r.inbox_view for r in records)
@@ -626,7 +629,57 @@ def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
         assert (views["prompts"], views["repeats"]) == (17, 6)
         first = next(r for r in records if r.inbox_view == "attention")
         assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
-    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 40
+    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 48
+
+
+# ----- account balances (A46, review of 22 Nov 2026) ----------------------------------------
+def test_real_open_and_wrong_side_balances(real_lines: pd.DataFrame) -> None:
+    """A46, account codes and account-level totals only, at the extract date (23 Oct 2026).
+
+    Open balances: the "really open" accounts with no Pulse finding, 3 at 500K and 6 at 100K.
+    Wrong-side balances: 6 accounts at 500K; C192 279006 has a gap, so its fact goes on the gap
+    and 5 records are new. At 100K two more accounts. C192 179004 (an asset in credit) moved to
+    the wrong side in mid-October 2026.
+    """
+    from app.services.pipeline import run_engines
+
+    def accounts(records: list, type_: str) -> list[tuple[str, str, str]]:  # type: ignore
+        return sorted((r.erp, r.entity, r.account) for r in records if r.type == type_)
+
+    at_500k = run_engines(real_lines, Rules(), date(2026, 10, 23)).records
+    assert accounts(at_500k, "open_balance") == [
+        ("BPP", "C242", "34900001"), ("P20", "C192", "179003"), ("P20", "C192", "279014"),
+    ]  # fmt: skip
+    wrong = {r.account: r for r in at_500k if r.type == "wrong_side_balance"}
+    assert accounts(at_500k, "wrong_side_balance") == [
+        ("BPP", "C133", "34900011"), ("BPP", "C242", "34900009"), ("BPP", "C242", "48900004"),
+        ("P20", "C192", "179004"), ("P20", "C192", "279002")]  # fmt: skip
+    assert {a: round(r.exposure_eur / 1e6, 2) for a, r in wrong.items()} == {
+        "48900004": 36.4,
+        "279002": 2.96,
+        "34900009": 2.8,
+        "179004": -2.64,
+        "34900011": 1.49,
+    }
+    assert all(r.suggested_class == "Required Adjustment Item" for r in wrong.values())
+    crossed = wrong["179004"].first_signal
+    assert (crossed.year, crossed.month) == (2026, 10) and 10 <= crossed.day <= 20
+    gap = next(r for r in at_500k if r.type == "pulse_gap" and r.entity == "C192")
+    assert gap.facts["wrong_side_balance"] == "yes" and "wrong_side_since" in gap.facts
+    first = next(r for r in at_500k if r.inbox_view == "attention")
+    assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
+    opened = [r for r in at_500k if r.type == "open_balance"]
+    assert all(r.today_detection and r.lead_days is None for r in opened), "listed, not blind"
+
+    at_100k = run_engines(real_lines, Rules(materiality_eur=100_000), date(2026, 10, 23)).records
+    more_open = [("BPP", "C133", "34900002"), ("P20", "C192", "279001"), ("P20", "C192", "279004")]
+    assert accounts(at_100k, "open_balance") == sorted(
+        [*accounts(at_500k, "open_balance"), *more_open]
+    )
+    more_wrong = [("BPP", "C242", "34900003"), ("P20", "C172", "279006")]
+    assert accounts(at_100k, "wrong_side_balance") == sorted(
+        [*accounts(at_500k, "wrong_side_balance"), *more_wrong]
+    )
 
 
 # ----- extract date (A38) -------------------------------------------------------------------
@@ -646,8 +699,9 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
     Aggregates only. With the balance check (A44), none of the 6 batches the 12-month limit
     (A15, #20) would raise at the extract date is still held in its account's balance, so no
     missing payment remains (C242's October 2026 batch is expected by 13 Nov, after the
-    extract). 30 dated findings, median 8.5 days; the C192 gap still ranks first at 79.4 (A9,
-    #18) and 4 groups stay above 500K. Before A44: 6 missing payments, 36 dated, median 11.
+    extract). 35 dated findings (5 of them wrong-side balances, A46), median 11 days; the C192
+    gap still ranks first at 79.4 (A9, #18) and 4 groups stay above 500K. Before A44: 6 missing
+    payments, 36 dated, median 11; between A44 and A46: 30 dated, median 8.5.
     """
     import statistics
 
@@ -660,4 +714,4 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
         "pulse_gap", "C192", 79.4)  # fmt: skip
     assert output.counts["exposure_groups_above"] == 4
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (30, 8.5)
+    assert (len(leads), statistics.median(leads)) == (35, 11)

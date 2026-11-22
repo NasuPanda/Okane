@@ -170,6 +170,44 @@ def test_netting_groups_carry_normal_side() -> None:
     assert sides == {"279006": "credit", "179003": "debit"}
 
 
+def test_wrong_side_balance_first_signal_is_the_last_crossing() -> None:
+    """A46: a liability (credit-normal) that went into debit, back to credit, then into debit
+    again is flagged from the last crossing; one with a Pulse gap gets no second record."""
+    from app.engines.balances import run_balances
+
+    lines = frame([
+        {"account": "279002", "amount_dc": 800.0, "posting_date": date(2026, 1, 10)},
+        {"account": "279002", "amount_dc": -900.0, "posting_date": date(2026, 2, 10)},
+        {"account": "279002", "amount_dc": 700.0, "posting_date": date(2026, 9, 15)},
+        {"account": "279002", "amount_dc": 400.0, "posting_date": date(2026, 10, 1)},
+        {"account": "179004", "amount_dc": 900.0, "posting_date": date(2026, 3, 1)},  # normal
+    ])  # fmt: skip
+    _, new = run_balances(lines, Rules(materiality_eur=500), [])
+    [record] = [r for r in new if r.type == "wrong_side_balance"]
+    assert (record.account, record.first_signal, record.exposure_eur) == (
+        "279002", date(2026, 9, 15), 1_000.0)  # fmt: skip
+    assert record.title == "Liability in debit: 1K on the wrong side"
+    gap = _finding(type_="pulse_gap", account="279002")
+    updated, new = run_balances(lines, Rules(materiality_eur=500), [gap])
+    assert not [r for r in new if r.type == "wrong_side_balance"]
+    assert updated[0].facts["wrong_side_since"] == "2026-09-15"
+
+
+def test_open_balance_skips_accounts_pulse_covers() -> None:
+    """A46: an open net on an account Pulse covers is explained by the Pulse finding."""
+    from app.engines.balances import run_balances
+
+    lines = frame([
+        {"account": "279014", "amount_dc": -900.0, "overdue_abs": 900.0},
+        {"account": "279006", "amount_dc": -900.0, "overdue_abs": 900.0},
+    ])  # fmt: skip
+    pulse = [_finding(type_="pulse_missing_batch", account="279006")]
+    _, new = run_balances(lines, Rules(materiality_eur=500), pulse)
+    opened = [r for r in new if r.type == "open_balance"]
+    assert [(r.account, r.exposure_eur, r.title) for r in opened] == [
+        ("279014", -900.0, "Liability 900 still owed after matching")]  # fmt: skip
+
+
 def test_gap_note_and_prompt_use_the_direction() -> None:
     from app.ai.prompts import next_check, template_comment, user_prompt
     from app.engines import gap_wording

@@ -459,7 +459,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster";
+            type: "pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster" | "open_balance" | "wrong_side_balance";
             /**
              * Workgroup
              * @enum {string}
@@ -987,7 +987,7 @@ export interface components {
              */
             repeats_min_months: number;
             /** Inbox Always Types */
-            inbox_always_types?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster")[];
+            inbox_always_types?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster" | "open_balance" | "wrong_side_balance")[];
             /** Account Normal Side */
             account_normal_side?: components["schemas"]["NormalSide"][];
             /**
@@ -1003,7 +1003,9 @@ export interface components {
              *       "label_mismatch": 0.5,
              *       "pulse_spike": 0.5,
              *       "miner_cluster": 0.4,
-             *       "typo": 0.2
+             *       "typo": 0.2,
+             *       "wrong_side_balance": 0.8,
+             *       "open_balance": 0.6
              *     }
              */
             error_type_severity: {
@@ -1287,7 +1289,7 @@ export interface operations {
     list_exceptions_api_exceptions_get: {
         parameters: {
             query?: {
-                type?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster") | null;
+                type?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster" | "open_balance" | "wrong_side_balance") | null;
                 workgroup?: ("Payroll" | "Fixed assets") | null;
                 entity?: string | null;
                 min_exposure?: number | null;

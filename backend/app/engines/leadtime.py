@@ -13,6 +13,9 @@ Today's detection date, per type:
   days are Monday to Friday minus ``Rules.close_review_holidays``.
 - Blind spots (pulse_gap, pulse_missing_batch, miner_cluster): today's process has no check
   that sees them: None.
+- Listed (open_balance, A46): today's ageing report already lists the lines one by one, so
+  today's detection is the first signal itself and there is no lead time. It is neither a
+  blind spot nor part of the median.
 
 Okane runs weekly, so with ``Rules.lead_time_view`` = "weekly" the lead days count from the run
 on or after the first signal (``Rules.weekly_run_weekday``); "daily" counts from the first
@@ -31,13 +34,15 @@ from app.schemas import ExceptionRecord, Rules
 AGEING_TYPES = {"pulse_missing_payment"}
 CLOSE_REVIEW_TYPES = {
     "sentinel_outlier", "sentinel_two_currencies", "sentinel_currency_code", "sentinel_reversal",
-    "typo", "label_mismatch", "pulse_spike",
+    "typo", "label_mismatch", "pulse_spike", "wrong_side_balance",
 }  # fmt: skip
+LISTED_TYPES = {"open_balance"}
 BLIND_TYPES = {"pulse_gap", "pulse_missing_batch", "miner_cluster"}
 BASIS_TEXT = {
     "ageing": "365-day ageing rule",
     "close_review": "month-end close review",
     "never": "not detected by today's process",
+    "listed": "listed line by line in today's ageing report",
 }
 
 
@@ -104,6 +109,8 @@ def today_detection(
         if allowed_age is None or not isinstance(accrual, str):
             return None, "never"
         return date.fromisoformat(accrual) + timedelta(days=allowed_age), "ageing"
+    if record.type in LISTED_TYPES:
+        return record.first_signal, "listed"
     if record.type in CLOSE_REVIEW_TYPES:
         posted = record.facts.get("posting_date")
         anchor = date.fromisoformat(posted) if isinstance(posted, str) else record.first_signal
@@ -123,6 +130,11 @@ def apply_lead_time(
         run = next_run_on_or_after(record.first_signal, rules.weekly_run_weekday)
         facts = {**record.facts, "today_detection_basis": BASIS_TEXT[basis]}
         lead = None
+        if basis == "listed":
+            lines = int(float(record.facts.get("lines", 0)))
+            facts["lead_badge"] = f"In today's ageing report as {lines} lines; Okane shows the net"
+            out.append(record.model_copy(update={"today_detection": detected, "facts": facts}))
+            continue
         if detected is not None:
             daily = (detected - record.first_signal).days
             weekly = (detected - run).days

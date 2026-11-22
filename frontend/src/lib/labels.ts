@@ -13,6 +13,8 @@ export const TYPE_LABEL: Record<ExceptionType, string> = {
   sentinel_reversal: "Reversal doesn't match",
   typo: "Possible typo",
   miner_cluster: "Repeated manual posting",
+  open_balance: "Still open after matching",
+  wrong_side_balance: "Balance on the wrong side",
 };
 
 /** One plain sentence per finding, with the accounting term kept in it. */
@@ -29,6 +31,10 @@ export const TYPE_HINT: Record<ExceptionType, string> = {
   typo: "A word or month label that looks like a slip of the keyboard.",
   miner_cluster:
     "The same posting is typed by hand month after month. It may be a correction; check whether the automated posting can do it.",
+  open_balance:
+    "After matching what paid what, this account's overdue lines still net to more than the limit. Today's ageing report lists them line by line; this is the net.",
+  wrong_side_balance:
+    "A liability in debit or an asset in credit: the whole balance sits on the wrong side for this kind of account.",
 };
 
 export type TypeGroup = "pulse" | "sentinel" | "mistakes" | "miner";
@@ -45,6 +51,8 @@ export const TYPE_GROUP: Record<ExceptionType, TypeGroup> = {
   sentinel_reversal: "sentinel",
   typo: "mistakes",
   miner_cluster: "miner",
+  open_balance: "pulse",
+  wrong_side_balance: "mistakes",
 };
 
 export const GROUP_LABEL: Record<TypeGroup, string> = {
@@ -163,6 +171,14 @@ const FACT_LABEL: Record<string, string> = {
   people: "People involved",
   total_abs_eur: "Total posted by hand",
   hint: "Our hypothesis",
+  net_eur: "Nets to, after matching",
+  overdue_abs_eur: "Old report adds up",
+  paired_lines: "Lines that cancel out",
+  debit_eur: "Overdue debits",
+  credit_eur: "Overdue credits",
+  oldest_posting_date: "Oldest overdue posting",
+  newest_posting_date: "Newest overdue posting",
+  wrong_side_since: "On the wrong side since",
   today_detection_basis: "Today's report would catch it via",
   lead_days: "Days earlier than today's report",
 };

@@ -4,7 +4,7 @@
  "data": [
   {
    "id": "b80b0b905e1fe118",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "pulse_gap",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -65,7 +65,7 @@
   },
   {
    "id": "5a2ed0b6c0c57484",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "pulse_spike",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -116,7 +116,7 @@
   },
   {
    "id": "61ca766fbdf173e5",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "pulse_missing_payment",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -175,7 +175,7 @@
   },
   {
    "id": "4b75e13ab2dc5a8d",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "sentinel_outlier",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -229,7 +229,7 @@
   },
   {
    "id": "5cb790939c58a948",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "sentinel_outlier",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -282,8 +282,64 @@
    "ai_check": null
   },
   {
+   "id": "233ad39a5cb011cd",
+   "run_id": "run_20261122T160457_31a700",
+   "type": "open_balance",
+   "workgroup": "Payroll",
+   "erp": "BPP",
+   "entity": "C242",
+   "account": "34900001",
+   "account_name": "Accrued salaries",
+   "title": "Liability 2.06M still owed after matching",
+   "exposure_eur": -2060000.0,
+   "facts": {
+    "rule": "Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account",
+    "net_eur": -2060000.0,
+    "overdue_abs_eur": 2060000.0,
+    "lines": 5.0,
+    "paired_lines": 0.0,
+    "debit_eur": 0.0,
+    "credit_eur": -2060000.0,
+    "normal_side": "credit",
+    "balance_side": "credit",
+    "oldest_posting_date": "2024-03-25",
+    "newest_posting_date": "2024-07-25",
+    "materiality_eur": 500000.0,
+    "today_detection_basis": "listed line by line in today's ageing report",
+    "lead_badge": "In today's ageing report as 5 lines; Okane shows the net"
+   },
+   "evidence": [
+    "7900000005/2024",
+    "7900000004/2024",
+    "7900000003/2024",
+    "7900000002/2024",
+    "7900000001/2024"
+   ],
+   "first_signal": "2025-07-25",
+   "today_detection": "2025-07-25",
+   "lead_days": null,
+   "expected_by": null,
+   "suggested_class": null,
+   "score": 39.0,
+   "score_breakdown": {
+    "exposure": 33.0,
+    "days_past_expected": 0.0,
+    "penalty_account": 0.0,
+    "error_type": 6.0,
+    "repeats": 0.0
+   },
+   "ai_comment": "Standard note (no AI was used): Liability 2.06M still owed after matching. Rule: Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account. Check the documents behind the net and whether they are still open.",
+   "verifier": "not_run",
+   "status": "new",
+   "decision_reason": null,
+   "decided_class": null,
+   "edited_comment": null,
+   "inbox_view": "attention",
+   "ai_check": null
+  },
+  {
    "id": "ca26141f45d62ffe",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "label_mismatch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -337,7 +393,7 @@
   },
   {
    "id": "3267f451b8da112e",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -393,7 +449,7 @@
   },
   {
    "id": "0c7228820c2b5ca8",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "pulse_missing_batch",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -434,8 +490,62 @@
    "ai_check": null
   },
   {
+   "id": "09009a7b2874e46d",
+   "run_id": "run_20261122T160457_31a700",
+   "type": "open_balance",
+   "workgroup": "Payroll",
+   "erp": "P20",
+   "entity": "C192",
+   "account": "179003",
+   "account_name": "Employee receivables",
+   "title": "Asset 680K not yet used up after matching",
+   "exposure_eur": 679839.48,
+   "facts": {
+    "rule": "Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account",
+    "net_eur": 679839.48,
+    "overdue_abs_eur": 679839.48,
+    "lines": 3.0,
+    "paired_lines": 0.0,
+    "debit_eur": 679839.48,
+    "credit_eur": 0.0,
+    "normal_side": "debit",
+    "balance_side": "debit",
+    "oldest_posting_date": "2023-06-12",
+    "newest_posting_date": "2023-08-12",
+    "materiality_eur": 500000.0,
+    "today_detection_basis": "listed line by line in today's ageing report",
+    "lead_badge": "In today's ageing report as 3 lines; Okane shows the net"
+   },
+   "evidence": [
+    "0000000004/2023",
+    "0000000005/2023",
+    "0000000006/2023"
+   ],
+   "first_signal": "2024-08-11",
+   "today_detection": "2024-08-11",
+   "lead_days": null,
+   "expected_by": null,
+   "suggested_class": null,
+   "score": 16.9,
+   "score_breakdown": {
+    "exposure": 10.9,
+    "days_past_expected": 0.0,
+    "penalty_account": 0.0,
+    "error_type": 6.0,
+    "repeats": 0.0
+   },
+   "ai_comment": "Standard note (no AI was used): Asset 680K not yet used up after matching. Rule: Overdue lines of an account net to at least materiality, and no payment-rhythm check covers the account. Check the documents behind the net and whether they are still open.",
+   "verifier": "not_run",
+   "status": "new",
+   "decision_reason": null,
+   "decided_class": null,
+   "edited_comment": null,
+   "inbox_view": "attention",
+   "ai_check": null
+  },
+  {
    "id": "d00346a86e3ca1d6",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "miner_cluster",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -497,7 +607,7 @@
   },
   {
    "id": "1578d0ba41872186",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "sentinel_currency_code",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -549,7 +659,7 @@
   },
   {
    "id": "f04ae2adff34c19c",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "sentinel_currency_code",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -602,7 +712,7 @@
   },
   {
    "id": "6c91062e6c599fb8",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "sentinel_two_currencies",
    "workgroup": "Fixed assets",
    "erp": "P20",
@@ -654,7 +764,7 @@
   },
   {
    "id": "0c33474c40046521",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "sentinel_two_currencies",
    "workgroup": "Payroll",
    "erp": "P20",
@@ -706,7 +816,7 @@
   },
   {
    "id": "f4d7086d081a2e09",
-   "run_id": "run_20261122T155235_86cdcc",
+   "run_id": "run_20261122T160457_31a700",
    "type": "typo",
    "workgroup": "Payroll",
    "erp": "P20",

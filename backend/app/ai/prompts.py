@@ -99,6 +99,15 @@ FIGURE_LABELS: dict[str, str] = {
     "documents": "number of documents",
     "people": "number of people involved",
     "total_abs_eur": "total amount posted by hand",
+    "net_eur": "what the overdue lines net to after matching",
+    "overdue_abs_eur": "what the old ageing report adds up (every overdue line, as a positive "
+    "amount)",
+    "paired_lines": "number of lines that cancel each other out",
+    "debit_eur": "the overdue debits",
+    "credit_eur": "the overdue credits",
+    "oldest_posting_date": "the oldest overdue posting",
+    "newest_posting_date": "the newest overdue posting",
+    "wrong_side_since": "the posting date from which the balance sits on the wrong side",
 }
 
 # Text facts used to build the prompt itself, not passed again as context.
@@ -120,6 +129,10 @@ MEANING: dict[ExceptionType, str] = {
     "sentinel_reversal": "A reversal does not match the posting it reverses.",
     "typo": "A line's text may contain a mistake: a misspelt word or a wrong month.",
     "miner_cluster": "The same posting is typed by hand month after month.",
+    "open_balance": "After matching, the account's overdue lines still net to at least "
+    "materiality, and no payment-rhythm check covers the account.",
+    "wrong_side_balance": "The account's full balance sits on the wrong side for this kind of "
+    "account: a liability in debit or an asset in credit.",
 }
 
 # The check to suggest, with no dates (#45 cause 3). Templates reuse it.
@@ -136,6 +149,8 @@ NEXT_CHECK: dict[ExceptionType, str] = {
     "sentinel_reversal": "the original posting and the reversal amount",
     "typo": "the line text, and correct it if it is wrong",
     "miner_cluster": "whether the automated posting or mapping can do this instead",
+    "open_balance": "the documents behind the net and whether they are still open",
+    "wrong_side_balance": "the postings since the balance moved to the wrong side",
 }
 
 SYSTEM_PROMPT = """You draft short notes for accountants who reconcile balance sheet accounts.

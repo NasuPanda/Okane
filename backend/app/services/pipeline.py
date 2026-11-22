@@ -31,6 +31,7 @@ from app.ai import client as ai
 from app.ai import typo_check
 from app.config import Settings
 from app.database import Database, utcnow
+from app.engines.balances import run_balances
 from app.engines.exposure import inbox_view, payroll_netting, score_records
 from app.engines.leadtime import apply_lead_time
 from app.engines.miner import run_miner
@@ -93,12 +94,13 @@ def run_engines(lines: pd.DataFrame, rules: Rules, as_of: Any) -> EngineOutput:
     """All engines in the brief's order. Pure: no I/O."""
     paired = paired_count(lines)
     pulse = run_pulse(lines, rules, as_of)
-    records = pulse.records
+    records, balances = run_balances(lines, rules, pulse.records)
+    records += balances
     records += run_sentinel(lines, rules)
     records += run_typos(lines, rules)
     records += run_miner(lines, rules)
     records = apply_lead_time(records, lines, rules)
-    netting = payroll_netting(lines, rules.materiality_eur)
+    netting = payroll_netting(lines, rules.materiality_eur, rules)
     records = score_records(records, rules, as_of)
     records = [r.model_copy(update={"inbox_view": inbox_view(r, rules)}) for r in records]
     by_type = Counter(r.type for r in records)

@@ -22,8 +22,14 @@ def payroll_exposure(
     rules = state.db.get_rules()
     threshold = materiality if materiality is not None else rules.materiality_eur
     result = payroll_netting(state.pipeline.lines(run.snapshot_id), threshold, rules)
+    # A46: an account links to the finding about its balance (the gap, or its open balance
+    # when no Pulse check covers it); otherwise to its highest-scored finding.
     linked: dict[tuple[str, str, str], str] = {}
-    for record in state.db.list_exceptions(run.run_id):  # highest score first
+    records = state.db.list_exceptions(run.run_id)  # highest score first
+    for record in records:
+        if record.type in ("pulse_gap", "open_balance"):
+            linked.setdefault((record.erp, record.entity, record.account), record.id)
+    for record in records:
         linked.setdefault((record.erp, record.entity, record.account), record.id)
     groups = [
         g.model_copy(update={"exception_id": linked.get((g.erp, g.entity, g.account))})

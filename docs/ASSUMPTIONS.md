@@ -28,8 +28,6 @@ so nobody re-investigates).
 | A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
 | A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; since A44 also only when the account's balance still holds the batch: 0 at the extract date |
-| A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
-| A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A25 | How short is the inbox | Decide | Decided (#21): default view = findings at or above materiality plus missing batches; prompts and repeated postings on their own tabs |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
@@ -40,8 +38,11 @@ so nobody re-investigates).
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 | A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare (a Worker with static assets) now; Oracle Always Free VM with the full app later, Cloudflare kept as the backup |
-| A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
 | A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
+| A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
+| A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
+| A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
+| A46 | Open balances and balances on the wrong side | Decide | Decided (review of 22 Nov 2026): two new finding types: open_balance (3 at 500K on real data) and wrong_side_balance (5 new, 1 folded into the C192 gap) |
 
 ## Data and ingestion
 
@@ -324,6 +325,54 @@ asset (C192 179003).
   reads "Liability 1.84M below expected: more paid than accrued" on real data. The golden test
   asserts the new title on purpose. The synthetic C192 gap still points toward credit (unpaid
   batches), so it keeps "above expected". The gap stays first in the inbox.
+Owner: team.
+
+**A46. Open balances and balances on the wrong side.** *Decided (review of 22 Nov 2026,
+fix 4).* Three of the four "really open" accounts on the Exposure page had no finding that
+explained them: C242 34900001 (-6,497,211, the largest) linked to a repeated-posting card,
+C192 179003 (+679,839) to a period-label typo and C192 279014 (-649,069) to an outlier. Pulse
+covers two accounts only. Separately, no check looked for the "sign anomalies" the Payroll
+Summary tab asks about. Two finding types are added (`# ADDITION` in `schemas.py`), in
+`engines/balances.py`, Payroll only (A3 keeps Fixed assets out of netting and Pulse).
+- `open_balance`: one record per payroll netting group at or above materiality on an account
+  with no Pulse finding.
+  - Facts: net, the old report's absolute total, lines, paired lines, debit and credit
+    totals, normal side (A43), oldest and newest posting. Evidence: up to 10 documents that
+    move the net most (ASSUMPTION).
+  - The Exposure page links each account to its gap or open balance first, else to its
+    highest-scored finding.
+  - Lead time: today's ageing report already lists these lines one by one. Today's detection
+    is the first signal, with no lead days; the badge reads "In today's ageing report as N
+    lines; Okane shows the net". It is neither a blind spot nor part of the median.
+    ASSUMPTION: first signal = the day the newest of the lines turned overdue (posting date
+    plus its allowed age).
+  - Title by the normal side: "Liability X still owed after matching", "Asset X not yet used
+    up after matching", or "... in debit/credit" when the net is on the wrong side.
+- `wrong_side_balance`: the account's full balance (every open line, not only overdue ones)
+  sits on the wrong side of its normal side by at least materiality: a liability in debit or
+  an asset in credit.
+  - First signal: the posting date of the line after which the running balance last moved to
+    the wrong side. Today's detection: the close review (the type is in `CLOSE_REVIEW_TYPES`).
+  - Suggested class: Required Adjustment Item. It carries a "you may have made a mistake"
+    prompt. Evidence: up to 10 documents since that crossing that pushed the balance over.
+  - Where the account has a Pulse gap, the wrong-side fact (`wrong_side_since`) goes on the gap
+    record instead of a second record.
+- Severities in `Rules.error_type_severity`: wrong_side_balance 0.8, open_balance 0.6. Both are
+  shown in every report period (A40), like the other open balances.
+- Measured (real Payroll, analysis date 23 Oct 2026, account codes and account totals only):
+  - open_balance: 3 at 500K (BPP C242 34900001, P20 C192 179003, P20 C192 279014); 6 at 100K
+    (adding P20 C192 279001, P20 C192 279004, BPP C133 34900002).
+  - Wrong side at 500K: 6 accounts, BPP C242 48900004 (+36.4M), P20 C192 279002 (+2.96M), BPP
+    C242 34900009 (+2.80M), P20 C192 179004 (-2.64M, Advanced Salaries, Manual, in credit), BPP
+    C133 34900011 (+1.49M, tax withheld in debit) and P20 C192 279006 (+1.32M, onto the gap):
+    5 new records. At 100K add BPP C242 34900003 and P20 C172 279006.
+  - C192 179004 crossed to the wrong side in mid-October 2026, after a bot posting with a
+    share-payment text; S1 does not see it because its scope is people only (A1).
+  - The C192 gap stays first (79.4). Inbox at 23 Oct: 47 findings, 20 in "Above 500K",
+    median 11 days over 35 dated findings.
+- Synthetic: two open balances (C242 34900001 and C192 179003; C172 279006 at 100K), no wrong
+  side. The demo moves from 14 to 16 findings, "Above 500K" from 6 to 8 and to 9 at 100K
+  (docs/DEMO.md, `test_demo.py`).
 Owner: team.
 
 **A24. Spike.** *Info.* Needs at least 3 earlier batches in the trailing window; otherwise no
