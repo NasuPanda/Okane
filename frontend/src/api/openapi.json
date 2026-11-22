@@ -1947,6 +1947,16 @@
             "type": "number",
             "title": "Older Net Eur"
           },
+          "fx_net_lc": {
+            "type": "number",
+            "title": "Fx Net Lc",
+            "default": 0.0
+          },
+          "fx_net_eur": {
+            "type": "number",
+            "title": "Fx Net Eur",
+            "default": 0.0
+          },
           "net_lc": {
             "type": "number",
             "title": "Net Lc"
@@ -2571,7 +2581,7 @@
             "maximum": 1.0,
             "exclusiveMinimum": 0.0,
             "title": "Miner Max Paired Share",
-            "default": 0.5
+            "default": 1.0
           },
           "penalty_accounts": {
             "items": {

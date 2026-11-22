@@ -60,20 +60,25 @@ already found 10,456 paired lines, 9,980 of them Fixed assets, then dropped the 
 Exposure page covered Payroll only. Measured on the real Fixed assets workbook (in the review):
 10,198 lines, 101 with a zero document amount (FX valuations), 9,980 in exact pairs and 117
 unpaired, all posted by people. The 98 unpaired lines posted within 60 days of the extract make
-up the whole balance (C102 180,393, C230 118,375 and C242 561,509 EUR; C218 62,456,836 JPY;
+up the balance (C102 180,393, C230 118,375 and C242 561,509 EUR; C218 62,456,836 JPY;
 C238 4,864,669 PLN); the 19 older ones (C242 13, C238 6) net to zero within their entity.
+C102 also carries exchange differences: its FX valuations and what its exact pairs (matched in
+document currency) leave in local currency. No other entity has any.
 - `GET /api/exposure/fixed-assets` and a Fixed assets section on the Exposure page, per ERP,
   entity and account: lines, paired lines, FX valuations, unpaired lines posted within
   `Rules.fa_recent_days` (60) of the extract ("timing: this month's accruals"), older
   unpaired lines ("offset each other but never matched" when they net to zero, else "older,
   never matched"), and the net in local currency and in EUR.
+- Exchange differences (review of PR #73): FX valuations and exact pairs are left out of the
+  recent and older buckets, but they need not cancel in local currency or EUR. Their net is
+  kept as `fx_net_lc` / `fx_net_eur` and shown under the net ("incl. X exchange
+  differences"), so net = recent + older + exchange differences for every account.
 - EUR figures in a currency listed in `Rules.unconfirmed_rate_currencies` (JPY, PLN, USD,
   CNY) carry "estimated rate" until the rates are confirmed (A11).
 - The pairing is `engines/pairs.py`; the endpoint adds no matching. The analysis day is the
   Fixed assets extract date (A38).
-- Not run on the real workbook here: it is not in `data/inbox` on the laptop that built this.
-  `test_real_fixed_assets_exposure` asserts the figures above and skips without it; the
-  synthetic sample and the API are tested.
+- `test_real_fixed_assets_exposure` asserts the figures above on the real workbook (run in
+  the review of PR #73; it skips without it); the synthetic sample and the API are tested.
 Owner: team.
 
 **A17. Payroll keeps its own EUR amount.** *Info.* Per the brief, Payroll sheets keep

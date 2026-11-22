@@ -180,6 +180,12 @@ function FixedAssetRow({ group, index }: { group: FixedAssetGroup; index: number
           {eur(group.net_eur)} EUR
           <Estimated show={group.estimated_rate} />
         </div>
+        {/* FX valuations and what exact pairs leave in local currency, so the parts add up. */}
+        {Math.round(group.fx_net_lc ?? 0) !== 0 && (
+          <div className="text-[11px] text-muted-foreground">
+            incl. {local(group.fx_net_lc ?? 0, group.currency_lc)} exchange differences
+          </div>
+        )}
       </div>
     </div>
   );

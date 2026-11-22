@@ -113,6 +113,9 @@ def fixed_asset_exposure(
     open_ = ~fixed["paired"] & ~fixed["zero"]
     fixed["recent_open"] = open_ & fixed["recent"]
     fixed["older_open"] = open_ & ~fixed["recent"]
+    # FX valuations and exact pairs cancel in document currency, not always in local currency
+    # or EUR; what they leave is shown as exchange differences, so the parts add up to the net.
+    fixed["fx"] = ~open_
 
     def total(frame: pd.DataFrame, column: str, mask: str | None = None) -> float:
         part = frame[frame[mask]] if mask else frame
@@ -138,6 +141,8 @@ def fixed_asset_exposure(
                 older_lines=int(group["older_open"].sum()),
                 older_net_lc=total(group, "amount_lc", "older_open"),
                 older_net_eur=total(group, "amount_eur", "older_open"),
+                fx_net_lc=total(group, "amount_lc", "fx"),
+                fx_net_eur=total(group, "amount_eur", "fx"),
                 net_lc=total(group, "amount_lc"),
                 net_eur=total(group, "amount_eur"),
                 estimated_rate=currency in rules.unconfirmed_rate_currencies,

@@ -699,6 +699,16 @@ export interface components {
             older_net_lc: number;
             /** Older Net Eur */
             older_net_eur: number;
+            /**
+             * Fx Net Lc
+             * @default 0
+             */
+            fx_net_lc: number;
+            /**
+             * Fx Net Eur
+             * @default 0
+             */
+            fx_net_eur: number;
             /** Net Lc */
             net_lc: number;
             /** Net Eur */
@@ -1066,7 +1076,7 @@ export interface components {
             miner_by_user: boolean;
             /**
              * Miner Max Paired Share
-             * @default 0.5
+             * @default 1
              */
             miner_max_paired_share: number;
             /** Penalty Accounts */

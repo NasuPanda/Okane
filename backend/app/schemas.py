@@ -585,6 +585,10 @@ class FixedAssetGroup(BaseModel):
     older_lines: int  # unpaired and older
     older_net_lc: float
     older_net_eur: float
+    # Exchange differences: FX valuations plus what exact pairs (matched in document currency)
+    # leave in local currency and EUR. net = recent + older + fx (review of PR #73).
+    fx_net_lc: float = 0.0
+    fx_net_eur: float = 0.0
     net_lc: float
     net_eur: float
     estimated_rate: bool  # the EUR rate of currency_lc is not yet confirmed (A11)

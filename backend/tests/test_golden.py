@@ -342,7 +342,9 @@ def test_real_fixed_assets_exposure(real_fixed_assets: object) -> None:
 
     10,198 lines: 101 with a zero document amount (FX valuations), 9,980 in exact pairs, 117
     unpaired, all posted by people. The 98 posted within 60 days of the extract make up the
-    whole balance; the 19 older ones (C242 13, C238 6) net to zero within their entity.
+    balance; the 19 older ones (C242 13, C238 6) net to zero within their entity. Only C102 has
+    exchange differences (FX valuations and what exact pairs leave in local currency), so every
+    entity's net = recent + older + exchange differences (review of PR #73).
     """
     from app.engines.exposure import fixed_asset_exposure
     from app.ingest import extract_dates
@@ -354,9 +356,12 @@ def test_real_fixed_assets_exposure(real_fixed_assets: object) -> None:
     assert (result.recent_lines, result.older_lines) == (98, 19)
     by_entity: dict[str, dict[str, float]] = {}
     for g in result.groups:
-        entry = by_entity.setdefault(g.entity, {"recent": 0.0, "older": 0.0, "net": 0.0, "old": 0})
+        entry = by_entity.setdefault(
+            g.entity, {"recent": 0.0, "older": 0.0, "fx": 0.0, "net": 0.0, "old": 0}
+        )
         entry["recent"] += g.recent_net_lc
         entry["older"] += g.older_net_lc
+        entry["fx"] += g.fx_net_lc
         entry["net"] += g.net_lc
         entry["old"] += g.older_lines
     recent = {e: round(v["recent"]) for e, v in by_entity.items() if v["recent"]}
@@ -364,7 +369,9 @@ def test_real_fixed_assets_exposure(real_fixed_assets: object) -> None:
                       "C238": 4_864_669}  # fmt: skip
     assert {e: v["old"] for e, v in by_entity.items() if v["old"]} == {"C242": 13, "C238": 6}
     assert all(abs(v["older"]) < 1 for v in by_entity.values())
-    assert all(round(v["net"]) == round(v["recent"]) for v in by_entity.values())
+    assert {e for e, v in by_entity.items() if round(v["fx"])} == {"C102"}
+    for v in by_entity.values():
+        assert round(v["net"], 2) == round(v["recent"] + v["older"] + v["fx"], 2)
     assert {g.currency_lc for g in result.groups if g.estimated_rate} == {"JPY", "PLN"}
 
 
@@ -384,7 +391,9 @@ def test_synthetic_fixed_assets_exposure(synthetic_lines: pd.DataFrame) -> None:
     assert result.paired_lines == 16 and result.zero_amount_lines == 0
     for g in result.groups:
         assert g.lines == g.zero_amount_lines + g.paired_lines + g.recent_lines + g.older_lines
-        assert round(g.net_lc, 2) == round(g.recent_net_lc + g.older_net_lc, 2)
+        parts = g.recent_net_lc + g.older_net_lc + g.fx_net_lc
+        assert round(g.net_lc, 2) == round(parts, 2)
+        assert round(g.net_eur, 2) == round(g.recent_net_eur + g.older_net_eur + g.fx_net_eur, 2)
     shorter = fixed_asset_exposure(synthetic_lines, Rules(fa_recent_days=5), date(2026, 10, 2))
     assert shorter.recent_lines == 0, "the September lines are older than 5 days"
 
