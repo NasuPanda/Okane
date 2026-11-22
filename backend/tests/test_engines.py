@@ -208,6 +208,24 @@ def test_open_balance_skips_accounts_pulse_covers() -> None:
         ("279014", -900.0, "Liability 900 still owed after matching")]  # fmt: skip
 
 
+def test_open_balance_first_signal_uses_each_lines_allowed_age() -> None:
+    """A46 (review of PR #73): the first signal is the day the newest line turned overdue, by
+    its own allowed age; a line without one is left out, never given 365."""
+    from app.engines.balances import run_balances
+
+    lines = frame([
+        {"account": "279014", "amount_dc": -900.0, "overdue_abs": 900.0, "allowed_age": 30,
+         "posting_date": date(2026, 1, 10)},
+        {"account": "279014", "amount_dc": -900.0, "overdue_abs": 900.0, "allowed_age": None,
+         "posting_date": date(2026, 6, 10)},
+        {"account": "279015", "amount_dc": -900.0, "overdue_abs": 900.0, "allowed_age": None,
+         "posting_date": date(2026, 3, 5)},
+    ])  # fmt: skip
+    _, new = run_balances(lines, Rules(materiality_eur=500), [])
+    first = {r.account: r.first_signal for r in new if r.type == "open_balance"}
+    assert first == {"279014": date(2026, 2, 9), "279015": date(2026, 3, 5)}
+
+
 def test_miner_drops_patterns_that_are_mostly_exact_pairs() -> None:
     """A7 (review of 22 Nov 2026): an accrual and its reversal typed by hand every month pair up
     line for line; with the switch on (0.5) the pattern is dropped. A one-sided pattern stays,

@@ -372,7 +372,8 @@ Summary tab asks about. Two finding types are added (`# ADDITION` in `schemas.py
     is the first signal, with no lead days; the badge reads "In today's ageing report as N
     lines; Okane shows the net". It is neither a blind spot nor part of the median.
     ASSUMPTION: first signal = the day the newest of the lines turned overdue (posting date
-    plus its allowed age).
+    plus its own allowed age). Lines without an allowed age are left out, never given 365
+    (the brief); if no line has one, the newest posting date is used (review of PR #73).
   - Title by the normal side: "Liability X still owed after matching", "Asset X not yet used
     up after matching", or "... in debit/credit" when the net is on the wrong side.
 - `wrong_side_balance`: the account's full balance (every open line, not only overdue ones)

@@ -31,7 +31,6 @@ from app.engines import (
     short_money,
 )
 from app.engines.exposure import payroll_netting
-from app.engines.pairs import find_pairs
 from app.schemas import ExceptionRecord, Rules
 
 PULSE_TYPES = frozenset(
@@ -83,7 +82,6 @@ def open_balance_alerts(
     payroll = lines[lines["workbook"] == "Payroll"].copy()
     if payroll.empty:
         return []
-    payroll["pair_id"] = find_pairs(payroll)
     overdue = payroll[payroll["overdue_abs"].fillna(0) > 0]
     netting = payroll_netting(lines, rules.materiality_eur, rules)
     records = []
@@ -98,12 +96,20 @@ def open_balance_alerts(
         ]
         dated = acct[acct["posting_date"].notna()]
         # ASSUMPTION (A46): first signal = the day the newest of these lines turned overdue
-        # (posting date + its allowed age), when the ageing report first listed all of them.
-        allowed = dated["allowed_age"].fillna(365).astype(int)
+        # (posting date + its own allowed age), when the ageing report first listed all of them.
+        # Only lines with an allowed age count (the brief: never assume 365); when none has one,
+        # the newest posting date is used.
+        aged = dated[dated["allowed_age"].notna()]
         turned = [
-            p + timedelta(days=int(a)) for p, a in zip(dated["posting_date"], allowed, strict=True)
+            p + timedelta(days=int(a))
+            for p, a in zip(aged["posting_date"], aged["allowed_age"], strict=True)
         ]
-        first_signal = max(turned) if turned else date.min
+        if turned:
+            first_signal = max(turned)
+        elif len(dated):
+            first_signal = max(dated["posting_date"])
+        else:
+            first_signal = date.min
         side = group.normal_side
         records.append(
             make_record(
