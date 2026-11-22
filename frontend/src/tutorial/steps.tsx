@@ -460,6 +460,19 @@ export const STEPS: Step[] = [
     },
   },
 
+  {
+    page: "/exposure",
+    targets: ["exposure-fixed-assets"],
+    title: "Fixed assets",
+    body: () => (
+      <>
+        Fixed assets work the same way: almost every line cancels out with its exact opposite. What's left is
+        this month's accruals (recent, still waiting for their partner) and older lines that never matched. EUR
+        figures marked <B>estimated rate</B> use a rate that is not confirmed yet.
+      </>
+    ),
+  },
+
   // Sentinel
   {
     page: "/sentinel",

@@ -28,6 +28,8 @@ export const useExposure = (materiality?: number) =>
     queryFn: () => api.exposure(materiality),
     placeholderData: keepPreviousData,
   });
+/** Fixed assets after exact pairing (A47). */
+export const useFixedAssets = () => useQuery({ queryKey: ["fixed-assets"], queryFn: api.fixedAssets });
 export const useTimeline = (key: string | null) =>
   useQuery({ queryKey: keys.timeline(key ?? ""), queryFn: () => api.timeline(key!), enabled: !!key });
 export const useRules = () => useQuery({ queryKey: keys.rules, queryFn: api.rules });

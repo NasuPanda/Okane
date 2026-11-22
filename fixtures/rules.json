@@ -96,6 +96,13 @@
   "inbox_always_types": [
    "pulse_missing_batch"
   ],
+  "fa_recent_days": 60,
+  "unconfirmed_rate_currencies": [
+   "JPY",
+   "PLN",
+   "USD",
+   "CNY"
+  ],
   "account_normal_side": [
    {
     "erp": "P20",

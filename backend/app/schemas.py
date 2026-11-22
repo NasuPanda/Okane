@@ -271,6 +271,15 @@ class Rules(BaseModel):
     # ADDITION (#21, A25): finding types shown in the inbox's default view whatever their amount
     # (a missing payroll batch has no amount because it was never booked).
     inbox_always_types: list[ExceptionType] = Field(default_factory=lambda: ["pulse_missing_batch"])
+    # ADDITION (review of 22 Nov 2026, fix 5, docs/ASSUMPTIONS.md A47): on the Fixed assets
+    # view, unpaired lines posted within this many days of the extract are this month's
+    # accruals (timing); older unpaired lines never matched.
+    fa_recent_days: int = Field(default=60, ge=1)
+    # ADDITION (A47, A11): local currencies whose EUR rate is not yet confirmed; their EUR
+    # figures are shown as "estimated rate".
+    unconfirmed_rate_currencies: list[str] = Field(
+        default_factory=lambda: ["JPY", "PLN", "USD", "CNY"]
+    )
     # ADDITION (A43): each account's normal side, by ERP and account-number prefix. Used to
     # word a gap by direction ("more paid than accrued") and to label the Exposure page.
     account_normal_side: list[NormalSide] = Field(default_factory=default_normal_sides)
@@ -544,6 +553,43 @@ class Health(BaseModel):
     assistant: Literal["on", "offline", "off"]
     model: str
     reason: str | None = None
+
+
+class FixedAssetGroup(BaseModel):
+    """ADDITION (A47): one Fixed assets ERP, entity and account after exact pairing."""
+
+    erp: Erp
+    entity: str
+    account: str
+    account_name: str | None
+    currency_lc: str
+    lines: int
+    zero_amount_lines: int  # amount in document currency 0: FX valuations, never paired
+    paired_lines: int
+    recent_lines: int  # unpaired, posted within Rules.fa_recent_days of the extract
+    recent_net_lc: float
+    recent_net_eur: float
+    older_lines: int  # unpaired and older
+    older_net_lc: float
+    older_net_eur: float
+    net_lc: float
+    net_eur: float
+    estimated_rate: bool  # the EUR rate of currency_lc is not yet confirmed (A11)
+
+
+class FixedAssetExposure(BaseModel):
+    """ADDITION (A47): GET /api/exposure/fixed-assets, what is really open in Fixed assets."""
+
+    run_id: str
+    extract_date: date | None
+    recent_days: int
+    lines: int
+    zero_amount_lines: int
+    paired_lines: int
+    recent_lines: int
+    older_lines: int
+    net_eur: float
+    groups: list[FixedAssetGroup]
 
 
 class Kpis(BaseModel):

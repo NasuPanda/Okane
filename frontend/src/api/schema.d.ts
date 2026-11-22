@@ -176,6 +176,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/exposure/fixed-assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fixed Assets Exposure
+         * @description Fixed assets after exact pairing, per ERP and entity (A47). Pairing runs in
+         *     ``engines/pairs.py``; this endpoint adds no matching of its own.
+         */
+        get: operations["fixed_assets_exposure_api_exposure_fixed_assets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/pulse/accounts": {
         parameters: {
             query?: never;
@@ -616,6 +637,75 @@ export interface components {
             /** Next Due */
             next_due?: string | null;
         };
+        /**
+         * FixedAssetExposure
+         * @description ADDITION (A47): GET /api/exposure/fixed-assets, what is really open in Fixed assets.
+         */
+        FixedAssetExposure: {
+            /** Run Id */
+            run_id: string;
+            /** Extract Date */
+            extract_date: string | null;
+            /** Recent Days */
+            recent_days: number;
+            /** Lines */
+            lines: number;
+            /** Zero Amount Lines */
+            zero_amount_lines: number;
+            /** Paired Lines */
+            paired_lines: number;
+            /** Recent Lines */
+            recent_lines: number;
+            /** Older Lines */
+            older_lines: number;
+            /** Net Eur */
+            net_eur: number;
+            /** Groups */
+            groups: components["schemas"]["FixedAssetGroup"][];
+        };
+        /**
+         * FixedAssetGroup
+         * @description ADDITION (A47): one Fixed assets ERP, entity and account after exact pairing.
+         */
+        FixedAssetGroup: {
+            /**
+             * Erp
+             * @enum {string}
+             */
+            erp: "P20" | "BPP";
+            /** Entity */
+            entity: string;
+            /** Account */
+            account: string;
+            /** Account Name */
+            account_name: string | null;
+            /** Currency Lc */
+            currency_lc: string;
+            /** Lines */
+            lines: number;
+            /** Zero Amount Lines */
+            zero_amount_lines: number;
+            /** Paired Lines */
+            paired_lines: number;
+            /** Recent Lines */
+            recent_lines: number;
+            /** Recent Net Lc */
+            recent_net_lc: number;
+            /** Recent Net Eur */
+            recent_net_eur: number;
+            /** Older Lines */
+            older_lines: number;
+            /** Older Net Lc */
+            older_net_lc: number;
+            /** Older Net Eur */
+            older_net_eur: number;
+            /** Net Lc */
+            net_lc: number;
+            /** Net Eur */
+            net_eur: number;
+            /** Estimated Rate */
+            estimated_rate: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -988,6 +1078,13 @@ export interface components {
             repeats_min_months: number;
             /** Inbox Always Types */
             inbox_always_types?: ("pulse_gap" | "pulse_missing_payment" | "pulse_spike" | "pulse_missing_batch" | "label_mismatch" | "sentinel_outlier" | "sentinel_two_currencies" | "sentinel_currency_code" | "sentinel_reversal" | "typo" | "miner_cluster" | "open_balance" | "wrong_side_balance")[];
+            /**
+             * Fa Recent Days
+             * @default 60
+             */
+            fa_recent_days: number;
+            /** Unconfirmed Rate Currencies */
+            unconfirmed_rate_currencies?: string[];
             /** Account Normal Side */
             account_normal_side?: components["schemas"]["NormalSide"][];
             /**
@@ -1448,6 +1545,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fixed_assets_exposure_api_exposure_fixed_assets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FixedAssetExposure"];
                 };
             };
         };

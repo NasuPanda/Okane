@@ -18,7 +18,14 @@ import pandas as pd
 
 from app.engines import normal_side
 from app.engines.pairs import find_pairs
-from app.schemas import ExceptionRecord, ExposureGroup, InboxView, Rules
+from app.schemas import (
+    ExceptionRecord,
+    ExposureGroup,
+    FixedAssetExposure,
+    FixedAssetGroup,
+    InboxView,
+    Rules,
+)
 
 
 @dataclass
@@ -75,6 +82,77 @@ def payroll_netting(
         old_rule_lines=len(overdue),
         old_rule_overdue_abs=round(float(overdue["overdue_abs"].sum()), 2),
         net_eur=round(float(overdue["amount_eur"].sum()), 2),
+        groups=groups,
+    )
+
+
+# ----- Fixed assets (A47) -----------------------------------------------------------------
+def fixed_asset_exposure(
+    lines: pd.DataFrame, rules: Rules, extract_date: date | None, run_id: str = ""
+) -> FixedAssetExposure:
+    """What is really open in Fixed assets after exact pairing, per ERP, entity and account.
+
+    Lines with an amount of 0 in document currency (FX valuations) are never paired. Unpaired
+    lines posted within ``Rules.fa_recent_days`` of the extract are this month's accruals; older
+    unpaired lines never matched. Reuses ``find_pairs``; no other matching.
+    """
+    fixed = lines[lines["workbook"] == "Fixed assets"].copy()
+    if fixed.empty:
+        return FixedAssetExposure(
+            run_id=run_id, extract_date=extract_date, recent_days=rules.fa_recent_days,
+            lines=0, zero_amount_lines=0, paired_lines=0, recent_lines=0, older_lines=0,
+            net_eur=0.0, groups=[],
+        )  # fmt: skip
+    fixed["paired"] = find_pairs(fixed).notna()
+    fixed["zero"] = fixed["amount_dc"] == 0
+    cutoff = (extract_date or max(fixed["posting_date"].dropna())) - pd.Timedelta(
+        days=rules.fa_recent_days
+    )
+    posted = fixed["posting_date"]
+    fixed["recent"] = posted.notna() & posted.map(lambda d: d is not None and d >= cutoff)
+    open_ = ~fixed["paired"] & ~fixed["zero"]
+    fixed["recent_open"] = open_ & fixed["recent"]
+    fixed["older_open"] = open_ & ~fixed["recent"]
+
+    def total(frame: pd.DataFrame, column: str, mask: str | None = None) -> float:
+        part = frame[frame[mask]] if mask else frame
+        return round(float(part[column].sum()), 2)
+
+    groups = []
+    keys = ["erp", "entity", "account", "currency_lc"]
+    for (erp, entity, account, currency), group in fixed.groupby(keys, sort=True):
+        names = group["account_name"].dropna()
+        groups.append(
+            FixedAssetGroup(
+                erp=erp,
+                entity=entity,
+                account=account,
+                account_name=str(names.iloc[0]) if len(names) else None,
+                currency_lc=currency,
+                lines=len(group),
+                zero_amount_lines=int(group["zero"].sum()),
+                paired_lines=int(group["paired"].sum()),
+                recent_lines=int(group["recent_open"].sum()),
+                recent_net_lc=total(group, "amount_lc", "recent_open"),
+                recent_net_eur=total(group, "amount_eur", "recent_open"),
+                older_lines=int(group["older_open"].sum()),
+                older_net_lc=total(group, "amount_lc", "older_open"),
+                older_net_eur=total(group, "amount_eur", "older_open"),
+                net_lc=total(group, "amount_lc"),
+                net_eur=total(group, "amount_eur"),
+                estimated_rate=currency in rules.unconfirmed_rate_currencies,
+            )
+        )
+    return FixedAssetExposure(
+        run_id=run_id,
+        extract_date=extract_date,
+        recent_days=rules.fa_recent_days,
+        lines=len(fixed),
+        zero_amount_lines=int(fixed["zero"].sum()),
+        paired_lines=int(fixed["paired"].sum()),
+        recent_lines=int(fixed["recent_open"].sum()),
+        older_lines=int(fixed["older_open"].sum()),
+        net_eur=round(float(fixed["amount_eur"].sum()), 2),
         groups=groups,
     )
 

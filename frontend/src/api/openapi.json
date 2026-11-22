@@ -581,6 +581,28 @@
         }
       }
     },
+    "/api/exposure/fixed-assets": {
+      "get": {
+        "tags": [
+          "exposure"
+        ],
+        "summary": "Fixed Assets Exposure",
+        "description": "Fixed assets after exact pairing, per ERP and entity (A47). Pairing runs in\n``engines/pairs.py``; this endpoint adds no matching of its own.",
+        "operationId": "fixed_assets_exposure_api_exposure_fixed_assets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FixedAssetExposure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pulse/accounts": {
       "get": {
         "tags": [
@@ -1786,6 +1808,181 @@
         "title": "ExtractSource",
         "description": "ADDITION (#24, A38): one workbook a run read, with where it came from."
       },
+      "FixedAssetExposure": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "extract_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extract Date"
+          },
+          "recent_days": {
+            "type": "integer",
+            "title": "Recent Days"
+          },
+          "lines": {
+            "type": "integer",
+            "title": "Lines"
+          },
+          "zero_amount_lines": {
+            "type": "integer",
+            "title": "Zero Amount Lines"
+          },
+          "paired_lines": {
+            "type": "integer",
+            "title": "Paired Lines"
+          },
+          "recent_lines": {
+            "type": "integer",
+            "title": "Recent Lines"
+          },
+          "older_lines": {
+            "type": "integer",
+            "title": "Older Lines"
+          },
+          "net_eur": {
+            "type": "number",
+            "title": "Net Eur"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/FixedAssetGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "extract_date",
+          "recent_days",
+          "lines",
+          "zero_amount_lines",
+          "paired_lines",
+          "recent_lines",
+          "older_lines",
+          "net_eur",
+          "groups"
+        ],
+        "title": "FixedAssetExposure",
+        "description": "ADDITION (A47): GET /api/exposure/fixed-assets, what is really open in Fixed assets."
+      },
+      "FixedAssetGroup": {
+        "properties": {
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "account": {
+            "type": "string",
+            "title": "Account"
+          },
+          "account_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Name"
+          },
+          "currency_lc": {
+            "type": "string",
+            "title": "Currency Lc"
+          },
+          "lines": {
+            "type": "integer",
+            "title": "Lines"
+          },
+          "zero_amount_lines": {
+            "type": "integer",
+            "title": "Zero Amount Lines"
+          },
+          "paired_lines": {
+            "type": "integer",
+            "title": "Paired Lines"
+          },
+          "recent_lines": {
+            "type": "integer",
+            "title": "Recent Lines"
+          },
+          "recent_net_lc": {
+            "type": "number",
+            "title": "Recent Net Lc"
+          },
+          "recent_net_eur": {
+            "type": "number",
+            "title": "Recent Net Eur"
+          },
+          "older_lines": {
+            "type": "integer",
+            "title": "Older Lines"
+          },
+          "older_net_lc": {
+            "type": "number",
+            "title": "Older Net Lc"
+          },
+          "older_net_eur": {
+            "type": "number",
+            "title": "Older Net Eur"
+          },
+          "net_lc": {
+            "type": "number",
+            "title": "Net Lc"
+          },
+          "net_eur": {
+            "type": "number",
+            "title": "Net Eur"
+          },
+          "estimated_rate": {
+            "type": "boolean",
+            "title": "Estimated Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "erp",
+          "entity",
+          "account",
+          "account_name",
+          "currency_lc",
+          "lines",
+          "zero_amount_lines",
+          "paired_lines",
+          "recent_lines",
+          "recent_net_lc",
+          "recent_net_eur",
+          "older_lines",
+          "older_net_lc",
+          "older_net_eur",
+          "net_lc",
+          "net_eur",
+          "estimated_rate"
+        ],
+        "title": "FixedAssetGroup",
+        "description": "ADDITION (A47): one Fixed assets ERP, entity and account after exact pairing."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2408,6 +2605,19 @@
             },
             "type": "array",
             "title": "Inbox Always Types"
+          },
+          "fa_recent_days": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Fa Recent Days",
+            "default": 60
+          },
+          "unconfirmed_rate_currencies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unconfirmed Rate Currencies"
           },
           "account_normal_side": {
             "items": {

@@ -6,6 +6,7 @@
  *   comments and rule changes are kept in memory so every screen can be exercised offline.
  */
 import type {
+  FixedAssetExposure,
   Health,
   Comment,
   DecisionUpdate,
@@ -44,6 +45,7 @@ export interface Api {
   decide(id: string, update: DecisionUpdate): Promise<ExceptionRecord>;
   comment(id: string, refresh?: boolean): Promise<Comment>;
   exposure(materiality?: number): Promise<ExposureResponse>;
+  fixedAssets(): Promise<FixedAssetExposure>;
   timeline(key: string): Promise<PulseTimeline>;
   rules(): Promise<Rules>;
   saveRules(rules: Rules, reason: string, changedBy?: string): Promise<Rules>;
@@ -97,6 +99,7 @@ const liveApi: Api = {
   decide: (id, update) => request(`/api/exceptions/${id}`, { method: "PATCH", body: JSON.stringify(update) }),
   comment: (id, refresh = false) => request(`/api/exceptions/${id}/comment${query({ refresh })}`, { method: "POST" }),
   exposure: (materiality) => request(`/api/exposure/payroll${query({ materiality })}`),
+  fixedAssets: () => request("/api/exposure/fixed-assets"),
   timeline: (key) => request(`/api/pulse/${key}/timeline`),
   rules: () => request("/api/rules"),
   saveRules: (rules, reason, changedBy) =>
@@ -122,6 +125,7 @@ type Store = {
   details: Record<string, ExceptionDetail>;
   comments: Record<string, Comment>;
   exposure: ExposureResponse;
+  fixedAssets: FixedAssetExposure;
   timelines: Record<string, PulseTimeline>;
   rules: Rules;
   log: RuleChange[];
@@ -133,12 +137,13 @@ const listeners = new Set<(event: RunEvent) => void>();
 
 function loadStore(): Promise<Store> {
   store ??= (async () => {
-    const [run, exceptions, details, comments, exposure, timelines, rules, log, kpis] = await Promise.all([
+    const [run, exceptions, details, comments, exposure, fixedAssets, timelines, rules, log, kpis] = await Promise.all([
       import("@fixtures/run.json"),
       import("@fixtures/exceptions.json"),
       import("@fixtures/exception_details.json"),
       import("@fixtures/comments.json"),
       import("@fixtures/exposure.json"),
+      import("@fixtures/fixed_assets.json"),
       import("@fixtures/timelines.json"),
       import("@fixtures/rules.json"),
       import("@fixtures/rules_log.json"),
@@ -151,6 +156,7 @@ function loadStore(): Promise<Store> {
       details: data<Record<string, ExceptionDetail>>(details),
       comments: data<Record<string, Comment>>(comments),
       exposure: data<ExposureResponse>(exposure),
+      fixedAssets: data<FixedAssetExposure>(fixedAssets),
       timelines: data<Record<string, PulseTimeline>>(timelines),
       rules: data<Rules>(rules),
       log: data<RuleChange[]>(log),
@@ -258,6 +264,9 @@ const fixtureApi: Api = {
       groups,
       groups_above: groups.filter((g) => g.above_materiality).length,
     });
+  },
+  async fixedAssets() {
+    return later((await loadStore()).fixedAssets);
   },
   async timeline(key) {
     const s = await loadStore();

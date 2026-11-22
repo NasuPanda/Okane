@@ -5,8 +5,9 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from app.api import AppState, get_state, require_latest_run
-from app.engines.exposure import payroll_netting
-from app.schemas import ExposureResponse
+from app.engines.exposure import fixed_asset_exposure, payroll_netting
+from app.ingest import extract_dates
+from app.schemas import ExposureResponse, FixedAssetExposure
 
 router = APIRouter(prefix="/api/exposure", tags=["exposure"])
 
@@ -44,3 +45,13 @@ def payroll_exposure(
         groups_above=result.groups_above(),
         groups=groups,
     )
+
+
+@router.get("/fixed-assets")
+def fixed_assets_exposure(state: AppState = Depends(get_state)) -> FixedAssetExposure:
+    """Fixed assets after exact pairing, per ERP and entity (A47). Pairing runs in
+    ``engines/pairs.py``; this endpoint adds no matching of its own."""
+    run = require_latest_run(state)
+    lines = state.pipeline.lines(run.snapshot_id)
+    taken = extract_dates(lines).get("Fixed assets", (None, 0))[0]
+    return fixed_asset_exposure(lines, state.db.get_rules(), taken, run.run_id)

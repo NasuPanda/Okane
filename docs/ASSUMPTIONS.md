@@ -42,6 +42,7 @@ so nobody re-investigates).
 | A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
 | A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
 | A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
+| A47 | What is really open in Fixed assets | Decide | Decided (review of 22 Nov 2026): a Fixed assets section on Exposure from exact pairs; recent unpaired = this month's accruals (60 days); EUR marked "estimated rate" for JPY and PLN |
 | A46 | Open balances and balances on the wrong side | Decide | Decided (review of 22 Nov 2026): two new finding types: open_balance (3 at 500K on real data) and wrong_side_balance (5 new, 1 folded into the C192 gap) |
 
 ## Data and ingestion
@@ -52,6 +53,27 @@ holds placeholder values for these four (JPY 162.5, USD 1.09, PLN 4.29, CNY 7.85
 2 Oct 2026). Confirm the real rates and the date before using Fixed assets figures. On the
 real file the Fixed assets local currencies are only EUR (BPP), JPY and PLN (P20); USD and CNY
 appear only as document currencies, so today only the JPY and PLN rates affect EUR amounts.
+Owner: team.
+
+**A47. What is really open in Fixed assets.** *Decided (review of 22 Nov 2026, fix 5).* A run
+already found 10,456 paired lines, 9,980 of them Fixed assets, then dropped the result: the
+Exposure page covered Payroll only. Measured on the real Fixed assets workbook (in the review):
+10,198 lines, 101 with a zero document amount (FX valuations), 9,980 in exact pairs and 117
+unpaired, all posted by people. The 98 unpaired lines posted within 60 days of the extract make
+up the whole balance (C102 180,393, C230 118,375 and C242 561,509 EUR; C218 62,456,836 JPY;
+C238 4,864,669 PLN); the 19 older ones (C242 13, C238 6) net to zero within their entity.
+- `GET /api/exposure/fixed-assets` and a Fixed assets section on the Exposure page, per ERP,
+  entity and account: lines, paired lines, FX valuations, unpaired lines posted within
+  `Rules.fa_recent_days` (60) of the extract ("timing: this month's accruals"), older
+  unpaired lines ("offset each other but never matched" when they net to zero, else "older,
+  never matched"), and the net in local currency and in EUR.
+- EUR figures in a currency listed in `Rules.unconfirmed_rate_currencies` (JPY, PLN, USD,
+  CNY) carry "estimated rate" until the rates are confirmed (A11).
+- The pairing is `engines/pairs.py`; the endpoint adds no matching. The analysis day is the
+  Fixed assets extract date (A38).
+- Not run on the real workbook here: it is not in `data/inbox` on the laptop that built this.
+  `test_real_fixed_assets_exposure` asserts the figures above and skips without it; the
+  synthetic sample and the API are tested.
 Owner: team.
 
 **A17. Payroll keeps its own EUR amount.** *Info.* Per the brief, Payroll sheets keep

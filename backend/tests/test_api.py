@@ -239,6 +239,17 @@ def test_exposure_with_live_materiality(ran: TestClient) -> None:
     assert ran.get("/api/exposure/payroll", params={"materiality": -1}).status_code == 422
 
 
+def test_fixed_assets_exposure(ran: TestClient) -> None:
+    """A47: the Fixed assets view, per ERP and entity, from the run's lines."""
+    result = ran.get("/api/exposure/fixed-assets").json()
+    assert result["extract_date"] == "2026-10-02" and result["recent_days"] == 60
+    assert result["lines"] == sum(g["lines"] for g in result["groups"]) > 0
+    assert {g["entity"] for g in result["groups"]} == {"C218", "C219", "C250"}
+    assert all(
+        g["estimated_rate"] == (g["currency_lc"] in ("JPY", "PLN")) for g in result["groups"]
+    )
+
+
 def test_pulse_timeline(ran: TestClient) -> None:
     accounts = ran.get("/api/pulse/accounts").json()
     assert accounts == ["P20/C192/279006", "BPP/C242/34900015"]

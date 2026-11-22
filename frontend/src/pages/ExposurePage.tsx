@@ -2,8 +2,8 @@ import { ChevronRight, Eye, Layers, PartyPopper } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 
-import { useExposure, useRules } from "@/api/hooks";
-import type { ExposureGroup } from "@/api/types";
+import { useExposure, useFixedAssets, useRules } from "@/api/hooks";
+import type { ExposureGroup, FixedAssetGroup } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
 import { Card, Empty, PageHeader, Segmented, stagger } from "@/components/okane";
 import { Button } from "@/components/ui/button";
@@ -121,6 +121,100 @@ function GroupRow({ group, view, index, onOpen }: { group: ExposureGroup; view: 
         </button>
       </div>
     </div>
+  );
+}
+
+/** An amount in its own currency, without decimals: "62,456,836 JPY". */
+const local = (value: number, currency: string) =>
+  `${value.toLocaleString("en-GB", { maximumFractionDigits: 0 })} ${currency}`;
+
+/** "estimated rate" next to EUR figures whose rate is not yet confirmed (A11, A47). */
+function Estimated({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span className="ml-1.5 rounded-full bg-mistake-soft px-1.5 py-0.5 text-[10px] font-medium text-mistake">
+      estimated rate
+    </span>
+  );
+}
+
+function FixedAssetRow({ group, index }: { group: FixedAssetGroup; index: number }) {
+  // A47: older unpaired lines that net to (almost) nothing offset each other without a match.
+  const offset = group.older_lines > 0 && Math.abs(group.older_net_eur) < 1;
+  return (
+    <div
+      className="rise grid grid-cols-2 gap-x-4 gap-y-3 border-b px-4 py-4 text-sm md:grid-cols-[minmax(0,1fr)_110px_170px_170px_190px] md:gap-4"
+      style={stagger(index, 50)}
+    >
+      <div className="col-span-2 min-w-0 md:col-span-1">
+        <div className="text-[15px]">
+          {group.entity} {group.account}
+        </div>
+        <div className="truncate text-xs text-muted-foreground">
+          {group.erp} · {group.account_name ?? "Fixed assets"} · {group.currency_lc}
+        </div>
+      </div>
+      <div className="md:text-right">
+        <div className="num">{group.lines.toLocaleString("en-GB")}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {group.paired_lines.toLocaleString("en-GB")} cancel out
+          {group.zero_amount_lines ? ` · ${group.zero_amount_lines} FX valuations` : ""}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="num">{group.recent_lines ? local(group.recent_net_lc, group.currency_lc) : "–"}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {group.recent_lines} line{group.recent_lines === 1 ? "" : "s"}, timing: this month's accruals
+        </div>
+      </div>
+      <div className="md:text-right">
+        <div className="num">{group.older_lines ? local(group.older_net_lc, group.currency_lc) : "–"}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {group.older_lines} line{group.older_lines === 1 ? "" : "s"},{" "}
+          {offset ? "offset each other but never matched" : "older, never matched"}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="num text-lg font-light">{local(group.net_lc, group.currency_lc)}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {eur(group.net_eur)} EUR
+          <Estimated show={group.estimated_rate} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** What is really open in Fixed assets once exact pairs fold away (A47). */
+function FixedAssetsSection() {
+  const fixed = useFixedAssets();
+  const data = fixed.data;
+  if (!data || data.lines === 0) return null;
+  const share = data.lines ? Math.round((data.paired_lines / data.lines) * 100) : 0;
+  return (
+    <Card data-tour="exposure-fixed-assets" className="space-y-3 p-0" style={stagger(4, 80)}>
+      <div className="space-y-1 px-4 pt-4">
+        <div className="eyebrow">Fixed assets · what's really still open</div>
+        <p className="text-sm text-muted-foreground">
+          <span className="num text-foreground">{data.paired_lines.toLocaleString("en-GB")}</span> of{" "}
+          <span className="num text-foreground">{data.lines.toLocaleString("en-GB")}</span> lines ({share}%) cancel out
+          in exact pairs. What is left: lines posted in the {data.recent_days} days before the extract (this
+          month's accruals) and older lines that never matched.
+        </p>
+      </div>
+      <div className="hidden grid-cols-[minmax(0,1fr)_110px_170px_170px_190px] gap-4 border-y px-4 py-3 md:grid">
+        <span className="eyebrow">Entity and account</span>
+        <span className="eyebrow text-right">Lines</span>
+        <span className="eyebrow text-right">Recent, unpaired</span>
+        <span className="eyebrow text-right">Older, unpaired</span>
+        <span className="eyebrow text-right">Net</span>
+      </div>
+      <div>
+        {data.groups.map((g, i) => (
+          <FixedAssetRow key={`${g.erp}${g.entity}${g.account}${g.currency_lc}`} group={g} index={i} />
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -291,6 +385,8 @@ export function ExposurePage() {
           )}
         </Card>
       </div>
+
+      <FixedAssetsSection />
     </div>
   );
 }

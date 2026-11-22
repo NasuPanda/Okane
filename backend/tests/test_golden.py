@@ -327,6 +327,58 @@ def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
     assert not any("correction" in str(r.facts["pattern"]) for r in records)
 
 
+def test_real_fixed_assets_exposure(real_fixed_assets: object) -> None:
+    """A47 (review of 22 Nov 2026), aggregates only: pairing removes 98% of Fixed assets lines.
+
+    10,198 lines: 101 with a zero document amount (FX valuations), 9,980 in exact pairs, 117
+    unpaired, all posted by people. The 98 posted within 60 days of the extract make up the
+    whole balance; the 19 older ones (C242 13, C238 6) net to zero within their entity.
+    """
+    from app.engines.exposure import fixed_asset_exposure
+    from app.ingest import extract_dates
+
+    lines = real_fixed_assets.lines  # type: ignore[attr-defined]
+    taken = extract_dates(lines)["Fixed assets"][0]
+    result = fixed_asset_exposure(lines, Rules(), taken)
+    assert (result.lines, result.zero_amount_lines, result.paired_lines) == (10_198, 101, 9_980)
+    assert (result.recent_lines, result.older_lines) == (98, 19)
+    by_entity: dict[str, dict[str, float]] = {}
+    for g in result.groups:
+        entry = by_entity.setdefault(g.entity, {"recent": 0.0, "older": 0.0, "net": 0.0, "old": 0})
+        entry["recent"] += g.recent_net_lc
+        entry["older"] += g.older_net_lc
+        entry["net"] += g.net_lc
+        entry["old"] += g.older_lines
+    recent = {e: round(v["recent"]) for e, v in by_entity.items() if v["recent"]}
+    assert recent == {"C102": 180_393, "C230": 118_375, "C242": 561_509, "C218": 62_456_836,
+                      "C238": 4_864_669}  # fmt: skip
+    assert {e: v["old"] for e, v in by_entity.items() if v["old"]} == {"C242": 13, "C238": 6}
+    assert all(abs(v["older"]) < 1 for v in by_entity.values())
+    assert all(round(v["net"]) == round(v["recent"]) for v in by_entity.values())
+    assert {g.currency_lc for g in result.groups if g.estimated_rate} == {"JPY", "PLN"}
+
+
+def test_synthetic_fixed_assets_exposure(synthetic_lines: pd.DataFrame) -> None:
+    """A47 on the synthetic sample: C250's pairs fold away; C218 (JPY) and C219 (PLN) carry
+    September 2026 lines inside the 60 days before the 2 Oct 2026 extract."""
+    from app.engines.exposure import fixed_asset_exposure
+
+    result = fixed_asset_exposure(synthetic_lines, Rules(), date(2026, 10, 2))
+    groups = {g.entity: g for g in result.groups}
+    assert sorted(groups) == ["C218", "C219", "C250"]
+    assert (groups["C250"].paired_lines, groups["C250"].recent_lines) == (16, 0)
+    assert groups["C250"].older_lines == 1 and not groups["C250"].estimated_rate
+    assert (groups["C218"].recent_lines, groups["C218"].currency_lc) == (2, "JPY")
+    assert groups["C218"].estimated_rate and groups["C219"].estimated_rate
+    assert groups["C219"].recent_lines == 2
+    assert result.paired_lines == 16 and result.zero_amount_lines == 0
+    for g in result.groups:
+        assert g.lines == g.zero_amount_lines + g.paired_lines + g.recent_lines + g.older_lines
+        assert round(g.net_lc, 2) == round(g.recent_net_lc + g.older_net_lc, 2)
+    shorter = fixed_asset_exposure(synthetic_lines, Rules(fa_recent_days=5), date(2026, 10, 2))
+    assert shorter.recent_lines == 0, "the September lines are older than 5 days"
+
+
 def test_real_miner_fixed_assets(real_fixed_assets: object) -> None:
     """A3, A7: Fixed assets feed the Miner; aggregates only: 8 patterns at score 12+ (measured
     in the review of PR #50)."""
