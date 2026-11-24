@@ -270,13 +270,14 @@ class Rules(BaseModel):
     # ADDITION (#14, A7): True = the person who posted is part of the fingerprint (the original
     # rule); False = the same header text by anyone on the account forms one pattern.
     miner_by_user: bool = True
-    # ADDITION (review of 22 Nov 2026, fix 6, docs/ASSUMPTIONS.md A7): a pattern whose lines
-    # mostly cancel in exact pairs (an accrual and its reversal) is a routine, not a repeated
-    # correction; it is dropped when this share of its lines or more is paired. The default 1.0
-    # drops only patterns in which every line cancels (fix 6, second pass): on the real data
-    # that is all 8 Fixed assets cards (each 100% paired, unpaired net 0) and no Payroll card
-    # (at most 79% paired). 0.5 also drops the two mostly-paired Payroll patterns.
-    miner_max_paired_share: float = Field(default=1.0, gt=0, le=1)
+    # ADDITION (review of 22 Nov 2026, fix 6; review of PR #75; docs/ASSUMPTIONS.md A7): a
+    # pattern whose lines are reversed with the same header text (an accrual and its reversal)
+    # is a routine, not a repeated correction; it is dropped when this share of its lines or
+    # more is reversed that way. A line that exactly offsets a posting with other text does not
+    # count. ASSUMPTION: 0.9. On the real data the 8 Fixed assets patterns are 91.5% to 100%
+    # reversed and dropped; the 6 Payroll patterns are at most 1.5% and stay. At 1.0, 3 of the
+    # Fixed assets patterns come back.
+    miner_max_paired_share: float = Field(default=0.9, gt=0, le=1)
     # ADDITION / ASSUMPTION: risk score scaling.
     penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
     exposure_cap_multiple: float = 5.0

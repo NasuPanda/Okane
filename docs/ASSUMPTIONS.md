@@ -615,17 +615,19 @@ the name "CC06" is dropped.
 - Paired lines (review of 22 Nov 2026, fix 6): the top two Fixed assets cards were one routine,
   "IC Winshuttle" on C102: VA accruals (44 months, +33.6M) and VC reversals (53 months,
   -32.6M), shown as two findings with gross amounts although together they net to about 1M.
-  A switch, `Rules.miner_max_paired_share`, drops a pattern when that share or more of its
-  lines belong to an exact pair (`engines/pairs.py`, anywhere on the account). Every card's
-  amount is now the net of its unpaired lines (fact `unpaired_net_eur`; `paired_lines` is
-  shown), so a routine that nets to little shows a small amount either way.
+  A setting, `Rules.miner_max_paired_share`, drops a pattern when that share or more of its
+  lines are reversed with the same header text (third pass below). Every card's amount is the
+  net of its unpaired lines (exact pairs from `engines/pairs.py`, anywhere on the account; fact
+  `unpaired_net_eur`; `paired_lines` is shown), so a routine that nets to little shows a small
+  amount either way.
   - *Superseded:* left off (1.0 meant off), decided in the review of PR #73. At the proposed
     0.5 the switch drops every Fixed assets card: 9,980 of the 10,198 Fixed assets lines sit in
     exact pairs, so all 8 patterns at score 12+ are mostly pairs. An accrual and its reversal
     typed by hand every month may also be exactly the repeated manual work the Miner exists to
     surface.
-  - **Second pass (review of 22 Nov 2026, fix 6 was only partly fixed): 1.0 now means "drop a
-    pattern only when every one of its lines cancels".** With the switch off, all 8 Fixed
+  - *Superseded by the third pass:* **second pass (review of 22 Nov 2026, fix 6 was only
+    partly fixed): 1.0 means "drop a pattern only when every one of its lines cancels".** With
+    the switch off, all 8 Fixed
     assets cards stayed in the Inbox with amount 0 and every line paired (both "IC Winshuttle"
     halves among them), and they inflated the blind-spot count ("Today's report misses 17").
     A pattern whose lines all cancel in exact pairs nets to exactly zero: there is nothing
@@ -633,14 +635,25 @@ the name "CC06" is dropped.
     Fixed assets patterns are 100% paired; no Payroll pattern is more than 79% paired, so the
     default keeps all 6 Payroll cards. A lower value (0.5) still also drops mostly-paired
     patterns. There is no "off" setting any more.
-  - ASSUMPTION: the whole pattern is dropped rather than only its paired lines, so a routine
+  - **Third pass (review of PR #75): a line counts only when it is reversed with the same
+    header text; default 0.9.** "Paired anywhere on the account" also caught the case the
+    Miner exists for: a person typing the same correction every month to reverse a wrong
+    automated posting exactly. Each manual line pairs with the automated one, so the pattern
+    was 100% paired and dropped. A pattern's own lines do not net to zero either: the
+    reversals of the 8 Fixed assets patterns sit in other patterns (another document type or
+    user), so counting only partners inside the pattern would bring all 8 cards back (0% to 4%
+    paired). The signal that separates the two is the partner's header text pattern: a
+    reversal of the same posting carries the same text, a correction offsets a posting with
+    other text. Measured on the real data: the 8 Fixed assets patterns have 91.5%, 99.4%,
+    99.4% and 100% (five) of their lines reversed with the same text; the 6 Payroll patterns
+    at most 1.5% (the two mostly-paired ones, 79% and 64%, are paired only with automated
+    postings with other text, so they are corrections by this rule). ASSUMPTION: 0.9 sits
+    between the two groups; at 1.0 the 3 Fixed assets patterns below 100% come back.
+  - ASSUMPTION: the whole pattern is dropped rather than only its reversed lines, so a routine
     and its reversal never leave two half-cards behind.
-  - Real Payroll: 6 cards at score 12 (16 at score 6, 4 at 20). At 0.5: 4 (13 at score 6); the
-    two dropped have 18 of 28 and 99 of 125 lines in exact pairs, the 4 kept at most 3 paired
-    lines each. With it on, the extract date has 2 fewer findings, 4 in the "Repeated
-    postings" tab instead of 6 and 7 blind spots instead of 9.
-  - Real Fixed assets: 8 cards before the second pass; 0 at the default 1.0 (all fully paired)
-    and 0 at 0.5.
+  - Real Payroll: 6 cards at score 12 (16 at score 6, 4 at 20), the same at the default 0.9 and
+    at 0.5.
+  - Real Fixed assets: 8 cards before the second pass; 0 at the default 0.9, 3 at 1.0.
   - Synthetic: the demo card (C132 and C192 279030, 6 months) has no paired line and stays.
 Owner: team.
 

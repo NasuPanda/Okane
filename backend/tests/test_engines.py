@@ -227,9 +227,10 @@ def test_open_balance_first_signal_uses_each_lines_allowed_age() -> None:
 
 
 def test_miner_drops_patterns_that_are_mostly_exact_pairs() -> None:
-    """A7 (review of 22 Nov 2026): an accrual and its reversal typed by hand every month pair up
-    line for line; with the switch on (0.5) the pattern is dropped. A one-sided pattern stays,
-    its exposure the net of its unpaired lines. The switch is off by default (review of PR #73)."""
+    """A7: an accrual and its reversal typed by hand every month, with the same header text,
+    pair up line for line. 24 of the pattern's 26 lines are reversed (92%), so the default
+    share (0.9) drops it. A one-sided pattern stays, its exposure the net of its unpaired
+    lines. At 1.0 only a fully reversed pattern is dropped, so both stay."""
     from app.engines.miner import run_miner
 
     rows: list[dict[str, object]] = []
@@ -249,14 +250,37 @@ def test_miner_drops_patterns_that_are_mostly_exact_pairs() -> None:
                      "posting_date": date(2026, 6, 25), "user_name": "USER_901",
                      "header_text": "IC accrual", "doc_type": "SA"})  # fmt: skip
     lines = frame(rows)
-    cards = run_miner(lines, Rules(miner_max_paired_share=0.5))
+    cards = run_miner(lines, Rules())
     assert [c.account for c in cards] == ["279030"]
     assert cards[0].exposure_eur == 2 * 50.0 * sum(range(1, 7))
     assert cards[0].facts["paired_lines"] == 0
-    everything = run_miner(lines, Rules())  # the rule is off by default (A7)
+    everything = run_miner(lines, Rules(miner_max_paired_share=1.0))
     assert sorted(c.account for c in everything) == ["119001", "279030"]
     routine = next(c for c in everything if c.account == "119001")
     assert routine.exposure_eur == 2 * 777.0, "only the accruals not reversed are left"
+    assert routine.facts["paired_lines"] == 24
+
+
+def test_miner_keeps_a_correction_that_offsets_an_automated_posting() -> None:
+    """A7 (review of PR #75): every month a person types "Corr. reclass" to reverse a wrong
+    automated accrual exactly. Each manual line pairs with the automated one, but the partner
+    has other header text, so the lines are not a reversal of the same posting and the pattern
+    is the repeated correction the Miner exists to show, even at the default share."""
+    from app.engines.miner import run_miner
+
+    rows: list[dict[str, object]] = []
+    for month in range(1, 7):
+        for entity in ("C101", "C102"):
+            for sign, user, header in ((1, "BOT_RPA_001", "Payroll accrual"),
+                                       (-1, "USER_101", "Corr. reclass")):  # fmt: skip
+                rows.append({"entity": entity, "account": "279030",
+                             "amount_dc": sign * 400.0 * month,
+                             "posting_date": date(2026, month, 10 + (sign < 0)),
+                             "user_name": user, "header_text": header,
+                             "doc_type": "SA"})  # fmt: skip
+    cards = run_miner(frame(rows), Rules())
+    assert [(c.account, c.facts["pattern"]) for c in cards] == [("279030", "correction reclass")]
+    assert cards[0].facts["paired_lines"] == cards[0].facts["lines"] == 12
 
 
 def test_gap_note_and_prompt_use_the_direction() -> None:

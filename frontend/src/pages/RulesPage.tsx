@@ -54,7 +54,7 @@ const FIELD_LABEL: Record<string, string> = {
   account_normal_side: "Each account's normal side",
   fa_recent_days: "Fixed assets: days that count as this month",
   unconfirmed_rate_currencies: "Currencies with an estimated rate",
-  miner_max_paired_share: "Repeated postings: drop at this share of cancelling lines (1 = only when all cancel)",
+  miner_max_paired_share: "Repeated postings: drop when this share of lines is reversed with the same text",
   label_mismatch_min_share: "Wrong month label: payment's smallest share of the batch",
   sentinel_s1_skip_no_overdue_accounts: "Large amounts: skip No Overdue accounts",
   new_since_days: "New this week: days counted",

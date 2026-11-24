@@ -310,17 +310,16 @@ def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
     20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242.
 
     Review of 22 Nov 2026: 2 of the 6 patterns at score 12 are mostly exact pairs (18 of 28 and
-    99 of 125 lines), an accrual and its reversal. ``Rules.miner_max_paired_share`` at 0.5 drops
-    them (4 at 12, 13 at 6); the switch is off by default (review of PR #73).
+    99 of 125 lines), but every partner is an automated posting with other header text, so no
+    line is reversed with the same text (review of PR #75, A7) and even 0.5 keeps all 6.
     """
     rules = Rules()
     records = run_miner(real_lines, rules)
     assert len(records) == 6
     switched = rules.model_copy(update={"miner_max_paired_share": 0.5})
-    kept = run_miner(real_lines, switched)
-    assert len(kept) == 4
-    assert all(float(r.facts["paired_lines"]) / float(r.facts["lines"]) < 0.5 for r in kept)
-    assert len(run_miner(real_lines, switched.model_copy(update={"miner_min_score": 6}))) == 13
+    assert len(run_miner(real_lines, switched)) == 6
+    assert sum(float(r.facts["paired_lines"]) / float(r.facts["lines"]) > 0.5 for r in records) == 2
+    assert len(run_miner(real_lines, switched.model_copy(update={"miner_min_score": 6}))) == 16
     assert all(r.workgroup == "Payroll" for r in records)
     assert all(float(r.facts["miner_score"]) >= 12 for r in records)
     lower = rules.model_copy(update={"miner_min_score": 6})
@@ -401,19 +400,20 @@ def test_synthetic_fixed_assets_exposure(synthetic_lines: pd.DataFrame) -> None:
 def test_real_miner_fixed_assets(real_fixed_assets: object) -> None:
     """A3, A7: Fixed assets feed the Miner; aggregates only.
 
-    8 patterns reach score 12+ (measured in the review of PR #50), but every line of each one
+    8 patterns reach score 12+ (measured in the review of PR #50). Every line of each one
     cancels in an exact pair (the "IC Winshuttle" accruals and their reversals on C102, and the
-    C218 routines), so each nets to exactly zero. Review of 22 Nov 2026, fix 6 (second pass):
-    the default ``miner_max_paired_share`` of 1.0 drops a pattern whose lines all cancel, so no
-    Fixed assets card reaches the Inbox.
+    C218 routines), and 91.5% to 100% of each pattern's lines are reversed with the same header
+    text (review of PR #75, A7). The default ``miner_max_paired_share`` of 0.9 drops all 8, so
+    no Fixed assets card reaches the Inbox; at 1.0, the 3 patterns below 100% come back.
     """
     lines = real_fixed_assets.lines  # type: ignore[attr-defined]
     assert run_miner(lines, Rules()) == []
+    assert len(run_miner(lines, Rules(miner_max_paired_share=1.0))) == 3
 
 
 def test_real_miner_keeps_payroll_and_drops_fully_paired(real_all_lines: pd.DataFrame) -> None:
-    """Fix 6: on both workbooks only the 6 Payroll patterns remain (at most 79% paired), and
-    none of them nets to zero."""
+    """Fix 6 (A7): on both workbooks only the 6 Payroll patterns remain (at most 1.5% of their
+    lines reversed with the same text), and none of them nets to zero."""
     records = run_miner(real_all_lines, Rules())
     assert len(records) == 6
     assert all(r.workgroup == "Payroll" for r in records)

@@ -2608,7 +2608,7 @@
             "maximum": 1.0,
             "exclusiveMinimum": 0.0,
             "title": "Miner Max Paired Share",
-            "default": 1.0
+            "default": 0.9
           },
           "penalty_accounts": {
             "items": {
