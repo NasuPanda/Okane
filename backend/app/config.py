@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     ai_enabled: bool = True
     # Draft comments during a run for this many top-ranked exceptions (0 = only on demand).
     ai_predraft_top: int = 3
+    # Hosted demo only: comments drafted earlier on the SYNTHETIC sample (``make ai-seed``),
+    # loaded into the comment cache at startup so a host without a model still shows checked
+    # drafts. Empty means no seed. The file must carry the ``"synthetic": true`` marker.
+    ai_seed_path: Path | None = None
 
     cors_origins: list[str] = ["http://localhost:5173"]
 

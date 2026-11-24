@@ -39,7 +39,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     OKANE_RATES_PATH=/app/rates.csv \
     OKANE_DB_PATH=/data/okane.duckdb \
     OKANE_FRONTEND_DIST=/app/frontend/dist \
-    OKANE_CORS_ORIGINS='[]'
+    OKANE_CORS_ORIGINS='[]' \
+    OKANE_AI_SEED_PATH=/app/ai_cache.json
 WORKDIR /app/backend
 COPY backend/pyproject.toml backend/README.md ./
 COPY backend/app ./app
@@ -47,6 +48,8 @@ RUN pip install --no-cache-dir . && useradd --create-home okane && mkdir -p /dat
 COPY --from=frontend /src/frontend/dist /app/frontend/dist
 COPY --from=sample /sample /app/sample
 COPY backend/tests/data/rates.sample.csv /app/rates.csv
+# Comments drafted earlier on this same sample (make ai-seed, A48): checked drafts with no model.
+COPY fixtures/ai_cache.json /app/ai_cache.json
 USER okane
 # No VOLUME: compose mounts /data itself, and Render's free tier has no persistent disk.
 EXPOSE 8000

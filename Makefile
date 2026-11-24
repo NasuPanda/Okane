@@ -11,7 +11,7 @@ endif
 PY := $(BIN)/python
 NPM ?= npm
 
-.PHONY: help setup dev dev-api dev-web ollama-check test lint fixtures generate-sample-data \
+.PHONY: help setup dev dev-api dev-web ollama-check test lint fixtures ai-seed generate-sample-data \
         types build serve clean demo-reset demo demo-api
 
 help:
@@ -20,6 +20,7 @@ help:
 	@echo "dev                   API on :8000 + Vite on :5173 (checks Ollama on :11434)"
 	@echo "test | lint           pytest + ruff | ruff + frontend typecheck"
 	@echo "fixtures              export synthetic JSON fixtures to fixtures/"
+	@echo "ai-seed               draft every sample comment with Ollama for the hosted demo (A48)"
 	@echo "types                 regenerate frontend API types from the OpenAPI schema"
 	@echo "build | serve         build frontend | serve API + built frontend on :8000"
 	@echo "demo-reset            rebuild the synthetic demo folder data/demo (docs/DEMO.md)"
@@ -58,6 +59,9 @@ lint:
 
 fixtures:
 	cd backend && ../$(PY) -m app.services.fixtures
+
+ai-seed:
+	cd backend && ../$(PY) -m app.services.ai_seed
 
 types:
 	cd backend && ../$(PY) -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > ../frontend/src/api/openapi.json

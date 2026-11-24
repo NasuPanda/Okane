@@ -45,8 +45,9 @@ synthetic JSON in `fixtures/`.
 
 Hosted demo (synthetic data only; setup and limits in `deploy/README.md`, ASSUMPTIONS A41):
 - Main link: <https://okane-ilp5.onrender.com/>, the full app on Render's free tier, behind
-  basic auth (the password is in the submission). Runs and uploads work; comments are the
-  labelled template (no AI).
+  basic auth (the password is in the submission). Runs and uploads work; comments are AI
+  drafts made earlier on the sample and checked like live ones (A48), and the labelled
+  template for anything that changes.
 - Backup link: <https://okane.recon-copilot.workers.dev/>, the practice-data UI as a static
   Cloudflare Worker, with no backend, AI or file upload; decisions reset on reload.
 

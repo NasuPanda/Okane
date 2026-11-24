@@ -37,8 +37,9 @@ so nobody re-investigates).
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
-| A41 | Where the demo is hosted | Decide | Decided (#67): Render free web service with the full app (template comments, basic auth, kept awake by an uptime check) as the main link; practice-data UI on Cloudflare (a Worker with static assets) as the backup |
+| A41 | Where the demo is hosted | Decide | Decided (#67): Render free web service with the full app (pre-drafted AI comments per A48, basic auth, kept awake by an uptime check) as the main link; practice-data UI on Cloudflare (a Worker with static assets) as the backup |
 | A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
+| A48 | AI comments on the hosted demo | Decide | Decided (24 Nov 2026, requested by the team): the demo image carries comments drafted earlier on the sample (`make ai-seed`); changed findings get the template |
 
 ## Data and ingestion
 
@@ -648,7 +649,8 @@ before code freeze, on a free tier, with no long cold start.
     (measured under the same 512 MB and 0.1 CPU limits).
   - What it cannot keep: the disk resets on every restart or redeploy, so decisions, rule changes
     and uploads start over, and the Inbox is rebuilt from the sample.
-  - AI: none on the host, so comments are the labelled template. For a recording,
+  - AI: no model on the host. The image carries comments drafted earlier on the same sample
+    (A48); a finding whose facts change gets the labelled template. For a recording,
     `OKANE_OLLAMA_URL` can point at a laptop's Ollama through a temporary tunnel.
 - Kept for any Docker VM: `deploy/compose.yaml` (stage `app`, Ollama 7B and Caddy with HTTPS)
   runs the same app with AI comments and a persistent disk. It was tested on a laptop and is not
@@ -678,6 +680,23 @@ a desktop screen; reviewers and mentors also open the link on a phone. Every pag
   end for that). A section fixed to the bottom of the screen (the run dock) cannot scroll, so for
   it the card docks at the top instead. A finger drag on the page scrolls it, as the mouse wheel
   does; nothing can be tapped. Still read-only.
+Owner: team.
+
+**A48. AI comments on the hosted demo.** *Decided (24 Nov 2026, requested by the team).* The
+Render copy (A41) has no model, so every comment was the labelled template. It only ever runs the
+synthetic sample with the extract date as the analysis date, so its findings and prompts are the
+same on every run. `make ai-seed` runs that same setup locally with Ollama (qwen2.5 7B), drafts a
+comment for every finding, and saves the comment cache to `fixtures/ai_cache.json` (marked
+synthetic, like the other fixtures). The demo image loads it at startup (`OKANE_AI_SEED_PATH`)
+into the comment cache, adding only missing entries.
+- A seeded draft passed the same verifier as a live one, and it is found only by the identical
+  prompt: a finding whose facts change (a rule change, an upload) gets a live draft or the
+  labelled template, as before.
+- The assistant status still says the model is offline on the host; that is true.
+- Only the demo image sets the seed. The local app and the Cloudflare practice-data UI are
+  unchanged.
+- A test fails when the committed seed no longer covers every sample finding (prompts, engines,
+  default rules, rates or the generator changed). Fix: run `make ai-seed` with Ollama running.
 Owner: team.
 
 ## Mentor questions
