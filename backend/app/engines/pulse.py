@@ -615,8 +615,15 @@ def missing_batch_alerts(result: ProfileResult, rules: Rules) -> list[ExceptionR
     return records
 
 
-def label_mismatch_alerts(result: ProfileResult) -> list[ExceptionRecord]:
-    """label_mismatch when a payment's text period differs from the batch it settles."""
+def label_mismatch_alerts(result: ProfileResult, rules: Rules) -> list[ExceptionRecord]:
+    """label_mismatch when a payment's text period differs from the batch it settles.
+
+    ASSUMPTION (A13, review of 22 Nov 2026, fix 9): only a payment that carries at least
+    ``Rules.label_mismatch_min_share`` of the batch is judged by its label. A batch settled by
+    several bank lines (C242, up to 5) can include a small line whose text names another month
+    (on the real data, a line worth 0.02% of a 4.39M batch); its label says nothing about which
+    month the batch's payment was for, so it is not a "you may have made a mistake" prompt.
+    """
     records = []
     for m in result.matches:
         if not m.matched or m.batch.period is None:
@@ -624,6 +631,8 @@ def label_mismatch_alerts(result: ProfileResult) -> list[ExceptionRecord]:
         for unit in m.units:
             labelled = parse_period(unit.label)
             if labelled is None or labelled == m.batch.period:
+                continue
+            if abs(unit.amount) < rules.label_mismatch_min_share * abs(m.batch.amount):
                 continue
             diff_pct = (unit.amount - abs(m.batch.amount)) / abs(m.batch.amount) * 100
             settles = period_label(*m.batch.period)
@@ -675,5 +684,5 @@ def run_pulse(lines: pd.DataFrame, rules: Rules, as_of: date) -> PulseResult:
         records += missing_payment_alerts(result, rules, as_of)
         records += spike_alerts(result, rules)
         records += missing_batch_alerts(result, rules)
-        records += label_mismatch_alerts(result)
+        records += label_mismatch_alerts(result, rules)
     return PulseResult(profiles=profiles, records=records)

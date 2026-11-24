@@ -1076,6 +1076,11 @@ export interface components {
              */
             period_label_min_lines: number;
             /**
+             * Label Mismatch Min Share
+             * @default 0.1
+             */
+            label_mismatch_min_share: number;
+            /**
              * Miner Min Repeats
              * @default 3
              */

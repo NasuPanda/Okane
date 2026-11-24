@@ -9,7 +9,7 @@ import {
 import { AlertTriangle, ArrowDownUp, BellRing, EyeOff, FileSpreadsheet, Hourglass, Sparkles } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore } from "react";
 
-import { useExceptions, useKpis, useLatestRun, useRules } from "@/api/hooks";
+import { useExceptions, useFixedAssets, useKpis, useLatestRun, useRules } from "@/api/hooks";
 import type { ExceptionRecord, InboxView, Run, Status } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
 import {
@@ -159,14 +159,71 @@ type StatusFilter = "open" | "decided" | "all";
 const OPEN: Status[] = ["new", "escalated"];
 const GROUPS = Object.keys(GROUP_LABEL) as TypeGroup[];
 // Inbox tabs (docs/ASSUMPTIONS.md A25): the default view holds findings at or above materiality
-// and missing batches; everything else is one tap away.
-type ViewFilter = InboxView | "all";
-const VIEWS: { value: ViewFilter; label: string; dot?: string }[] = [
+// and missing batches; everything else is one tap away. Every finding sits on exactly one of the
+// four tabs (the server's inbox_view), so their counts always add up to "Everything". Tabs can
+// be combined: the list shows every finding on any selected tab (A48).
+const VIEWS: { value: InboxView; label: string; dot?: string }[] = [
   { value: "attention", label: "Above materiality", dot: "var(--hot)" },
+  { value: "other", label: "Below materiality", dot: "var(--muted-foreground)" },
   { value: "prompts", label: "Mistake prompts", dot: GROUP_TONE.mistakes.bar },
   { value: "repeats", label: "Repeated postings", dot: GROUP_TONE.miner.bar },
-  { value: "all", label: "Everything" },
 ];
+const ALL_VIEWS = VIEWS.map((v) => v.value);
+const viewOf = (r: ExceptionRecord): InboxView => r.inbox_view ?? "other";
+
+// The book the page reads (A48): Payroll or Fixed assets, or both together.
+type PrimaryBook = "Payroll" | "Fixed assets";
+
+/** Toggle switch between the two books, with "Both books" for the combined view. */
+function BookSwitch({
+  primary,
+  both,
+  onPrimary,
+  onBoth,
+}: {
+  primary: PrimaryBook;
+  both: boolean;
+  onPrimary: (b: PrimaryBook) => void;
+  onBoth: (b: boolean) => void;
+}) {
+  const fixed = primary === "Fixed assets";
+  const side = (active: boolean) =>
+    cn("transition-colors", !both && active ? "font-medium text-foreground" : "text-muted-foreground");
+  return (
+    <div className="inline-flex h-10 items-center gap-3 rounded-full border bg-secondary px-4 text-sm">
+      <button type="button" className={side(!fixed)} onClick={() => onPrimary("Payroll")} disabled={both}>
+        Payroll
+      </button>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={fixed}
+        aria-label="Read the Fixed assets book instead of Payroll"
+        disabled={both}
+        onClick={() => onPrimary(fixed ? "Payroll" : "Fixed assets")}
+        className={cn(
+          "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-40",
+          fixed ? "bg-signal" : "bg-foreground/25",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 left-0.5 size-5 rounded-full bg-background shadow transition-transform",
+            fixed && "translate-x-5",
+          )}
+        />
+      </button>
+      <button type="button" className={side(fixed)} onClick={() => onPrimary("Fixed assets")} disabled={both}>
+        Fixed assets
+      </button>
+      <span className="h-5 w-px bg-border" />
+      <label className="flex cursor-pointer items-center gap-2 text-muted-foreground">
+        <input type="checkbox" className="accent-[var(--signal)]" checked={both} onChange={(e) => onBoth(e.target.checked)} />
+        Both books
+      </label>
+    </div>
+  );
+}
 
 export function InboxPage() {
   const kpis = useKpis();
@@ -174,43 +231,73 @@ export function InboxPage() {
   const rules = useRules();
   const all = useExceptions();
   const open = useOpenFinding();
-  const [view, setView] = useState<ViewFilter>("attention");
-  const [workgroup, setWorkgroup] = useState<"all" | "Payroll" | "Fixed assets">("all");
-  const [status, setStatus] = useState<StatusFilter>("open");
+  // Selected tabs (combined as a union); "New this week" adds its findings to them.
+  const [views, setViews] = useState<InboxView[]>(["attention"]);
   const [newOnly, setNewOnly] = useState(false);
+  const [primary, setPrimary] = useState<PrimaryBook>("Payroll");
+  const [both, setBoth] = useState(false);
+  const [status, setStatus] = useState<StatusFilter>("open");
   const isNew = useIsNew();
   const [sorting, setSorting] = useState<SortingState>([{ id: "score", desc: true }]);
   const wide = useWide();
   const period = usePeriod();
-  // Every figure below counts only the findings in the chosen period (the shared report period).
-  const scoped = useMemo(() => (all.data ?? []).filter((r) => inPeriod(r, period.range)), [all.data, period.range]);
-
-  const records = useMemo(
+  const fixedAssets = useFixedAssets();
+  const book = both ? null : primary;
+  // Every figure on this page reads the chosen book only ...
+  const booked = useMemo(() => (all.data ?? []).filter((r) => !book || r.workgroup === book), [all.data, book]);
+  // ... and, except the header, only the findings in the chosen period (the shared report period).
+  const scoped = useMemo(() => booked.filter((r) => inPeriod(r, period.range)), [booked, period.range]);
+  // The tab counts are the findings the list would show for that tab alone (same book, period
+  // and status), so the four tabs add up to "Everything" and the list to what is selected.
+  const listed = useMemo(
     () =>
       scoped.filter(
-        (r) =>
-          (view === "all" || r.inbox_view === view) &&
-          (workgroup === "all" || r.workgroup === workgroup) &&
-          (status === "all" || (status === "open" ? OPEN.includes(r.status) : !OPEN.includes(r.status))) &&
-          (!newOnly || isNew(r)),
+        (r) => status === "all" || (status === "open" ? OPEN.includes(r.status) : !OPEN.includes(r.status)),
       ),
-    [scoped, view, workgroup, status, newOnly, isNew],
+    [scoped, status],
   );
+  const records = useMemo(
+    () => listed.filter((r) => views.includes(viewOf(r)) || (newOnly && isNew(r))),
+    [listed, views, newOnly, isNew],
+  );
+  const tabCounts = useMemo(() => {
+    const out: Record<string, number> = { all: listed.length, new: 0 };
+    for (const r of listed) {
+      out[viewOf(r)] = (out[viewOf(r)] ?? 0) + 1;
+      if (isNew(r)) out.new += 1;
+    }
+    return out;
+  }, [listed, isNew]);
+  const everything = ALL_VIEWS.every((v) => views.includes(v));
+  const toggleView = (v: InboxView) => {
+    if (views.includes(v)) {
+      // never leave the list with nothing selected
+      if (views.length > 1 || newOnly) setViews(views.filter((x) => x !== v));
+    } else {
+      setViews([...views, v]);
+    }
+  };
+  const toggleNew = () => {
+    if (newOnly && views.length === 0) setViews(["attention"]);
+    setNewOnly(!newOnly);
+  };
+  // "Where today's findings come from" counts open findings by kind, in the same book and period.
   const counts = useMemo(() => {
     const out: Record<string, number> = { all: 0 };
     for (const r of scoped) {
       if (!OPEN.includes(r.status)) continue;
       out.all += 1;
       out[TYPE_GROUP[r.type]] = (out[TYPE_GROUP[r.type]] ?? 0) + 1;
-      if (r.inbox_view) out[r.inbox_view] = (out[r.inbox_view] ?? 0) + 1;
     }
     return out;
   }, [scoped]);
-  // The header and "Waiting for you" speak for the whole check, like "accounts really open",
-  // so they read the server's counts (/api/kpis inbox_views, A25); the tabs follow the period.
+  // The header and "Waiting for you" speak for the whole check (any period) in the chosen book:
+  // the open findings the server counts in /api/kpis inbox_views (A25), narrowed to the book.
   const k = kpis.data;
-  const attention = k?.inbox_views?.attention ?? 0;
-  const toReview = k?.inbox_views?.all ?? 0;
+  const bookOpen = booked.filter((r) => OPEN.includes(r.status));
+  const attention = all.data ? bookOpen.filter((r) => viewOf(r) === "attention").length : (k?.inbox_views?.attention ?? 0);
+  const toReview = all.data ? bookOpen.length : (k?.inbox_views?.all ?? 0);
+  const fa = fixedAssets.data;
   const limit = rules.data ? shortEur(rules.data.materiality_eur) : "materiality";
   const decided = scoped.filter((r) => !OPEN.includes(r.status)).length;
   const leads = scoped.flatMap((r) => (r.lead_days === null ? [] : [r.lead_days])).sort((a, b) => a - b);
@@ -239,14 +326,22 @@ export function InboxPage() {
         trail={["Inbox", "Sorted by your priorities"]}
         tour="inbox-header"
         subtitle={
-          k ? (
+          book === "Fixed assets" && fa ? (
+            <>
+              The Fixed assets extract has <b className="num font-medium text-foreground">{fa.lines.toLocaleString("en-GB")}</b>{" "}
+              lines. After matching, <b className="num font-medium text-foreground">{fa.paired_lines.toLocaleString("en-GB")}</b>{" "}
+              cancel in exact pairs, <b className="num font-medium text-foreground">{(fa.recent_lines + fa.older_lines).toLocaleString("en-GB")}</b>{" "}
+              are still open, and <b className="num font-medium text-hot">{attention}</b>{" "}
+              {attention === 1 ? "finding" : "findings"} at or above {limit} {attention === 1 ? "needs" : "need"} a look first.
+            </>
+          ) : k ? (
             <>
               Today's report calls <b className="num font-medium text-foreground">{k.old_rule_lines.toLocaleString("en-GB")}</b>{" "}
               lines "overdue". After matching what was paid, only{" "}
               <b className="num font-medium text-foreground">{k.exposure_groups_above}</b>{" "}
               {k.exposure_groups_above === 1 ? "account is" : "accounts are"} really open, and{" "}
-              <b className="num font-medium text-hot">{attention}</b> {attention === 1 ? "finding" : "findings"} at or
-              above {limit} {attention === 1 ? "needs" : "need"} a look first.
+              <b className="num font-medium text-hot">{attention}</b> {attention === 1 ? "finding" : "findings"}
+              {book ? ` in ${book}` : ""} at or above {limit} {attention === 1 ? "needs" : "need"} a look first.
             </>
           ) : (
             "Getting your findings ready…"
@@ -270,7 +365,7 @@ export function InboxPage() {
           tour="inbox-card-waiting"
           label="Waiting for you"
           value={k ? attention : "–"}
-          note={`at or above ${limit}; ${toReview} to review in the whole check`}
+          note={`at or above ${limit}; ${toReview} to review in ${book ?? "both books"}, whole check`}
           icon={BellRing}
           color="var(--signal)"
           soft="var(--dock-raised)"
@@ -299,17 +394,32 @@ export function InboxPage() {
           soft="var(--hot-soft)"
           bars={(blind / Math.max(scoped.length, 1)) * 48}
         />
-        <StatCard
-          index={3}
-          tour="inbox-card-old"
-          label="Old report says overdue"
-          value={k ? shortEur(k.old_rule_overdue_abs) : "–"}
-          note={k ? `${k.old_rule_lines.toLocaleString("en-GB")} lines, mostly already paid` : ""}
-          icon={Hourglass}
-          color="var(--forest)"
-          soft="var(--forest-soft)"
-          bars={40}
-        />
+        {book === "Fixed assets" ? (
+          // The ageing report's "overdue" is a Payroll column; Fixed assets has none (A47).
+          <StatCard
+            index={3}
+            tour="inbox-card-old"
+            label="Still open after matching"
+            value={fa ? (fa.recent_lines + fa.older_lines).toLocaleString("en-GB") : "–"}
+            note={fa ? `of ${fa.lines.toLocaleString("en-GB")} Fixed assets lines; ${fa.paired_lines.toLocaleString("en-GB")} cancel in exact pairs` : ""}
+            icon={Hourglass}
+            color="var(--forest)"
+            soft="var(--forest-soft)"
+            bars={40}
+          />
+        ) : (
+          <StatCard
+            index={3}
+            tour="inbox-card-old"
+            label="Old report says overdue"
+            value={k ? shortEur(k.old_rule_overdue_abs) : "–"}
+            note={k ? `${k.old_rule_lines.toLocaleString("en-GB")} Payroll lines, mostly already paid` : ""}
+            icon={Hourglass}
+            color="var(--forest)"
+            soft="var(--forest-soft)"
+            bars={40}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
@@ -320,8 +430,8 @@ export function InboxPage() {
           </div>
           <SplitBar parts={GROUPS.map((g) => ({ label: GROUP_LABEL[g], value: counts[g] ?? 0, color: GROUP_TONE[g].bar }))} />
           <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
-            💡 Tip: the list starts with findings at or above {limit}. Mistake prompts, repeated postings and
-            everything else are one tap away below. Click any row to see the evidence and make your call.
+            💡 Tip: the list starts with findings at or above {limit}. Tap more tabs below to add them to the
+            list. Click any row to see the evidence and make your call.
           </p>
         </Card>
         <Card data-tour="inbox-gauge" className="flex flex-col items-center justify-center gap-2" style={stagger(5, 70)}>
@@ -334,32 +444,10 @@ export function InboxPage() {
 
       <DataSources run={run.data} />
 
-      <div className="rise flex flex-wrap items-center justify-between gap-4" style={stagger(6, 70)}>
-        <div data-tour="inbox-tabs" className="flex flex-wrap items-center gap-2">
-          {VIEWS.map((v) => (
-            <Chip key={v.value} active={view === v.value} onClick={() => setView(v.value)} count={counts[v.value] ?? 0} dot={v.dot}>
-              {v.value === "attention" ? `Above ${limit}` : v.label}
-            </Chip>
-          ))}
-          <Chip
-            active={newOnly}
-            onClick={() => setNewOnly(!newOnly)}
-            count={scoped.filter((r) => OPEN.includes(r.status) && isNew(r)).length}
-            dot="var(--signal)"
-          >
-            New this week
-          </Chip>
-        </div>
+      <div className="rise space-y-3" style={stagger(6, 70)}>
+        {/* Row 1, filters: which book, which status. Every count in row 2 follows them. */}
         <div data-tour="inbox-filters" className="flex flex-wrap items-center gap-3">
-          <Segmented
-            value={workgroup}
-            onChange={setWorkgroup}
-            options={[
-              { value: "all", label: "All books" },
-              { value: "Payroll", label: "Payroll" },
-              { value: "Fixed assets", label: "Fixed assets" },
-            ]}
-          />
+          <BookSwitch primary={primary} both={both} onPrimary={setPrimary} onBoth={setBoth} />
           <Segmented
             value={status}
             onChange={setStatus}
@@ -369,6 +457,33 @@ export function InboxPage() {
               { value: "all", label: "All" },
             ]}
           />
+        </div>
+        {/* Row 2, tabs: tap several to combine them; the four tabs add up to Everything. */}
+        <div data-tour="inbox-tabs" className="flex flex-wrap items-center gap-2">
+          {VIEWS.map((v) => (
+            <Chip
+              key={v.value}
+              active={views.includes(v.value)}
+              onClick={() => toggleView(v.value)}
+              count={tabCounts[v.value] ?? 0}
+              dot={v.dot}
+            >
+              {v.value === "attention" ? `Above ${limit}` : v.value === "other" ? `Below ${limit}` : v.label}
+            </Chip>
+          ))}
+          <Chip
+            active={everything}
+            onClick={() => setViews(everything ? ["attention"] : [...ALL_VIEWS])}
+            count={tabCounts.all}
+          >
+            Everything
+          </Chip>
+          <Chip active={newOnly} onClick={toggleNew} count={tabCounts.new} dot="var(--signal)">
+            New this week
+          </Chip>
+          <span className="ml-1 text-xs text-muted-foreground">
+            Showing <b className="num font-medium text-foreground">{records.length}</b> of {tabCounts.all}
+          </span>
         </div>
       </div>
 
@@ -384,7 +499,9 @@ export function InboxPage() {
         </Empty>
       ) : records.length === 0 ? (
         <Empty title={status === "open" ? "All clear here 🎉" : "Nothing here"}>
-          {status === "open" ? "No open finding matches these filters. Enjoy the quiet." : "No finding matches these filters."}
+          {status === "open"
+            ? "No open finding sits on the selected tabs. Tap another tab to add it, or Everything. Enjoy the quiet."
+            : "No finding sits on the selected tabs."}
         </Empty>
       ) : (
         <div data-tour="inbox-table" className="rise rounded-2xl bg-card px-2 py-1" style={stagger(7, 70)}>

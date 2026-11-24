@@ -25,7 +25,7 @@ so nobody re-investigates).
 | A10 | AI prompt contract and model | Decide | Decided (#28, #45), built (#29): comment and typo check; the model names figures and code fills them in; retry with feedback; template if rejected twice; qwen2.5 7B, local |
 | A11 | Fixed assets EUR rates (JPY, USD, PLN, CNY) | Confirm | Placeholder values in the sample rates |
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
-| A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
+| A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept. Fix 9 (22 Nov 2026): a payment is judged by its label only if it carries at least 10% of the batch; the false C242 prompt is gone |
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
 | A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; since A44 also only when the account's balance still holds the batch: 0 at the extract date |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
@@ -43,6 +43,7 @@ so nobody re-investigates).
 | A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026; departure from the brief signed off in the review of PR #73): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
 | A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
 | A46 | Open balances and balances on the wrong side | Decide | Decided (review of 22 Nov 2026): two new finding types: open_balance (3 at 500K on real data) and wrong_side_balance (5 new, 1 folded into the C192 gap) |
+| A48 | Inbox book, tabs that add up | Decide | Decided (review of 22 Nov 2026): on the Inbox page only, a Payroll / Fixed assets switch (Payroll first; "Both books" for the combined view) scopes every tab count, card and the header; a "Below materiality" tab holds the inbox_view "other", so the four tabs add up to Everything; tabs combine as a union; filters sit on their own row above the tabs. The dock and the run toast still count the whole check |
 | A47 | What is really open in Fixed assets | Decide | Decided (review of 22 Nov 2026): a Fixed assets section on Exposure from exact pairs; recent unpaired = this month's accruals (60 days); EUR marked "estimated rate" for JPY and PLN |
 
 ## Data and ingestion
@@ -245,8 +246,20 @@ yields the brief's own lag statistics) assigns it to the July 2024 batch (+0.09%
 is matched first and the payment is inside July's window. Measured against the August batch the
 payment is exactly -0.30%, so the brief compared it with August, a batch date-order matching
 leaves unmatched; no matching order tried for A12 gives it to August. July is kept, and a label
-mismatch fires either way. On real data the rule yields 6 label mismatches (5 on C192, 1 on
+mismatch fires either way. On real data the rule yielded 6 label mismatches (5 on C192, 1 on
 C242); the brief cites two examples. Owner: team.
+
+- **Fix 9 (review of 22 Nov 2026, second pass): a payment must carry a real share of the
+  batch.** The C242 prompt "Payment labelled 2025-10 settles 2026-04" compared one bank line of
+  about 734 with a 4.39M batch (-99.98%): C242 batches are settled by up to 5 bank lines, and a
+  small line whose text names another month says nothing about which month the batch's payment
+  was for. A payment is now judged by its label only when it carries at least
+  `Rules.label_mismatch_min_share` (default 0.1, i.e. 10%) of the batch it settles; the setting
+  is on the Rules page. On real data the five C192 prompts carry 99.7% to 100.1% of their batch
+  and stay; the C242 line carried 0.02% and is gone, so 5 label mismatches remain (all C192).
+  At the extract date this leaves 34 dated findings (35 before), median still 11 days.
+  ASSUMPTION: 10% sits far from both groups measured, and still lets a real mislabel on one of
+  3 to 5 roughly equal C242 bank lines (about 20% to 33% each) through.
 
 **A14. Missing batch look-back.** *Info (confirmed 18 Nov 2026, #4).* "When a month has no
 batch" would flag 2023 months in C192, because fully cleared batches drop out of an open-items
@@ -606,18 +619,28 @@ the name "CC06" is dropped.
   lines belong to an exact pair (`engines/pairs.py`, anywhere on the account). Every card's
   amount is now the net of its unpaired lines (fact `unpaired_net_eur`; `paired_lines` is
   shown), so a routine that nets to little shows a small amount either way.
-  - **Left off (1.0), decided in the review of PR #73.** At the proposed 0.5 the switch drops
-    every Fixed assets card: 9,980 of the 10,198 Fixed assets lines sit in exact pairs, so all
-    8 patterns at score 12+ are mostly pairs. An accrual and its reversal typed by hand every
-    month may also be exactly the repeated manual work the Miner exists to surface. The team
-    can turn it on from the Rules page.
-  - ASSUMPTION (when on): the whole pattern is dropped rather than only its paired lines, so a
-    routine and its reversal never leave two half-cards behind.
+  - *Superseded:* left off (1.0 meant off), decided in the review of PR #73. At the proposed
+    0.5 the switch drops every Fixed assets card: 9,980 of the 10,198 Fixed assets lines sit in
+    exact pairs, so all 8 patterns at score 12+ are mostly pairs. An accrual and its reversal
+    typed by hand every month may also be exactly the repeated manual work the Miner exists to
+    surface.
+  - **Second pass (review of 22 Nov 2026, fix 6 was only partly fixed): 1.0 now means "drop a
+    pattern only when every one of its lines cancels".** With the switch off, all 8 Fixed
+    assets cards stayed in the Inbox with amount 0 and every line paired (both "IC Winshuttle"
+    halves among them), and they inflated the blind-spot count ("Today's report misses 17").
+    A pattern whose lines all cancel in exact pairs nets to exactly zero: there is nothing
+    left to correct, so it is not a repeated correction. Measured on the real data, all 8
+    Fixed assets patterns are 100% paired; no Payroll pattern is more than 79% paired, so the
+    default keeps all 6 Payroll cards. A lower value (0.5) still also drops mostly-paired
+    patterns. There is no "off" setting any more.
+  - ASSUMPTION: the whole pattern is dropped rather than only its paired lines, so a routine
+    and its reversal never leave two half-cards behind.
   - Real Payroll: 6 cards at score 12 (16 at score 6, 4 at 20). At 0.5: 4 (13 at score 6); the
     two dropped have 18 of 28 and 99 of 125 lines in exact pairs, the 4 kept at most 3 paired
     lines each. With it on, the extract date has 2 fewer findings, 4 in the "Repeated
     postings" tab instead of 6 and 7 blind spots instead of 9.
-  - Real Fixed assets: 8 cards (unchanged); 0 at 0.5.
+  - Real Fixed assets: 8 cards before the second pass; 0 at the default 1.0 (all fully paired)
+    and 0 at 0.5.
   - Synthetic: the demo card (C132 and C192 279030, 6 months) has no paired line and stays.
 Owner: team.
 
