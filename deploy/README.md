@@ -36,8 +36,12 @@ What the free tier gives and costs:
 - **It sleeps after 15 minutes without visits** (see the note above and "Keep it awake").
 - **The disk resets** on every restart, redeploy or settings change. Decisions, rule changes and
   uploads start over, and a fresh run rebuilds the Inbox from the sample in about 35 s.
-- **No AI on the host.** Comments are the labelled template, unless the app is pointed at a
-  laptop's Ollama (see "AI comments for a recording" below).
+- **No model on the host.** The image carries comments drafted earlier on the same sample
+  (`fixtures/ai_cache.json`, A48), so every finding shows a checked AI draft at once. A finding
+  whose facts change (a rule change, an upload) gets the labelled template, unless the app is
+  pointed at a laptop's Ollama (see "AI comments for a recording" below). After changing
+  prompts, engines, default rules, rates or the generator, run `make ai-seed` with Ollama
+  running and commit the new file; a test fails until then.
 
 ### Set up once
 
@@ -119,7 +123,7 @@ Ollama we run. On recording day, a laptop's Ollama can serve the hosted app:
 1. Without a password, `/` returns 401 and `/api/health` returns 200.
 2. With the password, the header shows a synthetic run, and the Inbox lists the sample findings.
 3. `/exposure`, `/sentinel` and `/rules` open directly and on reload.
-4. A finding's comment shows the labelled template (or a checked AI draft while a tunnel is set).
+4. A finding's comment shows a checked AI draft (from the seed; A48).
 5. Run "Check now": the run status updates live, without a page reload.
 6. After 20 minutes with no visits, the app opens without Render's "starting" page (the
    keep-alive works).

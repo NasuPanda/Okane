@@ -337,6 +337,23 @@ class Database:
             cur.execute("DELETE FROM ai_cache WHERE cache_key = ?", [key])
             cur.execute("INSERT INTO ai_cache VALUES (?, ?)", [key, json.dumps(payload)])
 
+    def cache_seed(self, entries: dict[str, dict[str, Any]]) -> int:
+        """Add cache entries whose key is missing; never overwrite one. Returns how many."""
+        added = 0
+        with self.cursor() as cur:
+            for key, payload in entries.items():
+                if cur.execute("SELECT 1 FROM ai_cache WHERE cache_key = ?", [key]).fetchone():
+                    continue
+                cur.execute("INSERT INTO ai_cache VALUES (?, ?)", [key, json.dumps(payload)])
+                added += 1
+        return added
+
+    def cache_dump(self) -> dict[str, dict[str, Any]]:
+        """Every cache entry, by key (``make ai-seed`` exports this)."""
+        with self.cursor() as cur:
+            rows = cur.execute("SELECT cache_key, payload FROM ai_cache ORDER BY cache_key")
+            return {key: json.loads(payload) for key, payload in rows.fetchall()}
+
     # ----- extracts (A38) ------------------------------------------------------------------
     def get_extract(self, file_hash: str) -> dict[str, Any] | None:
         with self.cursor() as cur:

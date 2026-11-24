@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.ai.client import load_seed
 from app.api import AppState, exceptions, exposure, kpis, pulse, rules, runs, uploads
 from app.config import Settings, get_settings
 from app.database import Database
@@ -34,6 +35,22 @@ def _startup_run(state: AppState) -> None:
         ).start()
 
 
+def _load_ai_seed(settings: Settings, db: Database) -> None:
+    """Hosted demo: seed the comment cache with drafts made earlier on the sample (A48)."""
+    path = settings.ai_seed_path
+    if path is None:
+        return
+    if not path.is_file():
+        log.warning("AI seed %s not found; comments fall back to the model or the template", path)
+        return
+    try:
+        added = load_seed(path, db)
+    except (OSError, ValueError) as exc:
+        log.warning("AI seed not loaded: %s", exc)
+        return
+    log.info("AI seed: %d cached outcomes added from %s", added, path.name)
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build the application. Settings are read once, at creation."""
     settings = settings or get_settings()
@@ -41,6 +58,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         db = Database(settings.db_path)
+        _load_ai_seed(settings, db)
         bus = EventBus()
         state = AppState(settings=settings, db=db, bus=bus, pipeline=Pipeline(db, settings, bus))
         app.state.okane = state
