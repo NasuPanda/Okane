@@ -239,9 +239,10 @@ export const STEPS: Step[] = [
     body: (c) => (
       <List
         items={[
-          <><B>Above {limit(c)}</B> (the start): findings big enough to matter, plus missing payroll batches.</>,
+          <><B>Above {limit(c)}</B> (the start): findings big enough to matter, plus missing payroll batches. <B>Below {limit(c)}</B>: the smaller ones.</>,
           <><B>Mistake prompts</B>: possible typos and wrong months. <B>Repeated postings</B>: the same manual fix again and again.</>,
-          <><B>Everything</B>: all findings. On the right, pick a book, and see what's to review or done.</>,
+          <>Every finding sits on one of those four tabs, so they add up to <B>Everything</B>. Tap several to see them together.</>,
+          <>Above the tabs, switch between <B>Payroll</B> and <B>Fixed assets</B> (or tick <B>Both books</B>), and see what's to review or done. Every count follows that choice.</>,
         ]}
       />
     ),

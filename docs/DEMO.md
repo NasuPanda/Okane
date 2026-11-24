@@ -74,10 +74,12 @@ cd backend; .venv\Scripts\python -m uvicorn app.main:app --port 8000   # then, i
 - **Screen:** **3 accounts remain** at 500K (of 6 with overdue lines) `[real: ____]`. Each
   says what its net means: C242 34900001 "owed (credit)", C192 179003 "asset not yet used up",
   and the C192 social security gap; clicking one opens the finding about its balance (A43, A46).
-  The Inbox header: "Today's report calls 72 lines overdue. After matching what was paid, only 3
-  accounts are really open, and **8 findings at or above 500K** need a look first."
-  `[real: ____ findings]` The tabs: Above 500K **8**, Mistake prompts **3**, Repeated postings
-  **1**, Everything **16**.
+  The Inbox reads the **Payroll** book (the Payroll / Fixed assets switch above the tabs; tick
+  "Both books" for the combined view). The Inbox header: "Today's report calls 72 lines overdue.
+  After matching what was paid, only 3 accounts are really open, and **7 findings in Payroll at
+  or above 500K** need a look first." `[real: ____ findings]` The tabs: Above 500K **7**, Below
+  500K **2**, Mistake prompts **3**, Repeated postings **1**, Everything **13** (7 + 2 + 3 + 1).
+  Both books: 8, 4, 3, 1, 16. Tabs combine: tapping Mistake prompts as well lists 10.
 
 ## Step 4: the top finding (C192 social security)
 
@@ -110,12 +112,14 @@ cd backend; .venv\Scripts\python -m uvicorn app.main:app --port 8000   # then, i
   come into view; the change is logged with who, when and why."
 - **Screen:** Exposure shows **4 accounts** instead of 3 `[real: ____ instead of ____]`; the
   Rules log has one entry for materiality, 500,000 to 100,000, with the reason. The C192 gap
-  stays first. On the synthetic data the Inbox's "Above" tab grows from 8 to 9: the HUF
-  account C172 279006 now nets to more than 100K and gets its own open-balance finding.
+  stays first. On the synthetic data the Inbox's "Above" tab grows from 7 to 8 in Payroll
+  (Everything 13 to 14; 8 to 9 and 16 to 17 with both books): the HUF account C172 279006 now
+  nets to more than 100K and gets its own open-balance finding.
   `[real: ____ findings at 100K]`
 
 ## Closing line
 
 "Today's report is too loud and blind at the same time. Okane shows the few accounts that are
 really open, and the mistakes it can see weeks before the close." The Inbox card "Spotted
-earlier by" shows the median lead time (**16 days** on the synthetic data `[real: ____]`).
+earlier by" shows the median lead time (**27.5 days** in Payroll on the synthetic data, 16 days
+with both books `[real: ____]`).

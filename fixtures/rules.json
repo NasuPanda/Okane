@@ -85,10 +85,11 @@
   ],
   "typo_min_word_length": 5,
   "period_label_min_lines": 3,
+  "label_mismatch_min_share": 0.1,
   "miner_min_repeats": 3,
   "miner_min_score": 12,
   "miner_by_user": true,
-  "miner_max_paired_share": 1.0,
+  "miner_max_paired_share": 0.9,
   "penalty_accounts": [
    "P20/C192/279006"
   ],

@@ -310,17 +310,16 @@ def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
     20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242.
 
     Review of 22 Nov 2026: 2 of the 6 patterns at score 12 are mostly exact pairs (18 of 28 and
-    99 of 125 lines), an accrual and its reversal. ``Rules.miner_max_paired_share`` at 0.5 drops
-    them (4 at 12, 13 at 6); the switch is off by default (review of PR #73).
+    99 of 125 lines), but every partner is an automated posting with other header text, so no
+    line is reversed with the same text (review of PR #75, A7) and even 0.5 keeps all 6.
     """
     rules = Rules()
     records = run_miner(real_lines, rules)
     assert len(records) == 6
     switched = rules.model_copy(update={"miner_max_paired_share": 0.5})
-    kept = run_miner(real_lines, switched)
-    assert len(kept) == 4
-    assert all(float(r.facts["paired_lines"]) / float(r.facts["lines"]) < 0.5 for r in kept)
-    assert len(run_miner(real_lines, switched.model_copy(update={"miner_min_score": 6}))) == 13
+    assert len(run_miner(real_lines, switched)) == 6
+    assert sum(float(r.facts["paired_lines"]) / float(r.facts["lines"]) > 0.5 for r in records) == 2
+    assert len(run_miner(real_lines, switched.model_copy(update={"miner_min_score": 6}))) == 16
     assert all(r.workgroup == "Payroll" for r in records)
     assert all(float(r.facts["miner_score"]) >= 12 for r in records)
     lower = rules.model_copy(update={"miner_min_score": 6})
@@ -399,19 +398,47 @@ def test_synthetic_fixed_assets_exposure(synthetic_lines: pd.DataFrame) -> None:
 
 
 def test_real_miner_fixed_assets(real_fixed_assets: object) -> None:
-    """A3, A7: Fixed assets feed the Miner; aggregates only: 8 patterns at score 12+ (measured
-    in the review of PR #50)."""
+    """A3, A7: Fixed assets feed the Miner; aggregates only.
+
+    8 patterns reach score 12+ (measured in the review of PR #50). Every line of each one
+    cancels in an exact pair (the "IC Winshuttle" accruals and their reversals on C102, and the
+    C218 routines), and 91.5% to 100% of each pattern's lines are reversed with the same header
+    text (review of PR #75, A7). The default ``miner_max_paired_share`` of 0.9 drops all 8, so
+    no Fixed assets card reaches the Inbox; at 1.0, the 3 patterns below 100% come back.
+    """
     lines = real_fixed_assets.lines  # type: ignore[attr-defined]
-    rules = Rules()
-    records = run_miner(lines, rules)
-    assert len(records) == 8
-    for record in records:
-        assert record.workgroup == "Fixed assets"
-        assert float(record.facts["miner_score"]) >= rules.miner_min_score
-        assert float(record.facts["months"]) >= rules.miner_min_repeats
-        assert record.evidence
-    scores = [float(r.facts["miner_score"]) for r in records]
-    assert scores == sorted(scores, reverse=True)
+    assert run_miner(lines, Rules()) == []
+    assert len(run_miner(lines, Rules(miner_max_paired_share=1.0))) == 3
+
+
+def test_real_miner_keeps_payroll_and_drops_fully_paired(real_all_lines: pd.DataFrame) -> None:
+    """Fix 6 (A7): on both workbooks only the 6 Payroll patterns remain (at most 1.5% of their
+    lines reversed with the same text), and none of them nets to zero."""
+    records = run_miner(real_all_lines, Rules())
+    assert len(records) == 6
+    assert all(r.workgroup == "Payroll" for r in records)
+    assert all(float(r.facts["paired_lines"]) < float(r.facts["lines"]) for r in records)
+    assert all(abs(float(r.facts["unpaired_net_eur"])) > 0 for r in records)
+
+
+def test_real_label_mismatch_needs_a_real_share_of_the_batch(real_lines: pd.DataFrame) -> None:
+    """Fix 9 (A13): the C242 prompt "Payment labelled 2025-10 settles 2026-04" compared one bank
+    line worth 0.02% of the batch with the whole batch. Only a payment carrying at least
+    ``label_mismatch_min_share`` (10%) of its batch is judged by its label: C242 has none; the
+    five C192 prompts (each 99.7% to 100.1% of its batch) stay."""
+    records = run_pulse(real_lines, Rules(), AS_OF).records
+    labels = [r for r in records if r.type == "label_mismatch"]
+    assert [r for r in labels if r.entity == "C242"] == []
+    c192 = sorted((r.facts["label_period"], r.facts["settles_period"]) for r in labels)
+    assert len(c192) == 5 and all(r.entity == "C192" for r in labels)
+    assert ("2024-01", "2024-02") in c192
+    assert all(abs(float(r.facts["diff_pct"])) < 1 for r in labels)
+    # With the threshold at 0 the old false prompt comes back, so the rule is what removes it.
+    loose = run_pulse(real_lines, Rules(label_mismatch_min_share=0), AS_OF).records
+    c242 = [r for r in loose if r.type == "label_mismatch" and r.entity == "C242"]
+    assert [(r.facts["label_period"], r.facts["settles_period"]) for r in c242] == [
+        ("2025-10", "2026-04")
+    ]
 
 
 # ----- engines on synthetic data (always run) -----------------------------------------------
@@ -603,11 +630,13 @@ def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
 
     records = run_engines(real_lines, Rules(), AS_OF).records
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (36, 11)
+    # Fix 9 (A13): 36 before the false C242 label prompt was removed.
+    assert (len(leads), statistics.median(leads)) == (35, 11)
     assert sum(r.today_detection is None for r in records) == 9
     assert min(leads) >= 0
     daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
-    assert statistics.median(daily) == 14.5
+    # Fix 9 (A13): 14.5 over 36 dated findings before the false C242 label prompt was removed.
+    assert statistics.median(daily) == 15
 
 
 def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
@@ -706,10 +735,11 @@ def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
         records = run_engines(real_lines, rules, AS_OF).records
         views = Counter(r.inbox_view for r in records)
         assert views["attention"] == expected
-        assert (views["prompts"], views["repeats"]) == (17, 6)
+        # Fix 9 (A13): 17 prompts before the false C242 label prompt was removed.
+        assert (views["prompts"], views["repeats"]) == (16, 6)
         first = next(r for r in records if r.inbox_view == "attention")
         assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
-    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 48
+    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 47
 
 
 # ----- account balances (A46, review of 22 Nov 2026) ----------------------------------------
@@ -794,4 +824,5 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
         "pulse_gap", "C192", 79.4)  # fmt: skip
     assert output.counts["exposure_groups_above"] == 4
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (35, 11)
+    # Fix 9 (A13): 35 before the false C242 label prompt was removed.
+    assert (len(leads), statistics.median(leads)) == (34, 11)
