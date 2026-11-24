@@ -2581,6 +2581,13 @@
             "title": "Period Label Min Lines",
             "default": 3
           },
+          "label_mismatch_min_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Label Mismatch Min Share",
+            "default": 0.1
+          },
           "miner_min_repeats": {
             "type": "integer",
             "title": "Miner Min Repeats",
@@ -2601,7 +2608,7 @@
             "maximum": 1.0,
             "exclusiveMinimum": 0.0,
             "title": "Miner Max Paired Share",
-            "default": 1.0
+            "default": 0.9
           },
           "penalty_accounts": {
             "items": {

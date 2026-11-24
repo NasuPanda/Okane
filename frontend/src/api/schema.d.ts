@@ -1076,6 +1076,11 @@ export interface components {
              */
             period_label_min_lines: number;
             /**
+             * Label Mismatch Min Share
+             * @default 0.1
+             */
+            label_mismatch_min_share: number;
+            /**
              * Miner Min Repeats
              * @default 3
              */
@@ -1092,7 +1097,7 @@ export interface components {
             miner_by_user: boolean;
             /**
              * Miner Max Paired Share
-             * @default 1
+             * @default 0.9
              */
             miner_max_paired_share: number;
             /** Penalty Accounts */
