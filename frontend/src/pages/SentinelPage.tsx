@@ -4,10 +4,10 @@ import { useMemo, useState } from "react";
 import { useExceptions } from "@/api/hooks";
 import type { ExceptionRecord, ExceptionType } from "@/api/types";
 import { useOpenFinding } from "@/components/AppShell";
-import { Card, Chip, Empty, LeadBadge, PageHeader, StatCard, StatusPill, TypeIcon, TypeLabel, stagger } from "@/components/okane";
+import { Card, Chip, Empty, LeadBadge, NewTag, PageHeader, StatCard, StatusPill, TypeIcon, TypeLabel, stagger } from "@/components/okane";
 import { Skeleton } from "@/components/ui/skeleton";
 import { factLabel, isAmountFact, promptOf, toneOf } from "@/lib/labels";
-import { PeriodPicker, inPeriod, usePeriod } from "@/lib/period";
+import { PeriodPicker, inPeriod, useIsNew, usePeriod } from "@/lib/period";
 import { cn, eur, monthLabel } from "@/lib/utils";
 
 type Feed = "all" | "outliers" | "currencies" | "mistakes";
@@ -33,6 +33,7 @@ function DateBlock({ value, type }: { value: string; type: ExceptionType }) {
 function FeedItem({ record, index, onOpen }: { record: ExceptionRecord; index: number; onOpen: () => void }) {
   const posted = String(record.facts.posting_date ?? record.first_signal);
   const prompt = promptOf(record);
+  const isNew = useIsNew();
   return (
     <button
       onClick={onOpen}
@@ -46,6 +47,7 @@ function FeedItem({ record, index, onOpen }: { record: ExceptionRecord; index: n
           <div className="flex items-center gap-2.5">
             <TypeIcon type={record.type} size="sm" />
             <TypeLabel type={record.type} />
+            <NewTag show={isNew(record)} />
           </div>
           <LeadBadge record={record} />
           <span className="sm:hidden">

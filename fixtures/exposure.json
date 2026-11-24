@@ -2,7 +2,7 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261120T153716_18ac98",
+  "run_id": "run_20261122T170128_9aaf3d",
   "materiality_eur": 500000.0,
   "old_rule_lines": 72,
   "old_rule_overdue_abs": 11358855.29,
@@ -19,7 +19,8 @@
     "net_eur": -2060000.0,
     "paired_lines": 0,
     "above_materiality": true,
-    "exception_id": null
+    "exception_id": "233ad39a5cb011cd",
+    "normal_side": "credit"
    },
    {
     "erp": "P20",
@@ -31,7 +32,8 @@
     "net_eur": -2029528.21,
     "paired_lines": 0,
     "above_materiality": true,
-    "exception_id": "b80b0b905e1fe118"
+    "exception_id": "b80b0b905e1fe118",
+    "normal_side": "credit"
    },
    {
     "erp": "P20",
@@ -43,7 +45,8 @@
     "net_eur": 679839.48,
     "paired_lines": 0,
     "above_materiality": true,
-    "exception_id": null
+    "exception_id": "09009a7b2874e46d",
+    "normal_side": "debit"
    },
    {
     "erp": "P20",
@@ -55,7 +58,8 @@
     "net_eur": -160000.02,
     "paired_lines": 0,
     "above_materiality": false,
-    "exception_id": "f4d7086d081a2e09"
+    "exception_id": "f4d7086d081a2e09",
+    "normal_side": "credit"
    },
    {
     "erp": "BPP",
@@ -67,7 +71,8 @@
     "net_eur": -27000.0,
     "paired_lines": 0,
     "above_materiality": false,
-    "exception_id": null
+    "exception_id": null,
+    "normal_side": "credit"
    },
    {
     "erp": "P20",
@@ -79,7 +84,8 @@
     "net_eur": 0.0,
     "paired_lines": 12,
     "above_materiality": false,
-    "exception_id": null
+    "exception_id": null,
+    "normal_side": "credit"
    }
   ]
  }

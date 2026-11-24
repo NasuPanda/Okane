@@ -19,6 +19,7 @@ from datetime import date
 import pandas as pd
 
 from app.engines import doc_refs, is_person, make_record
+from app.engines.pairs import find_pairs
 from app.schemas import ExceptionRecord, Rules
 
 NAMES = re.compile(r"NAME\d+", re.IGNORECASE)
@@ -60,7 +61,10 @@ def visible_from(group: pd.DataFrame, rules: Rules) -> date:
 
 def run_miner(lines: pd.DataFrame, rules: Rules) -> list[ExceptionRecord]:
     """One miner_cluster record per repeated manual posting, highest score first."""
+    # A7 (review of 22 Nov 2026): lines that cancel in an exact pair, anywhere on the account.
+    paired = find_pairs(lines).notna()
     manual = lines[lines["user_name"].map(is_person) & lines["posting_date"].notna()].copy()
+    manual["paired"] = paired[manual.index]
     manual["shape"] = manual["header_text"].map(fingerprint_text)
     manual = manual[manual["shape"] != ""]
     if manual.empty:
@@ -76,6 +80,12 @@ def run_miner(lines: pd.DataFrame, rules: Rules) -> list[ExceptionRecord]:
         entities = sorted(set(group["entity"]))
         score = len(months) * len(entities)
         if len(months) < rules.miner_min_repeats or score < rules.miner_min_score:
+            continue
+        # ASSUMPTION (A7): an accrual and its reversal typed by hand pair up line for line; when
+        # that is most of the pattern it nets to little and is not a repeated correction.
+        # A share of 1.0 turns the rule off (the default, A7).
+        share = rules.miner_max_paired_share
+        if share < 1.0 and float(group["paired"].mean()) >= share:
             continue
         # The record sits on the lowest entity code in the pattern; the others are listed in
         # the facts. Line counts never choose it, so the id (which hashes this entity) stays
@@ -100,7 +110,8 @@ def run_miner(lines: pd.DataFrame, rules: Rules) -> list[ExceptionRecord]:
                 type_="miner_cluster",
                 lines=group,
                 title=f"Repeated manual posting: {len(months)} months",
-                exposure_eur=float(group["amount_eur"].sum()),
+                # A7: the net of the lines that are not cancelled by an exact pair.
+                exposure_eur=float(group.loc[~group["paired"], "amount_eur"].sum()),
                 facts={
                     "rule": f"The same manual posting by {who} scores at least "
                     f"{rules.miner_min_score} (entities x months) in "
@@ -119,6 +130,8 @@ def run_miner(lines: pd.DataFrame, rules: Rules) -> list[ExceptionRecord]:
                     "documents": len(refs),
                     "people": group["user_name"].nunique(),
                     "total_abs_eur": float(group["amount_eur"].abs().sum()),
+                    "paired_lines": int(group["paired"].sum()),
+                    "unpaired_net_eur": float(group.loc[~group["paired"], "amount_eur"].sum()),
                     "hint": HYPOTHESIS,
                 },
                 evidence=refs,

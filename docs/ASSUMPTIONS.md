@@ -27,7 +27,7 @@ so nobody re-investigates).
 | A12 | Pulse match preference differs by profile | Info | Confirmed (#4): per-profile switch kept |
 | A13 | 27 Sep 2024 label mismatch settles July, not August | Info | Confirmed (#4): July kept |
 | A14 | Missing-batch look-back | Info | Confirmed (#4): 24 months |
-| A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; 7 on real data |
+| A15 | 21 missing-payment alerts on real data | Decide | Decided (#20): expected by within the last 12 months; since A44 also only when the account's balance still holds the batch: 0 at the extract date |
 | A16 | Screens: Inbox, Exposure, Sentinel, Rules | Confirm | Built to the UI reference |
 | A25 | How short is the inbox | Decide | Decided (#21): default view = findings at or above materiality plus missing batches; prompts and repeated postings on their own tabs |
 | A34 | Landing version-1 on main; required CI checks | Decide | Merged by pull request; checks not enforceable on the current plan |
@@ -39,6 +39,11 @@ so nobody re-investigates).
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
 | A41 | Where the demo is hosted | Decide | Decided (#67): Render free web service with the full app (pre-drafted AI comments per A48, basic auth, kept awake by an uptime check) as the main link; practice-data UI on Cloudflare (a Worker with static assets) as the backup |
 | A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
+| A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026; departure from the brief signed off in the review of PR #73): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
+| A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026; departure from the brief signed off in the review of PR #73): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
+| A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
+| A46 | Open balances and balances on the wrong side | Decide | Decided (review of 22 Nov 2026): two new finding types: open_balance (3 at 500K on real data) and wrong_side_balance (5 new, 1 folded into the C192 gap) |
+| A47 | What is really open in Fixed assets | Decide | Decided (review of 22 Nov 2026): a Fixed assets section on Exposure from exact pairs; recent unpaired = this month's accruals (60 days); EUR marked "estimated rate" for JPY and PLN |
 | A48 | AI comments on the hosted demo | Decide | Decided (24 Nov 2026, requested by the team): the demo image carries comments drafted earlier on the sample (`make ai-seed`); changed findings get the template |
 
 ## Data and ingestion
@@ -49,6 +54,32 @@ holds placeholder values for these four (JPY 162.5, USD 1.09, PLN 4.29, CNY 7.85
 2 Oct 2026). Confirm the real rates and the date before using Fixed assets figures. On the
 real file the Fixed assets local currencies are only EUR (BPP), JPY and PLN (P20); USD and CNY
 appear only as document currencies, so today only the JPY and PLN rates affect EUR amounts.
+Owner: team.
+
+**A47. What is really open in Fixed assets.** *Decided (review of 22 Nov 2026, fix 5).* A run
+already found 10,456 paired lines, 9,980 of them Fixed assets, then dropped the result: the
+Exposure page covered Payroll only. Measured on the real Fixed assets workbook (in the review):
+10,198 lines, 101 with a zero document amount (FX valuations), 9,980 in exact pairs and 117
+unpaired, all posted by people. The 98 unpaired lines posted within 60 days of the extract make
+up the balance (C102 180,393, C230 118,375 and C242 561,509 EUR; C218 62,456,836 JPY;
+C238 4,864,669 PLN); the 19 older ones (C242 13, C238 6) net to zero within their entity.
+C102 also carries exchange differences: its FX valuations and what its exact pairs (matched in
+document currency) leave in local currency. No other entity has any.
+- `GET /api/exposure/fixed-assets` and a Fixed assets section on the Exposure page, per ERP,
+  entity and account: lines, paired lines, FX valuations, unpaired lines posted within
+  `Rules.fa_recent_days` (60) of the extract ("timing: this month's accruals"), older
+  unpaired lines ("offset each other but never matched" when they net to zero, else "older,
+  never matched"), and the net in local currency and in EUR.
+- Exchange differences (review of PR #73): FX valuations and exact pairs are left out of the
+  recent and older buckets, but they need not cancel in local currency or EUR. Their net is
+  kept as `fx_net_lc` / `fx_net_eur` and shown under the net ("incl. X exchange
+  differences"), so net = recent + older + exchange differences for every account.
+- EUR figures in a currency listed in `Rules.unconfirmed_rate_currencies` (JPY, PLN, USD,
+  CNY) carry "estimated rate" until the rates are confirmed (A11).
+- The pairing is `engines/pairs.py`; the endpoint adds no matching. The analysis day is the
+  Fixed assets extract date (A38).
+- `test_real_fixed_assets_exposure` asserts the figures above on the real workbook (run in
+  the review of PR #73; it skips without it); the synthetic sample and the API are tested.
 Owner: team.
 
 **A17. Payroll keeps its own EUR amount.** *Info.* Per the brief, Payroll sheets keep
@@ -245,11 +276,140 @@ not recognise (quarterly CFE and GARP payments or another ERP), not left unpaid.
 - Mentor question 4: a "yes, some are paid quarterly" answer needs no change.
 - Since #24 the 12 months count back from the analysis date, which is now the Payroll extract
   date (A38): 6 alerts as of 23 Oct 2026, as C242's October 2026 batch is not yet due then.
+- Since A44 a batch is also checked against the account's balance: none of those 6 remains.
+Owner: team.
+
+**A44. Missing payments the balance shows as paid.** *Decided (review of 22 Nov 2026, fix 2;
+the departure from the brief signed off in the review of PR #73).*
+The 6 "payment not found" alerts at the extract date ranked #2, #3, #4, #6, #10 and #11 in the
+inbox, and each account's balance contradicted them:
+- C242 34900015 flagged February 2026 (-4.28M) and June 2026 (-4.35M). February's payments
+  covered February's accrual plus January's leftover, so the batch alone was 2.1% off, outside
+  the 1% tolerance; the month-end balance was back to +1,056 at the end of February. June's
+  shortfall was paid in July (-3,479 at the end of July).
+- C192 279006 flagged April to July 2026 (3.37M), but 4.26M of payments were posted in those
+  months and the account is in debit (A43).
+
+Rule (`Rules.missing_payment_balance_check`, default on): before a missing payment is raised,
+- check date = the earlier of the month-end of the batch's expected-by date and the analysis
+  date;
+- available = max(0, the account's open credit balance on the check date - the credits of
+  later batches accrued by then, not yet past their own expected-by date and not yet paid on
+  the check date); a later batch already paid has left the balance with its payment, so it
+  is not subtracted again (review of PR #73; before, an unpaid batch followed by a paid one
+  could be hidden; no real or synthetic figure changed);
+- known limit: the open credit is not allocated batch by batch, so older unpaid batches
+  (outside the 12-month limit) can keep a newer batch's alert alive;
+- if available is below the batch tolerance (max(profile tolerance x batch, tolerance_eur)),
+  nothing is raised;
+- otherwise the alert is raised with exposure -min(batch, available), titled "No payment found
+  for the X batch" when the whole batch is still held, or "Payment short by Y on the X batch"
+  when more than the batch tolerance has been paid (the same tolerance as above).
+- The check date, open credit, later accruals and the amount still unpaid are facts on the
+  record. The matching statistics (lags, expected-by dates) do not change: C192 still has 21
+  matched batches, median lag 30, 90th percentile 37.
+
+Measured (real Payroll, aggregates):
+- At the extract date (23 Oct 2026): 0 missing payments (was 6), so 39 findings (45), 12 in the
+  "Above 500K" tab (18), 30 with a lead time, median 8.5 days (36, 11). The C192 gap stays first
+  at 79.4; the runner-up is now the C192 August 2026 spike at 65.0 (was a missing payment at
+  69.8).
+- At 18 Nov 2026 (the other golden tests): 1 missing payment, C242's October 2026 batch (was 7);
+  40 findings (46); 13 in the default view at 500K, 18 at 100K (19, 24); weekly median 10 days
+  over 31 dated findings (11 over 37), daily 13 (17).
+- Synthetic: the unpaid June 2026 C192 batch still fires (the older unpaid 2025 batches keep the
+  balance in credit); no synthetic or demo figure changes.
+- **Departure from the brief:** section 8 quotes the C192 September 2026 batch, expected by
+  21 Nov 2026, as a missing payment once it is due. The account is in debit, so with the check
+  on it is not raised. Its golden test checks the brief's values with the check off.
 Owner: team.
 
 **A23. Gap alert.** *Info.* Fires when the latest |gap| is at or above materiality. Its first
 signal is the month-end where the current unbroken run above materiality began (31 May 2025 for
 C192). Its evidence is the unmatched batches. Owner: team.
+
+**A43. A gap's direction and each account's normal side.** *Decided (review of 22 Nov 2026,
+fix 1; the departure from the brief signed off in the review of PR #73).* The review found that the C192 social-security gap read "Liability 1.84M above
+expected" with the note "check the unmatched accrual batches", which an accountant reads as
+"more is owed". On real data the opposite is true: at the end of Sep 2026 the account holds a
+debit balance of 1,324,638 against an expected credit of 513,823, so more was paid than
+accrued. The Exposure page also called every net "really still owed", including a prepaid
+asset (C192 179003).
+- New setting `Rules.account_normal_side`: a list of (ERP, account prefix, side); the longest
+  matching prefix wins. ASSUMPTION, pending mentor question 10: P20 1 = debit, 2 = credit;
+  BPP 1 and 2 = debit, 3 and 4 = credit; anything else is unknown and gets neutral wording.
+  This covers all 104 payroll accounts on the real Payroll workbook (none unknown) and both
+  Fixed assets accounts (P20 119001 and BPP 23900002, debit).
+- A gap is worded by its direction (balance minus expected: toward debit or toward credit)
+  and the account's normal side:
+  - credit-normal, toward credit: "Liability X above expected"; check the unmatched batches.
+  - credit-normal, toward debit: "Liability X below expected: more paid than accrued"; check
+    missing or late accruals, payments booked to the account by mistake, and whether a refund
+    is due. When the balance itself is a debit, the note adds "the account has a debit balance
+    of Y, the wrong side for a credit account".
+  - debit-normal accounts mirror this ("Asset X above expected" / "below expected: more used
+    up than booked"); an unknown side reads "Balance X more debit (credit) than expected".
+- The direction, normal side, balance side and suggested check are facts on the record
+  (`gap_direction`, `normal_side`, `balance_side`, `wrong_side_balance`, `gap_explained`,
+  `check`). The title, the template note (A29) and the model's prompt all use them;
+  `PROMPT_VERSION` moved to v4, so cached drafts are written again.
+- Exposure page: retitled "What's really still open". Each account's net says what it
+  means: "owed (credit)", "debit balance on a liability: paid more than booked" (in red),
+  "asset not yet used up", or "credit balance on an asset: used up more than booked" (in red).
+- **Departure from the brief:** the brief's example title "Liability 1.84M above expected" now
+  reads "Liability 1.84M below expected: more paid than accrued" on real data. The golden test
+  asserts the new title on purpose. The synthetic C192 gap still points toward credit (unpaid
+  batches), so it keeps "above expected". The gap stays first in the inbox.
+Owner: team.
+
+**A46. Open balances and balances on the wrong side.** *Decided (review of 22 Nov 2026,
+fix 4).* Three of the four "really open" accounts on the Exposure page had no finding that
+explained them: C242 34900001 (-6,497,211, the largest) linked to a repeated-posting card,
+C192 179003 (+679,839) to a period-label typo and C192 279014 (-649,069) to an outlier. Pulse
+covers two accounts only. Separately, no check looked for the "sign anomalies" the Payroll
+Summary tab asks about. Two finding types are added (`# ADDITION` in `schemas.py`), in
+`engines/balances.py`, Payroll only (A3 keeps Fixed assets out of netting and Pulse).
+- `open_balance`: one record per payroll netting group at or above materiality on an account
+  with no Pulse finding.
+  - Facts: net, the old report's absolute total, lines, paired lines, debit and credit
+    totals, normal side (A43), oldest and newest posting. Evidence: up to 10 documents that
+    move the net most (ASSUMPTION).
+  - The Exposure page links each account to its gap or open balance first, else to its
+    highest-scored finding.
+  - Lead time: today's ageing report already lists these lines one by one. Today's detection
+    is the first signal, with no lead days; the badge reads "In today's ageing report as N
+    lines; Okane shows the net". It is neither a blind spot nor part of the median.
+    ASSUMPTION: first signal = the day the newest of the lines turned overdue (posting date
+    plus its own allowed age). Lines without an allowed age are left out, never given 365
+    (the brief); if no line has one, the newest posting date is used (review of PR #73).
+  - Title by the normal side: "Liability X still owed after matching", "Asset X not yet used
+    up after matching", or "... in debit/credit" when the net is on the wrong side.
+- `wrong_side_balance`: the account's full balance (every open line, not only overdue ones)
+  sits on the wrong side of its normal side by at least materiality: a liability in debit or
+  an asset in credit.
+  - First signal: the posting date of the line after which the running balance last moved to
+    the wrong side. Today's detection: the close review (the type is in `CLOSE_REVIEW_TYPES`).
+  - Suggested class: Required Adjustment Item. It carries a "you may have made a mistake"
+    prompt. Evidence: up to 10 documents since that crossing that pushed the balance over.
+  - Where the account has a Pulse gap, the wrong-side fact (`wrong_side_since`) goes on the gap
+    record instead of a second record.
+- Severities in `Rules.error_type_severity`: wrong_side_balance 0.8, open_balance 0.6. Both are
+  shown in every report period (A40), like the other open balances.
+- Measured (real Payroll, analysis date 23 Oct 2026, account codes and account totals only):
+  - open_balance: 3 at 500K (BPP C242 34900001, P20 C192 179003, P20 C192 279014); 6 at 100K
+    (adding P20 C192 279001, P20 C192 279004, BPP C133 34900002).
+  - Wrong side at 500K: 6 accounts, BPP C242 48900004 (+36.4M), P20 C192 279002 (+2.96M), BPP
+    C242 34900009 (+2.80M), P20 C192 179004 (-2.64M, Advanced Salaries, Manual, in credit), BPP
+    C133 34900011 (+1.49M, tax withheld in debit) and P20 C192 279006 (+1.32M, onto the gap):
+    5 new records. At 100K add BPP C242 34900003 and P20 C172 279006.
+  - C192 179004 crossed to the wrong side in mid-October 2026, after a bot posting with a
+    share-payment text; S1 does not see it because its scope is people only (A1).
+  - The C192 gap stays first (79.4). Inbox at 23 Oct: 47 findings, 20 in "Above 500K",
+    median 11 days over 35 dated findings.
+- Synthetic: two open balances (C242 34900001 and C192 179003; C172 279006 at 100K), no wrong
+  side. The demo moves from 14 to 16 findings, "Above 500K" from 6 to 8 and to 9 at 100K
+  (docs/DEMO.md, `test_demo.py`).
+Owner: team.
 
 **A24. Spike.** *Info.* Needs at least 3 earlier batches in the trailing window; otherwise no
 median is computed. Real data: August 2026 for C192 (4.1x of 620,878), as expected, and
@@ -271,7 +431,8 @@ links to the highest-scored finding on its account). The inbox now says so.
 - Demo: step 3 reads "4 accounts remain"; at 100K the accounts grow from 4 to 7 (step 6) and the
   default view grows with the same limit.
 - Real Payroll (aggregates, as of 18 Nov 2026): 46 findings; default view 19 at 500K (24 at
-  100K), mistake prompts 17, repeated postings 6; the C192 gap is first. Synthetic: 14 findings,
+  100K), mistake prompts 17, repeated postings 6; the C192 gap is first. (Since A44: 40
+  findings, 13 at 500K, 18 at 100K.) Synthetic: 14 findings,
   6 in the default view. A live run uses the extract date (A38, 23 Oct 2026), when one fewer
   missing payment is due: 45 findings, 18 in the default view, so the demo header says 18.
   (Issue #21 counted 147 before the typo rule, the Miner and the missing-payment limit.)
@@ -330,6 +491,12 @@ screen is pending mentor question 8).*
   #16) it is caught 16 days before that month's close review (weekly view; 21 days counted from
   the posting date). The alternative candidate (Fixed assets P20 C218 119001 document
   7750001797) needs the Fixed assets workbook.
+- Pension provisions (review of 22 Nov 2026, fix 8): the S1 hits on BPP C242 48900003 (6,527x)
+  and 48900002 (57,769x) are 2019 postings whose text refers to the 2018 pension provision,
+  probably valid one-off provision bookings. `Rules.sentinel_s1_skip_no_overdue_accounts`
+  skips accounts whose allowed age is "No Overdue". **It stays off**: the 48900002 hit is the
+  brief's open-item-1 example (A2). Turned on, real Payroll goes from 11 to 9 hits (those two
+  accounts); with the Fixed assets workbook, 12 to 10. The team decides.
 Owner: team.
 
 **A4. S2 two currencies.** *Decided (#10).* S2 flags the same amount posted in different
@@ -433,6 +600,26 @@ the name "CC06" is dropped.
   by hand) and what fixing the source would remove, all read from the record's facts and
   labelled a hypothesis. The model-written text (A10, contract merged in #61 and #62) is
   still to be built.
+- Paired lines (review of 22 Nov 2026, fix 6): the top two Fixed assets cards were one routine,
+  "IC Winshuttle" on C102: VA accruals (44 months, +33.6M) and VC reversals (53 months,
+  -32.6M), shown as two findings with gross amounts although together they net to about 1M.
+  A switch, `Rules.miner_max_paired_share`, drops a pattern when that share or more of its
+  lines belong to an exact pair (`engines/pairs.py`, anywhere on the account). Every card's
+  amount is now the net of its unpaired lines (fact `unpaired_net_eur`; `paired_lines` is
+  shown), so a routine that nets to little shows a small amount either way.
+  - **Left off (1.0), decided in the review of PR #73.** At the proposed 0.5 the switch drops
+    every Fixed assets card: 9,980 of the 10,198 Fixed assets lines sit in exact pairs, so all
+    8 patterns at score 12+ are mostly pairs. An accrual and its reversal typed by hand every
+    month may also be exactly the repeated manual work the Miner exists to surface. The team
+    can turn it on from the Rules page.
+  - ASSUMPTION (when on): the whole pattern is dropped rather than only its paired lines, so a
+    routine and its reversal never leave two half-cards behind.
+  - Real Payroll: 6 cards at score 12 (16 at score 6, 4 at 20). At 0.5: 4 (13 at score 6); the
+    two dropped have 18 of 28 and 99 of 125 lines in exact pairs, the 4 kept at most 3 paired
+    lines each. With it on, the extract date has 2 fewer findings, 4 in the "Repeated
+    postings" tab instead of 6 and 7 blind spots instead of 9.
+  - Real Fixed assets: 8 cards (unchanged); 0 at 0.5.
+  - Synthetic: the demo card (C132 and C192 279030, 6 months) has no paired line and stays.
 Owner: team.
 
 ## Lead time and score
@@ -467,6 +654,13 @@ is pending mentor question 2).*
   (21 daily); under the earlier lead-time rule (month end + 5 calendar days, daily) it was 19.
 - Rejected: month end + 5 calendar days (it can fall on a weekend); a daily-only badge
   (overstates what a Monday run delivers by up to 6 days).
+- Replays (review of 22 Nov 2026, fix 7): Sentinel flagged 2019 postings "Caught N days before
+  the close review", a replay of the extract's history, not a catch. When today's detection
+  date lies before the analysis date, the badge now reads "Would have been caught N days
+  before ..." (fact `replay`), and the explanation says so. The median card is captioned
+  "replayed over the extract's history". A "New this week" tag (Inbox and Sentinel) and an
+  Inbox filter show findings first seen within `Rules.new_since_days` (7) before the analysis
+  date.
 Owner: team.
 
 **A9. Risk score.** *Decided (#18, 19 Nov 2026; the penalty-account list is pending mentor
@@ -538,6 +732,26 @@ moves into `Rules` (no behaviour change at the default). Owner: team.
   a failed call logs only the kind of error.
 - The top 3 findings (`ai_predraft_top`) are pre-drafted during a run when Ollama is reachable.
 
+Owner: team.
+
+**A45. Is the assistant running?** *Info (review of 22 Nov 2026, fix 3).* The review found
+no finding with a drafted note: every verifier said "not run", and "Write a draft for me" gave
+the standard wording. Cause: Ollama was not installed on the laptop the app ran on (nothing
+answered on :11434), so every note fell back to the labelled template (A29) without saying so
+anywhere. The settings were right (`ai_enabled` on, `qwen2.5:7b-instruct`, the default URL,
+no `backend/.env`).
+- `GET /api/assistant` says whether the assistant can draft notes: "on" when Ollama answers
+  and the configured model is pulled, "offline" when Ollama does not answer or lacks the
+  model (with the reason), "off" when `ai_enabled` is false.
+- `GET /api/health` stays a bare liveness probe (`{"status": "ok"}`), decided in the review of
+  PR #73: the hosted demo leaves it open without a password and pings it to stay awake (A41),
+  so it must not show the model's name or state, nor call the model server on every check.
+- The run dock shows "Assistant on (model)" or "Assistant offline: notes use standard
+  wording", checked again every minute. The practice-data page (A41) has no model and says
+  offline.
+- Installing Ollama and pulling the model is a step on the demo laptop, not in the code
+  (`make ollama-check` reports it). Once a model answers, a run pre-drafts the top 3 findings
+  (`ai_predraft_top`).
 Owner: team.
 
 **A28. Verifier rule.** *Info (updated in #29).* The verifier runs on the comment after the
@@ -722,3 +936,4 @@ Status values: `drafted, not yet sent`, `asked`, `answered`, `no answer, default
 | 7 | May masked single findings go to a cloud model, or must the model stay local? | #28 (then #29 to #32) | drafted, not yet sent | Local model only (Ollama), as the data notice requires (A10) | | |
 | 8 | May the video and deck show the real (scaled) data, or must they use the synthetic sample? | #25 (then #26, #37, #38) | drafted, not yet sent | Synthetic sample on screen; real figures only as the aggregates the brief quotes | | |
 | 9 | How the extract reaches the team today, whether a weekly extract is realistic, and whether real data may sit in a cloud folder during the hackathon | #23 (then #24, #25) | no answer, default applied | Issue #23's recommendation: an upload page in Okane for the demo, the local watched folder kept, no real data in the cloud; a cloud connector shown in the deck as the production route | Default applied in #23 (A38); revisit A38 if the mentor answers, especially on cloud folders | 19 Nov 2026 |
+| 10 | Which side each payroll account normally sits on: are P20 1xxxxx and BPP 1x/2x accounts assets (debit) and P20 2xxxxx and BPP 3x/4x accounts liabilities (credit)? | Review of 22 Nov 2026, fixes 1 and 4 | drafted, not yet sent | The prefix rule in A43 | | |

@@ -109,6 +109,182 @@ def test_netting_uses_overdue_lines_and_live_materiality() -> None:
     assert payroll_netting(lines, materiality_eur=100).groups_above() == 2
 
 
+@pytest.mark.parametrize(
+    ("erp", "account", "side"),
+    [
+        ("P20", "279006", "credit"), ("P20", "179003", "debit"), ("BPP", "34900015", "credit"),
+        ("BPP", "48900004", "credit"), ("BPP", "23900002", "debit"), ("BPP", "13900001", "debit"),
+        ("P20", "119001", "debit"), ("P20", "999999", "unknown"),
+    ],
+)  # fmt: skip
+def test_normal_side_by_prefix(erp: str, account: str, side: str) -> None:
+    from app.engines import normal_side
+
+    assert normal_side(Rules(), erp, account) == side
+
+
+def test_normal_side_longest_prefix_wins() -> None:
+    from app.engines import normal_side
+    from app.schemas import NormalSide
+
+    rules = Rules(
+        account_normal_side=[
+            NormalSide(erp="P20", account_prefix="2", side="credit"),
+            NormalSide(erp="P20", account_prefix="279", side="debit"),
+        ]
+    )
+    assert normal_side(rules, "P20", "279006") == "debit"
+    assert normal_side(rules, "P20", "200001") == "credit"
+
+
+@pytest.mark.parametrize(
+    ("side", "gap", "balance", "title", "wrong"),
+    [
+        ("credit", -1_838_462, -2_000_000, "Liability 1.84M above expected", "no"),
+        ("credit", 1_838_462, 1_324_638, "Liability 1.84M below expected: more paid than accrued",
+         "yes"),
+        ("credit", 600_000, -100_000, "Liability 600K below expected: more paid than accrued",
+         "no"),
+        ("debit", 700_000, 900_000, "Asset 700K above expected", "no"),
+        ("debit", -700_000, -50_000, "Asset 700K below expected: more used up than booked", "yes"),
+        ("unknown", 700_000, 900_000, "Balance 700K more debit than expected", "no"),
+    ],
+)  # fmt: skip
+def test_gap_wording_by_direction_and_side(
+    side: str, gap: float, balance: float, title: str, wrong: str
+) -> None:
+    from app.engines import gap_wording
+
+    words = gap_wording(gap, balance, side)
+    assert words["title"] == title
+    assert words["wrong_side_balance"] == wrong
+    assert words["gap_direction"] == ("toward debit" if gap > 0 else "toward credit")
+
+
+def test_netting_groups_carry_normal_side() -> None:
+    lines = frame([
+        {"account": "279006", "amount_dc": 900.0, "overdue_abs": 900.0},
+        {"account": "179003", "amount_dc": 900.0, "overdue_abs": 900.0},
+    ])  # fmt: skip
+    sides = {g.account: g.normal_side for g in payroll_netting(lines, 500).groups}
+    assert sides == {"279006": "credit", "179003": "debit"}
+
+
+def test_wrong_side_balance_first_signal_is_the_last_crossing() -> None:
+    """A46: a liability (credit-normal) that went into debit, back to credit, then into debit
+    again is flagged from the last crossing; one with a Pulse gap gets no second record."""
+    from app.engines.balances import run_balances
+
+    lines = frame([
+        {"account": "279002", "amount_dc": 800.0, "posting_date": date(2026, 1, 10)},
+        {"account": "279002", "amount_dc": -900.0, "posting_date": date(2026, 2, 10)},
+        {"account": "279002", "amount_dc": 700.0, "posting_date": date(2026, 9, 15)},
+        {"account": "279002", "amount_dc": 400.0, "posting_date": date(2026, 10, 1)},
+        {"account": "179004", "amount_dc": 900.0, "posting_date": date(2026, 3, 1)},  # normal
+    ])  # fmt: skip
+    _, new = run_balances(lines, Rules(materiality_eur=500), [])
+    [record] = [r for r in new if r.type == "wrong_side_balance"]
+    assert (record.account, record.first_signal, record.exposure_eur) == (
+        "279002", date(2026, 9, 15), 1_000.0)  # fmt: skip
+    assert record.title == "Liability in debit: 1K on the wrong side"
+    gap = _finding(type_="pulse_gap", account="279002")
+    updated, new = run_balances(lines, Rules(materiality_eur=500), [gap])
+    assert not [r for r in new if r.type == "wrong_side_balance"]
+    assert updated[0].facts["wrong_side_since"] == "2026-09-15"
+
+
+def test_open_balance_skips_accounts_pulse_covers() -> None:
+    """A46: an open net on an account Pulse covers is explained by the Pulse finding."""
+    from app.engines.balances import run_balances
+
+    lines = frame([
+        {"account": "279014", "amount_dc": -900.0, "overdue_abs": 900.0},
+        {"account": "279006", "amount_dc": -900.0, "overdue_abs": 900.0},
+    ])  # fmt: skip
+    pulse = [_finding(type_="pulse_missing_batch", account="279006")]
+    _, new = run_balances(lines, Rules(materiality_eur=500), pulse)
+    opened = [r for r in new if r.type == "open_balance"]
+    assert [(r.account, r.exposure_eur, r.title) for r in opened] == [
+        ("279014", -900.0, "Liability 900 still owed after matching")]  # fmt: skip
+
+
+def test_open_balance_first_signal_uses_each_lines_allowed_age() -> None:
+    """A46 (review of PR #73): the first signal is the day the newest line turned overdue, by
+    its own allowed age; a line without one is left out, never given 365."""
+    from app.engines.balances import run_balances
+
+    lines = frame([
+        {"account": "279014", "amount_dc": -900.0, "overdue_abs": 900.0, "allowed_age": 30,
+         "posting_date": date(2026, 1, 10)},
+        {"account": "279014", "amount_dc": -900.0, "overdue_abs": 900.0, "allowed_age": None,
+         "posting_date": date(2026, 6, 10)},
+        {"account": "279015", "amount_dc": -900.0, "overdue_abs": 900.0, "allowed_age": None,
+         "posting_date": date(2026, 3, 5)},
+    ])  # fmt: skip
+    _, new = run_balances(lines, Rules(materiality_eur=500), [])
+    first = {r.account: r.first_signal for r in new if r.type == "open_balance"}
+    assert first == {"279014": date(2026, 2, 9), "279015": date(2026, 3, 5)}
+
+
+def test_miner_drops_patterns_that_are_mostly_exact_pairs() -> None:
+    """A7 (review of 22 Nov 2026): an accrual and its reversal typed by hand every month pair up
+    line for line; with the switch on (0.5) the pattern is dropped. A one-sided pattern stays,
+    its exposure the net of its unpaired lines. The switch is off by default (review of PR #73)."""
+    from app.engines.miner import run_miner
+
+    rows: list[dict[str, object]] = []
+    for month in range(1, 7):
+        for entity in ("C101", "C102"):
+            for sign in (1, -1):  # the accrual and its reversal
+                rows.append({"entity": entity, "account": "119001",
+                             "amount_dc": sign * 1000.0 * month,
+                             "posting_date": date(2026, month, 10 + (sign < 0)),
+                             "user_name": "USER_901", "header_text": "IC accrual",
+                             "doc_type": "SA"})  # fmt: skip
+            rows.append({"entity": entity, "account": "279030", "amount_dc": 50.0 * month,
+                         "posting_date": date(2026, month, 20), "user_name": "USER_902",
+                         "header_text": "Corr. reclass", "doc_type": "SA"})  # fmt: skip
+    for entity in ("C101", "C102"):  # one accrual not reversed yet, per company code
+        rows.append({"entity": entity, "account": "119001", "amount_dc": 777.0,
+                     "posting_date": date(2026, 6, 25), "user_name": "USER_901",
+                     "header_text": "IC accrual", "doc_type": "SA"})  # fmt: skip
+    lines = frame(rows)
+    cards = run_miner(lines, Rules(miner_max_paired_share=0.5))
+    assert [c.account for c in cards] == ["279030"]
+    assert cards[0].exposure_eur == 2 * 50.0 * sum(range(1, 7))
+    assert cards[0].facts["paired_lines"] == 0
+    everything = run_miner(lines, Rules())  # the rule is off by default (A7)
+    assert sorted(c.account for c in everything) == ["119001", "279030"]
+    routine = next(c for c in everything if c.account == "119001")
+    assert routine.exposure_eur == 2 * 777.0, "only the accruals not reversed are left"
+
+
+def test_gap_note_and_prompt_use_the_direction() -> None:
+    from app.ai.prompts import next_check, template_comment, user_prompt
+    from app.engines import gap_wording
+
+    words = gap_wording(1_838_461.53, 1_324_638.17, "credit")
+    record = _finding(exposure=1_838_461.53).model_copy(
+        update={
+            "type": "pulse_gap",
+            "facts": {
+                "gap_eur": 1_838_461.53, "balance_eur": 1_324_638.17,
+                "balance_abs_eur": 1_324_638.17, "expected_eur": -513_823.36,
+                "latest_month": "2026-09", "since_month": "2025-05",
+                "lowest_gap_eur": 1_058_373.0, "lowest_gap_month": "2025-07",
+                **{k: v for k, v in words.items() if k != "title"},
+            },
+        }
+    )  # fmt: skip
+    note = template_comment(record)
+    assert "more was paid than accrued" in note
+    assert "debit balance of 1,324,638 EUR" in note
+    assert "unmatched accrual batches" not in note
+    assert next_check(record).startswith("missing or late accruals")
+    prompt = user_prompt(record)
+    assert "more was paid than accrued" in prompt and "missing or late accruals" in prompt
+
+
 # ----- pulse --------------------------------------------------------------------------------
 @pytest.mark.parametrize(
     ("text", "expected"),
@@ -244,6 +420,69 @@ def test_missing_payment_lookback() -> None:
         Rules(missing_payment_lookback_months=0)
 
 
+def _june_lines(june_paid: float | None) -> pd.DataFrame:
+    """Six 600,000 batches in 2026, each paid 30 days after month end, except June: paid
+    ``june_paid`` (outside the tolerance, so it never matches) or not at all."""
+    rows: list[dict[str, object]] = []
+    for month in range(1, 7):
+        end = date(2026, month, 28 if month == 2 else 30 if month in (4, 6) else 31)
+        rows.append({"text": f"Payroll2026{month:02d}", "amount_dc": -600_000.0,
+                     "posting_date": end, "document_no": f"10000000{month:02d}"})  # fmt: skip
+        paid = 600_000.0 if month < 6 else june_paid
+        if paid:
+            rows.append({"text": "URSSAF", "amount_dc": paid,
+                         "posting_date": end + pd.Timedelta(days=30),
+                         "document_no": f"20000000{month:02d}"})  # fmt: skip
+    for row in rows:
+        row["posting_date"] = pd.Timestamp(row["posting_date"]).date()  # type: ignore[arg-type]
+    return frame(rows)
+
+
+@pytest.mark.parametrize(
+    ("june_paid", "check", "expected"),
+    [
+        (None, True, ("No payment found for the 2026-06 batch", -600_000.0)),
+        (660_000.0, True, None),  # paid 10% more than booked: the balance is in debit
+        (300_000.0, True, ("Payment short by 300K on the 2026-06 batch", -300_000.0)),
+        (660_000.0, False, ("No payment found for the 2026-06 batch", -600_000.0)),
+    ],
+)  # fmt: skip
+def test_missing_payment_balance_check(
+    june_paid: float | None, check: bool, expected: tuple[str, float] | None
+) -> None:
+    """A44: a batch the account's balance shows as paid is not raised; a part paid batch is
+    raised for what the balance still holds."""
+    rules = Rules(
+        materiality_eur=100, payment_profiles=[_profile()], missing_payment_balance_check=check
+    )
+    records = run_pulse(_june_lines(june_paid), rules, date(2026, 10, 23)).records
+    missing = [(r.title, r.exposure_eur) for r in records if r.type == "pulse_missing_payment"]
+    assert missing == ([expected] if expected else [])
+
+
+def test_balance_check_ignores_later_batches_already_paid() -> None:
+    """A44 (review of PR #73): April 2026 is unpaid. On its check date (30 Jun) May's batch is
+    accrued and already paid, so only June's credit, not yet due, is set against the balance;
+    April is still raised for the whole batch. Each month's amount differs, so a payment can
+    only settle its own batch."""
+    rows: list[dict[str, object]] = []
+    for month in range(1, 7):
+        end = date(2026, month, 30 if month in (4, 6) else 28 if month == 2 else 31)
+        amount = 500_000.0 + 50_000.0 * month
+        rows.append({"text": f"Payroll2026{month:02d}", "amount_dc": -amount,
+                     "posting_date": end, "document_no": f"10000000{month:02d}"})  # fmt: skip
+        if month != 4:
+            paid_on = (pd.Timestamp(end) + pd.Timedelta(days=30)).date()
+            rows.append({"text": "URSSAF", "amount_dc": amount, "posting_date": paid_on,
+                         "document_no": f"20000000{month:02d}"})  # fmt: skip
+    rules = Rules(materiality_eur=100, payment_profiles=[_profile()])
+    records = run_pulse(frame(rows), rules, date(2026, 10, 23)).records
+    missing = [r for r in records if r.type == "pulse_missing_payment"]
+    assert [(r.title, r.exposure_eur) for r in missing] == [
+        ("No payment found for the 2026-04 batch", -700_000.0)]  # fmt: skip
+    assert missing[0].facts["later_batches_not_due_eur"] == 800_000.0  # June only, not May
+
+
 def test_months_before_clamps_to_month_end() -> None:
     assert months_before(date(2026, 11, 18), 12) == date(2025, 11, 18)
     assert months_before(date(2026, 3, 31), 1) == date(2026, 2, 28)
@@ -280,6 +519,17 @@ def test_s1_scope_options() -> None:
     assert len(outlier_hits(lines, rules, "all")) == 3
     assert len(outlier_hits(lines, rules, "people_only")) == 1
     assert len(outlier_hits(lines, rules, "exempt_bot_upload")) == 2
+
+
+def test_s1_can_skip_no_overdue_accounts() -> None:
+    """A1 (review of 22 Nov 2026, fix 8): off by default; on, a "No Overdue" account (no
+    allowed age, pension-type) is skipped."""
+    lines = _sentinel_lines().assign(allowed_age=None)
+    rules = Rules(outlier_multiple=1000)
+    assert len(outlier_hits(lines, rules)) == 1
+    skipping = rules.model_copy(update={"sentinel_s1_skip_no_overdue_accounts": True})
+    assert len(outlier_hits(lines, skipping)) == 0
+    assert len(outlier_hits(_sentinel_lines(), skipping)) == 1, "a 365-day account is checked"
 
 
 def test_s1_records_carry_evidence_and_rule() -> None:
@@ -586,6 +836,19 @@ def test_badge_text() -> None:
     assert badge_text(310, "ageing", 365) == "Caught 310 days before the 365-day ageing rule"
     assert badge_text(-2, "close_review", 365) == "Seen 2 days after the close review"
     assert badge_text(None, "never", None) == "Today's process would miss this"
+    replay = badge_text(7, "close_review", 365, replay=True)
+    assert replay == "Would have been caught 7 days before the close review"
+
+
+def test_lead_time_marks_a_replay_before_the_analysis_date() -> None:
+    """Fix 7: today's process would already have seen it before the analysis date."""
+    record = _finding(facts={"posting_date": "2026-06-10"})  # close review early July 2026
+    lines = frame([{"account": "279006"}])
+    early = apply_lead_time([record], lines, Rules(), date(2026, 6, 30))[0]
+    late = apply_lead_time([record], lines, Rules(), date(2026, 10, 23))[0]
+    assert str(early.facts["lead_badge"]).startswith("Caught ")
+    assert str(late.facts["lead_badge"]).startswith("Would have been caught ")
+    assert late.facts["replay"] == "yes" and "replay" not in early.facts
 
 
 def test_lead_time_by_basis() -> None:
@@ -972,6 +1235,32 @@ def _mock_ollama(replies: list[str], calls: list[dict]):  # type: ignore[no-unty
         return httpx.Response(200, json={"message": {"role": "assistant", "content": content}})
 
     return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+@pytest.mark.parametrize(
+    ("enabled", "tags", "state", "reason"),
+    [
+        (True, {"models": [{"name": "qwen2.5:7b-instruct"}]}, "on", None),
+        (True, {"models": [{"name": "llama3:8b"}]}, "offline", "the model is not installed"),
+        (True, None, "offline", "the local model server does not answer"),
+        (False, None, "off", "turned off in settings"),
+    ],
+)  # fmt: skip
+def test_assistant_status(enabled: bool, tags: dict | None, state: str, reason: str | None) -> None:  # type: ignore[type-arg]
+    """A45: the run dock says whether the assistant drafts notes."""
+    import httpx
+
+    from app.ai.client import assistant_status
+    from app.config import Settings
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if tags is None:
+            raise httpx.ConnectError("refused", request=request)
+        return httpx.Response(200, json=tags)
+
+    http = httpx.Client(transport=httpx.MockTransport(handler))
+    status = assistant_status(Settings(ai_enabled=enabled), http)
+    assert (status.assistant, status.model, status.reason) == (state, "qwen2.5:7b-instruct", reason)
 
 
 def _reply(text: str) -> str:

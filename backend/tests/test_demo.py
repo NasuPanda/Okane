@@ -69,7 +69,7 @@ def walk_demo_path(client: TestClient, payroll: Path) -> None:
     kpis = client.get("/api/kpis").json()
     assert kpis["old_rule_lines"] == 72
     assert round(kpis["old_rule_overdue_abs"] / 1e6, 2) == 11.36
-    assert kpis["exceptions"] == 13
+    assert kpis["exceptions"] == 15
 
     # Step 2, upload this week's Payroll extract: a run starts, the extract is dated 23 Oct.
     response = client.post(
@@ -83,11 +83,15 @@ def walk_demo_path(client: TestClient, payroll: Path) -> None:
     payroll_source = sources["Payroll"]
     assert (payroll_source["route"], payroll_source["extract_date"]) == ("upload", "2026-10-23")
 
-    # Step 3, real exposure: 3 of 6 accounts remain at 500K; 6 findings need a look first.
+    # Step 3, real exposure: 3 of 6 accounts remain at 500K; 8 findings need a look first.
+    # Each remaining account opens a finding about its own balance (A46).
     exposure = client.get("/api/exposure/payroll").json()
     assert (exposure["groups_above"], len(exposure["groups"])) == (3, 6)
+    linked = [g["exception_id"] for g in exposure["groups"] if g["above_materiality"]]
+    kinds = {r["id"]: r["type"] for r in client.get("/api/exceptions").json()}
+    assert sorted(kinds[i] for i in linked) == ["open_balance", "open_balance", "pulse_gap"]
     kpis = client.get("/api/kpis").json()
-    assert (kpis["exceptions"], kpis["inbox_views"]["attention"]) == (14, 6)
+    assert (kpis["exceptions"], kpis["inbox_views"]["attention"]) == (16, 8)
     assert kpis["inbox_views"]["prompts"] == 3 and kpis["inbox_views"]["repeats"] == 1
     assert kpis["median_days_earlier"] == 16  # closing line: "Spotted earlier by"
 
@@ -131,7 +135,7 @@ def walk_demo_path(client: TestClient, payroll: Path) -> None:
     assert client.put("/api/rules", json=body).status_code == 200
     _wait(client)
     assert client.get("/api/exposure/payroll").json()["groups_above"] == 4
-    assert client.get("/api/kpis").json()["inbox_views"]["attention"] == 6
+    assert client.get("/api/kpis").json()["inbox_views"]["attention"] == 9
     [entry] = client.get("/api/rules/log").json()
     assert (entry["field"], entry["reason"]) == ("materiality_eur", "Quarter-end review")
     top = client.get("/api/exceptions", params={"view": "attention"}).json()[0]

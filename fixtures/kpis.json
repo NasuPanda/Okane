@@ -2,9 +2,9 @@
  "synthetic": true,
  "generated_at": "2026-11-18",
  "data": {
-  "run_id": "run_20261120T153716_18ac98",
-  "exceptions": 14,
-  "open_exceptions": 14,
+  "run_id": "run_20261122T170128_9aaf3d",
+  "exceptions": 16,
+  "open_exceptions": 16,
   "median_days_earlier": 16.0,
   "blind_spots": 3,
   "by_type": {
@@ -12,6 +12,7 @@
    "pulse_spike": 1,
    "pulse_missing_payment": 1,
    "sentinel_outlier": 2,
+   "open_balance": 2,
    "label_mismatch": 1,
    "typo": 2,
    "pulse_missing_batch": 1,
@@ -23,11 +24,11 @@
   "old_rule_overdue_abs": 11358855.29,
   "exposure_groups_above": 3,
   "inbox_views": {
-   "attention": 6,
+   "attention": 8,
    "prompts": 3,
    "repeats": 1,
    "other": 4,
-   "all": 14
+   "all": 16
   }
  }
 }

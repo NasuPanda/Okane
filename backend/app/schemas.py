@@ -24,6 +24,10 @@ ExceptionType = Literal[
     "sentinel_reversal",
     "typo",
     "miner_cluster",
+    # ADDITION (review of 22 Nov 2026, fix 4, docs/ASSUMPTIONS.md A46): a netting group at or
+    # above materiality with no Pulse finding, and a full balance on the wrong side.
+    "open_balance",
+    "wrong_side_balance",
 ]
 Workgroup = Literal["Payroll", "Fixed assets"]
 Erp = Literal["P20", "BPP"]
@@ -156,6 +160,35 @@ def default_payment_profiles() -> list[PaymentProfile]:
     ]
 
 
+Side = Literal["debit", "credit"]
+
+
+class NormalSide(BaseModel):
+    """ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A43): the side an account's balance
+    normally sits on, for every account of one ERP whose number starts with ``account_prefix``.
+    The longest matching prefix wins; an account no entry matches has an unknown side."""
+
+    erp: Erp
+    account_prefix: str = Field(min_length=1)
+    side: Side
+
+
+def default_normal_sides() -> list[NormalSide]:
+    """ASSUMPTION (A43): the chart-of-accounts ranges, pending mentor question 10.
+
+    P20: 1xxxxx assets (debit), 2xxxxx liabilities (credit). BPP: 1x and 2x assets (debit),
+    3x and 4x liabilities (credit). Fits every payroll account and both Fixed assets accounts.
+    """
+    return [
+        NormalSide(erp="P20", account_prefix="1", side="debit"),
+        NormalSide(erp="P20", account_prefix="2", side="credit"),
+        NormalSide(erp="BPP", account_prefix="1", side="debit"),
+        NormalSide(erp="BPP", account_prefix="2", side="debit"),
+        NormalSide(erp="BPP", account_prefix="3", side="credit"),
+        NormalSide(erp="BPP", account_prefix="4", side="credit"),
+    ]
+
+
 class Rules(BaseModel):
     """Controller-set parameters. Brief fields first; every engine threshold lives here."""
 
@@ -183,9 +216,17 @@ class Rules(BaseModel):
     # date falls within this many months before the run date; older unmatched batches stay
     # listed on the gap alert. Decided in #20 (docs/ASSUMPTIONS.md A15).
     missing_payment_lookback_months: int = Field(default=12, ge=1)
+    # ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A15, A44): before a missing payment
+    # is raised, the account's own open credit balance must still hold the batch (less the
+    # credits of later batches not yet due); a batch the balance shows as paid is not raised.
+    missing_payment_balance_check: bool = True
     # ADDITION (brief open item 2): which lines Sentinel S1 may flag. Decided in #9
     # (docs/ASSUMPTIONS.md A1): person-posted lines only.
     sentinel_s1_scope: Literal["people_only", "exempt_bot_upload", "all"] = "people_only"
+    # ADDITION (review of 22 Nov 2026, fix 8, docs/ASSUMPTIONS.md A1): True skips S1 on accounts
+    # whose allowed age is "No Overdue" (pension-type provisions, where large one-off bookings
+    # are normal). Off: the brief's open-item-1 example (A2) is on such an account.
+    sentinel_s1_skip_no_overdue_accounts: bool = False
     # ADDITION (#16, docs/ASSUMPTIONS.md A8): today's close review falls on this working day
     # after month end. Working days are Monday to Friday minus close_review_holidays. (This
     # replaces close_review_days, month end + 5 calendar days; saved rules that still carry
@@ -224,6 +265,12 @@ class Rules(BaseModel):
     # ADDITION (#14, A7): True = the person who posted is part of the fingerprint (the original
     # rule); False = the same header text by anyone on the account forms one pattern.
     miner_by_user: bool = True
+    # ADDITION (review of 22 Nov 2026, fix 6, docs/ASSUMPTIONS.md A7): a pattern whose lines
+    # mostly cancel in exact pairs (an accrual and its reversal) is a routine, not a repeated
+    # correction; it is dropped when this share of its lines or more is paired. 1.0 = off (the
+    # default, decided in the review of PR #73: on, it drops every Fixed assets card); 0.5 is
+    # the proposed setting.
+    miner_max_paired_share: float = Field(default=1.0, gt=0, le=1)
     # ADDITION / ASSUMPTION: risk score scaling.
     penalty_accounts: list[str] = Field(default_factory=lambda: ["P20/C192/279006"])
     exposure_cap_multiple: float = 5.0
@@ -234,6 +281,21 @@ class Rules(BaseModel):
     # ADDITION (#21, A25): finding types shown in the inbox's default view whatever their amount
     # (a missing payroll batch has no amount because it was never booked).
     inbox_always_types: list[ExceptionType] = Field(default_factory=lambda: ["pulse_missing_batch"])
+    # ADDITION (review of 22 Nov 2026, fix 5, docs/ASSUMPTIONS.md A47): on the Fixed assets
+    # view, unpaired lines posted within this many days of the extract are this month's
+    # accruals (timing); older unpaired lines never matched.
+    fa_recent_days: int = Field(default=60, ge=1)
+    # ADDITION (A47, A11): local currencies whose EUR rate is not yet confirmed; their EUR
+    # figures are shown as "estimated rate".
+    unconfirmed_rate_currencies: list[str] = Field(
+        default_factory=lambda: ["JPY", "PLN", "USD", "CNY"]
+    )
+    # ADDITION (review of 22 Nov 2026, fix 7, docs/ASSUMPTIONS.md A8): a finding is "new this
+    # week" when its first signal falls within this many days before the analysis date.
+    new_since_days: int = Field(default=7, ge=1)
+    # ADDITION (A43): each account's normal side, by ERP and account-number prefix. Used to
+    # word a gap by direction ("more paid than accrued") and to label the Exposure page.
+    account_normal_side: list[NormalSide] = Field(default_factory=default_normal_sides)
     error_type_severity: dict[str, float] = {
         "pulse_gap": 1.0,
         "pulse_missing_payment": 0.9,
@@ -246,6 +308,10 @@ class Rules(BaseModel):
         "pulse_spike": 0.5,
         "miner_cluster": 0.4,
         "typo": 0.2,
+        # ADDITION (A46): a liability in debit or an asset in credit is a likely posting error;
+        # an open net is real exposure the ageing report already lists line by line.
+        "wrong_side_balance": 0.8,
+        "open_balance": 0.6,
     }
 
 
@@ -471,6 +537,9 @@ class ExposureGroup(BaseModel):
     paired_lines: int
     above_materiality: bool
     exception_id: str | None = None
+    # ADDITION (A43): the account's normal side, "debit", "credit" or "unknown", so the Exposure
+    # page can say whether the net is owed, an asset not yet used up, or on the wrong side.
+    normal_side: str = "unknown"
 
 
 class ExposureResponse(BaseModel):
@@ -483,6 +552,62 @@ class ExposureResponse(BaseModel):
     net_eur: float
     groups_above: int
     groups: list[ExposureGroup]
+
+
+class AssistantState(BaseModel):
+    """ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/assistant.
+
+    ``assistant``: "on" when Ollama answers and the configured model is pulled; "offline" when
+    it is enabled but Ollama does not answer or lacks the model; "off" when disabled in the
+    settings. Without the assistant, notes use the labelled standard wording (A29). Kept apart
+    from the liveness probe ``/api/health``, which is open without a password on the hosted
+    demo (A41) and must not call out to the model server.
+    """
+
+    assistant: Literal["on", "offline", "off"]
+    model: str
+    reason: str | None = None
+
+
+class FixedAssetGroup(BaseModel):
+    """ADDITION (A47): one Fixed assets ERP, entity and account after exact pairing."""
+
+    erp: Erp
+    entity: str
+    account: str
+    account_name: str | None
+    currency_lc: str
+    lines: int
+    zero_amount_lines: int  # amount in document currency 0: FX valuations, never paired
+    paired_lines: int
+    recent_lines: int  # unpaired, posted within Rules.fa_recent_days of the extract
+    recent_net_lc: float
+    recent_net_eur: float
+    older_lines: int  # unpaired and older
+    older_net_lc: float
+    older_net_eur: float
+    # Exchange differences: FX valuations plus what exact pairs (matched in document currency)
+    # leave in local currency and EUR. net = recent + older + fx (review of PR #73).
+    fx_net_lc: float = 0.0
+    fx_net_eur: float = 0.0
+    net_lc: float
+    net_eur: float
+    estimated_rate: bool  # the EUR rate of currency_lc is not yet confirmed (A11)
+
+
+class FixedAssetExposure(BaseModel):
+    """ADDITION (A47): GET /api/exposure/fixed-assets, what is really open in Fixed assets."""
+
+    run_id: str
+    extract_date: date | None
+    recent_days: int
+    lines: int
+    zero_amount_lines: int
+    paired_lines: int
+    recent_lines: int
+    older_lines: int
+    net_eur: float
+    groups: list[FixedAssetGroup]
 
 
 class Kpis(BaseModel):

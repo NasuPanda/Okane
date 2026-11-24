@@ -243,7 +243,9 @@
                     "sentinel_currency_code",
                     "sentinel_reversal",
                     "typo",
-                    "miner_cluster"
+                    "miner_cluster",
+                    "open_balance",
+                    "wrong_side_balance"
                   ],
                   "type": "string"
                 },
@@ -579,6 +581,28 @@
         }
       }
     },
+    "/api/exposure/fixed-assets": {
+      "get": {
+        "tags": [
+          "exposure"
+        ],
+        "summary": "Fixed Assets Exposure",
+        "description": "Fixed assets after exact pairing, per ERP and entity (A47). Pairing runs in\n``engines/pairs.py``; this endpoint adds no matching of its own.",
+        "operationId": "fixed_assets_exposure_api_exposure_fixed_assets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FixedAssetExposure"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pulse/accounts": {
       "get": {
         "tags": [
@@ -782,7 +806,7 @@
           "meta"
         ],
         "summary": "Health",
-        "description": "Liveness probe.",
+        "description": "Liveness probe. It calls nothing else: the hosted demo leaves it open (A41).",
         "operationId": "health_api_health_get",
         "responses": {
           "200": {
@@ -801,10 +825,67 @@
           }
         }
       }
+    },
+    "/api/assistant": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Assistant",
+        "description": "Whether the assistant can draft notes (A45).",
+        "operationId": "assistant_api_assistant_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantState"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AssistantState": {
+        "properties": {
+          "assistant": {
+            "type": "string",
+            "enum": [
+              "on",
+              "offline",
+              "off"
+            ],
+            "title": "Assistant"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assistant",
+          "model"
+        ],
+        "title": "AssistantState",
+        "description": "ADDITION (review of 22 Nov 2026, fix 3, docs/ASSUMPTIONS.md A45): GET /api/assistant.\n\n``assistant``: \"on\" when Ollama answers and the configured model is pulled; \"offline\" when\nit is enabled but Ollama does not answer or lacks the model; \"off\" when disabled in the\nsettings. Without the assistant, notes use the labelled standard wording (A29). Kept apart\nfrom the liveness probe ``/api/health``, which is open without a password on the hosted\ndemo (A41) and must not call out to the model server."
+      },
       "BatchMatch": {
         "properties": {
           "period": {
@@ -1302,7 +1383,9 @@
               "sentinel_currency_code",
               "sentinel_reversal",
               "typo",
-              "miner_cluster"
+              "miner_cluster",
+              "open_balance",
+              "wrong_side_balance"
             ],
             "title": "Type"
           },
@@ -1614,6 +1697,11 @@
               }
             ],
             "title": "Exception Id"
+          },
+          "normal_side": {
+            "type": "string",
+            "title": "Normal Side",
+            "default": "unknown"
           }
         },
         "type": "object",
@@ -1781,6 +1869,191 @@
         "title": "ExtractSource",
         "description": "ADDITION (#24, A38): one workbook a run read, with where it came from."
       },
+      "FixedAssetExposure": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "extract_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extract Date"
+          },
+          "recent_days": {
+            "type": "integer",
+            "title": "Recent Days"
+          },
+          "lines": {
+            "type": "integer",
+            "title": "Lines"
+          },
+          "zero_amount_lines": {
+            "type": "integer",
+            "title": "Zero Amount Lines"
+          },
+          "paired_lines": {
+            "type": "integer",
+            "title": "Paired Lines"
+          },
+          "recent_lines": {
+            "type": "integer",
+            "title": "Recent Lines"
+          },
+          "older_lines": {
+            "type": "integer",
+            "title": "Older Lines"
+          },
+          "net_eur": {
+            "type": "number",
+            "title": "Net Eur"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/FixedAssetGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "extract_date",
+          "recent_days",
+          "lines",
+          "zero_amount_lines",
+          "paired_lines",
+          "recent_lines",
+          "older_lines",
+          "net_eur",
+          "groups"
+        ],
+        "title": "FixedAssetExposure",
+        "description": "ADDITION (A47): GET /api/exposure/fixed-assets, what is really open in Fixed assets."
+      },
+      "FixedAssetGroup": {
+        "properties": {
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "account": {
+            "type": "string",
+            "title": "Account"
+          },
+          "account_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Name"
+          },
+          "currency_lc": {
+            "type": "string",
+            "title": "Currency Lc"
+          },
+          "lines": {
+            "type": "integer",
+            "title": "Lines"
+          },
+          "zero_amount_lines": {
+            "type": "integer",
+            "title": "Zero Amount Lines"
+          },
+          "paired_lines": {
+            "type": "integer",
+            "title": "Paired Lines"
+          },
+          "recent_lines": {
+            "type": "integer",
+            "title": "Recent Lines"
+          },
+          "recent_net_lc": {
+            "type": "number",
+            "title": "Recent Net Lc"
+          },
+          "recent_net_eur": {
+            "type": "number",
+            "title": "Recent Net Eur"
+          },
+          "older_lines": {
+            "type": "integer",
+            "title": "Older Lines"
+          },
+          "older_net_lc": {
+            "type": "number",
+            "title": "Older Net Lc"
+          },
+          "older_net_eur": {
+            "type": "number",
+            "title": "Older Net Eur"
+          },
+          "fx_net_lc": {
+            "type": "number",
+            "title": "Fx Net Lc",
+            "default": 0.0
+          },
+          "fx_net_eur": {
+            "type": "number",
+            "title": "Fx Net Eur",
+            "default": 0.0
+          },
+          "net_lc": {
+            "type": "number",
+            "title": "Net Lc"
+          },
+          "net_eur": {
+            "type": "number",
+            "title": "Net Eur"
+          },
+          "estimated_rate": {
+            "type": "boolean",
+            "title": "Estimated Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "erp",
+          "entity",
+          "account",
+          "account_name",
+          "currency_lc",
+          "lines",
+          "zero_amount_lines",
+          "paired_lines",
+          "recent_lines",
+          "recent_net_lc",
+          "recent_net_eur",
+          "older_lines",
+          "older_net_lc",
+          "older_net_eur",
+          "net_lc",
+          "net_eur",
+          "estimated_rate"
+        ],
+        "title": "FixedAssetGroup",
+        "description": "ADDITION (A47): one Fixed assets ERP, entity and account after exact pairing."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1871,6 +2144,39 @@
         ],
         "title": "Kpis",
         "description": "GET /api/kpis: header statistics."
+      },
+      "NormalSide": {
+        "properties": {
+          "erp": {
+            "type": "string",
+            "enum": [
+              "P20",
+              "BPP"
+            ],
+            "title": "Erp"
+          },
+          "account_prefix": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Account Prefix"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "debit",
+              "credit"
+            ],
+            "title": "Side"
+          }
+        },
+        "type": "object",
+        "required": [
+          "erp",
+          "account_prefix",
+          "side"
+        ],
+        "title": "NormalSide",
+        "description": "ADDITION (review of 22 Nov 2026, docs/ASSUMPTIONS.md A43): the side an account's balance\nnormally sits on, for every account of one ERP whose number starts with ``account_prefix``.\nThe longest matching prefix wins; an account no entry matches has an unknown side."
       },
       "PaymentProfile": {
         "properties": {
@@ -2182,6 +2488,11 @@
             "title": "Missing Payment Lookback Months",
             "default": 12
           },
+          "missing_payment_balance_check": {
+            "type": "boolean",
+            "title": "Missing Payment Balance Check",
+            "default": true
+          },
           "sentinel_s1_scope": {
             "type": "string",
             "enum": [
@@ -2191,6 +2502,11 @@
             ],
             "title": "Sentinel S1 Scope",
             "default": "people_only"
+          },
+          "sentinel_s1_skip_no_overdue_accounts": {
+            "type": "boolean",
+            "title": "Sentinel S1 Skip No Overdue Accounts",
+            "default": false
           },
           "close_review_working_day": {
             "type": "integer",
@@ -2280,6 +2596,13 @@
             "title": "Miner By User",
             "default": true
           },
+          "miner_max_paired_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Miner Max Paired Share",
+            "default": 1.0
+          },
           "penalty_accounts": {
             "items": {
               "type": "string"
@@ -2317,11 +2640,39 @@
                 "sentinel_currency_code",
                 "sentinel_reversal",
                 "typo",
-                "miner_cluster"
+                "miner_cluster",
+                "open_balance",
+                "wrong_side_balance"
               ]
             },
             "type": "array",
             "title": "Inbox Always Types"
+          },
+          "fa_recent_days": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Fa Recent Days",
+            "default": 60
+          },
+          "unconfirmed_rate_currencies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unconfirmed Rate Currencies"
+          },
+          "new_since_days": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "New Since Days",
+            "default": 7
+          },
+          "account_normal_side": {
+            "items": {
+              "$ref": "#/components/schemas/NormalSide"
+            },
+            "type": "array",
+            "title": "Account Normal Side"
           },
           "error_type_severity": {
             "additionalProperties": {
@@ -2340,7 +2691,9 @@
               "label_mismatch": 0.5,
               "pulse_spike": 0.5,
               "miner_cluster": 0.4,
-              "typo": 0.2
+              "typo": 0.2,
+              "wrong_side_balance": 0.8,
+              "open_balance": 0.6
             }
           }
         },

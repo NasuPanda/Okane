@@ -111,7 +111,13 @@ def test_real_c192_pulse(real_pulse: PulseResult) -> None:
 def test_real_c192_alerts(real_pulse: PulseResult) -> None:
     c192 = [r for r in real_pulse.records if (r.entity, r.account) == ("C192", "279006")]
     gap = next(r for r in c192 if r.type == "pulse_gap")
-    assert gap.title == "Liability 1.84M above expected"
+    # A43 (review of 22 Nov 2026): the brief's "Liability 1.84M above expected" read as "more
+    # is owed". The gap points toward debit on a credit-normal account with a debit balance, so
+    # it now reads as below expected, more paid than accrued.
+    assert gap.title == "Liability 1.84M below expected: more paid than accrued"
+    assert (gap.facts["normal_side"], gap.facts["gap_direction"]) == ("credit", "toward debit")
+    assert (gap.facts["balance_side"], gap.facts["wrong_side_balance"]) == ("debit", "yes")
+    assert gap.facts["balance_abs_eur"] == pytest.approx(1_324_638.17)
     assert gap.first_signal == date(2025, 5, 31)
     spikes = [r for r in c192 if r.type == "pulse_spike"]
     assert [(r.facts["batch_period"], r.facts["multiple"]) for r in spikes] == [("2026-08", 4.1)]
@@ -138,21 +144,41 @@ def test_real_c192_alerts(real_pulse: PulseResult) -> None:
     assert sep == [], "the September 2026 batch is not due before 21 Nov 2026"
 
 
-def test_real_missing_payments_capped(real_lines: pd.DataFrame, real_pulse: PulseResult) -> None:
+def test_real_missing_payments_capped(real_lines: pd.DataFrame) -> None:
     """A15 (#20): 21 missing payments without the cap, 7 with it (C192 4, C242 3).
 
-    Older unmatched C192 batches stay listed on the gap alert. Widening the C192 profile was
-    tried and matched no further payments, so the profile is unchanged.
+    Measured with the balance check off (A44), so the cap's own effect stays visible. Older
+    unmatched C192 batches stay listed on the gap alert. Widening the C192 profile was tried and
+    matched no further payments, so the profile is unchanged.
     """
-    missing = [r for r in real_pulse.records if r.type == "pulse_missing_payment"]
+    unchecked = Rules(missing_payment_balance_check=False)
+    pulse = run_pulse(real_lines, unchecked, AS_OF)
+    missing = [r for r in pulse.records if r.type == "pulse_missing_payment"]
     c192 = sorted(r.facts["batch_period"] for r in missing if r.entity == "C192")
     assert c192 == ["2026-04", "2026-05", "2026-06", "2026-07"]
     assert sum(r.entity == "C242" for r in missing) == 3
     assert len(missing) == 7
-    gap = next(r for r in real_pulse.records if r.type == "pulse_gap" and r.entity == "C192")
+    gap = next(r for r in pulse.records if r.type == "pulse_gap" and r.entity == "C192")
     assert gap.facts["unmatched_batches"] == 19, "the 18 overdue plus Sep 2026, not yet due"
-    uncapped = run_pulse(real_lines, Rules(missing_payment_lookback_months=120), AS_OF)
-    assert sum(r.type == "pulse_missing_payment" for r in uncapped.records) == 21
+    wide = unchecked.model_copy(update={"missing_payment_lookback_months": 120})
+    uncapped = run_pulse(real_lines, wide, AS_OF).records
+    assert sum(r.type == "pulse_missing_payment" for r in uncapped) == 21
+
+
+def test_real_missing_payments_balance_check(real_pulse: PulseResult) -> None:
+    """A44 (review of 22 Nov 2026): the account's balance shows 6 of the 7 batches were paid.
+
+    C192 is in debit (more paid than accrued), so none of April to July 2026 is still owed.
+    C242's February and June 2026 batches were settled with the next month's payments (the
+    month-end balance came back to a few thousand). Only C242's October 2026 batch, still held
+    in the open credit balance on 18 Nov, remains. The matching statistics do not change.
+    """
+    missing = [r for r in real_pulse.records if r.type == "pulse_missing_payment"]
+    assert [(r.entity, r.facts["batch_period"]) for r in missing] == [("C242", "2026-10")]
+    assert float(missing[0].facts["unpaid_by_balance_eur"]) > 0
+    c192 = real_pulse.profiles["P20/C192/279006"]
+    matched = sum(m.matched for m in c192.matches)
+    assert (matched, c192.lag_median, c192.lag_p90) == (21, 30, 37)
 
 
 def test_real_c242_matches(real_pulse: PulseResult) -> None:
@@ -281,10 +307,20 @@ def test_real_typo_prompts(real_all_lines: pd.DataFrame) -> None:
 
 def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
     """A7 (decided, #14), aggregates only: 6 patterns reach the Inbox at score 12 (16 at 6, 4 at
-    20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242."""
+    20); the demo card's top pattern scores 42 (42 months x 1 company code) on BPP C242.
+
+    Review of 22 Nov 2026: 2 of the 6 patterns at score 12 are mostly exact pairs (18 of 28 and
+    99 of 125 lines), an accrual and its reversal. ``Rules.miner_max_paired_share`` at 0.5 drops
+    them (4 at 12, 13 at 6); the switch is off by default (review of PR #73).
+    """
     rules = Rules()
     records = run_miner(real_lines, rules)
     assert len(records) == 6
+    switched = rules.model_copy(update={"miner_max_paired_share": 0.5})
+    kept = run_miner(real_lines, switched)
+    assert len(kept) == 4
+    assert all(float(r.facts["paired_lines"]) / float(r.facts["lines"]) < 0.5 for r in kept)
+    assert len(run_miner(real_lines, switched.model_copy(update={"miner_min_score": 6}))) == 13
     assert all(r.workgroup == "Payroll" for r in records)
     assert all(float(r.facts["miner_score"]) >= 12 for r in records)
     lower = rules.model_copy(update={"miner_min_score": 6})
@@ -299,6 +335,67 @@ def test_real_miner_payroll(real_lines: pd.DataFrame) -> None:
     assert all(r.facts.get(k) not in (None, "") for r in records for k in shown), "#31 card"
     # No top pattern names a correction, so the card stays a hypothesis.
     assert not any("correction" in str(r.facts["pattern"]) for r in records)
+
+
+def test_real_fixed_assets_exposure(real_fixed_assets: object) -> None:
+    """A47 (review of 22 Nov 2026), aggregates only: pairing removes 98% of Fixed assets lines.
+
+    10,198 lines: 101 with a zero document amount (FX valuations), 9,980 in exact pairs, 117
+    unpaired, all posted by people. The 98 posted within 60 days of the extract make up the
+    balance; the 19 older ones (C242 13, C238 6) net to zero within their entity. Only C102 has
+    exchange differences (FX valuations and what exact pairs leave in local currency), so every
+    entity's net = recent + older + exchange differences (review of PR #73).
+    """
+    from app.engines.exposure import fixed_asset_exposure
+    from app.ingest import extract_dates
+
+    lines = real_fixed_assets.lines  # type: ignore[attr-defined]
+    taken = extract_dates(lines)["Fixed assets"][0]
+    result = fixed_asset_exposure(lines, Rules(), taken)
+    assert (result.lines, result.zero_amount_lines, result.paired_lines) == (10_198, 101, 9_980)
+    assert (result.recent_lines, result.older_lines) == (98, 19)
+    by_entity: dict[str, dict[str, float]] = {}
+    for g in result.groups:
+        entry = by_entity.setdefault(
+            g.entity, {"recent": 0.0, "older": 0.0, "fx": 0.0, "net": 0.0, "old": 0}
+        )
+        entry["recent"] += g.recent_net_lc
+        entry["older"] += g.older_net_lc
+        entry["fx"] += g.fx_net_lc
+        entry["net"] += g.net_lc
+        entry["old"] += g.older_lines
+    recent = {e: round(v["recent"]) for e, v in by_entity.items() if v["recent"]}
+    assert recent == {"C102": 180_393, "C230": 118_375, "C242": 561_509, "C218": 62_456_836,
+                      "C238": 4_864_669}  # fmt: skip
+    assert {e: v["old"] for e, v in by_entity.items() if v["old"]} == {"C242": 13, "C238": 6}
+    assert all(abs(v["older"]) < 1 for v in by_entity.values())
+    assert {e for e, v in by_entity.items() if round(v["fx"])} == {"C102"}
+    for v in by_entity.values():
+        assert round(v["net"], 2) == round(v["recent"] + v["older"] + v["fx"], 2)
+    assert {g.currency_lc for g in result.groups if g.estimated_rate} == {"JPY", "PLN"}
+
+
+def test_synthetic_fixed_assets_exposure(synthetic_lines: pd.DataFrame) -> None:
+    """A47 on the synthetic sample: C250's pairs fold away; C218 (JPY) and C219 (PLN) carry
+    September 2026 lines inside the 60 days before the 2 Oct 2026 extract."""
+    from app.engines.exposure import fixed_asset_exposure
+
+    result = fixed_asset_exposure(synthetic_lines, Rules(), date(2026, 10, 2))
+    groups = {g.entity: g for g in result.groups}
+    assert sorted(groups) == ["C218", "C219", "C250"]
+    assert (groups["C250"].paired_lines, groups["C250"].recent_lines) == (16, 0)
+    assert groups["C250"].older_lines == 1 and not groups["C250"].estimated_rate
+    assert (groups["C218"].recent_lines, groups["C218"].currency_lc) == (2, "JPY")
+    assert groups["C218"].estimated_rate and groups["C219"].estimated_rate
+    assert groups["C219"].recent_lines == 2
+    assert result.paired_lines == 16 and result.zero_amount_lines == 0
+    for g in result.groups:
+        assert g.lines == g.zero_amount_lines + g.paired_lines + g.recent_lines + g.older_lines
+        parts = g.recent_net_lc + g.older_net_lc + g.fx_net_lc
+        assert round(g.net_lc, 2) == round(parts, 2)
+        assert round(g.net_eur, 2) == round(g.recent_net_eur + g.older_net_eur + g.fx_net_eur, 2)
+    shorter = fixed_asset_exposure(synthetic_lines, Rules(fa_recent_days=5), date(2026, 10, 2))
+    assert shorter.recent_lines == 0, "the September lines are older than 5 days"
 
 
 def test_real_miner_fixed_assets(real_fixed_assets: object) -> None:
@@ -452,7 +549,9 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
     assert outlier.facts["okane_run_date"] == "2026-09-21"
     assert outlier.today_detection == date(2026, 10, 7)
     assert (outlier.lead_days, outlier.facts["lead_days_daily"]) == (16, 19)
-    assert outlier.facts["lead_badge"] == "Caught 16 days before the close review"
+    # Fix 7 (review of 22 Nov 2026): the close review (7 Oct) is before the analysis date
+    # (18 Nov), so this is a replay of the extract's history, not a catch.
+    assert outlier.facts["lead_badge"] == "Would have been caught 16 days before the close review"
     # Pulse: the unpaid June 2026 batch (the May 2025 one is past the 12-month cap, A15).
     # First signal the day after expected-by (Fri 21 Aug 2026), Monday run 24 Aug; the 365-day
     # ageing rule shows it 29 Jun 2027.
@@ -489,10 +588,14 @@ def test_synthetic_lead_time(synthetic_lines: pd.DataFrame) -> None:
 
 
 def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
-    """A8, aggregates only: weekly median 11 days earlier over 37 dated findings, 9 blind.
+    """A8, aggregates only: weekly median 11 days earlier over 36 dated findings, 9 blind.
 
     History: 62 / 17.5 before the typo rule (A6, #12) cut the typo prompts from 22 to 11;
-    51 / 25 before the missing-payment cap (A15, #20) cut missing payments from 21 to 7.
+    51 / 25 before the missing-payment cap (A15, #20) cut missing payments from 21 to 7;
+    37 / 11 (daily 17) before the balance check (A44) cut them from 7 to 1 (31 / 10, daily 13);
+    the 5 wrong-side balances (A46) are dated by the close review and add 5. Open balances are
+    in today's ageing report, so they are neither dated nor blind. Blind spots stay at 9: the
+    Miner's paired-share switch (A7) is off by default (7 with it on).
     """
     import statistics
 
@@ -500,11 +603,11 @@ def test_real_lead_time_median(real_lines: pd.DataFrame) -> None:
 
     records = run_engines(real_lines, Rules(), AS_OF).records
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (37, 11)
+    assert (len(leads), statistics.median(leads)) == (36, 11)
     assert sum(r.today_detection is None for r in records) == 9
     assert min(leads) >= 0
     daily = [float(r.facts["lead_days_daily"]) for r in records if r.lead_days is not None]
-    assert statistics.median(daily) == 17
+    assert statistics.median(daily) == 14.5
 
 
 def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
@@ -512,10 +615,20 @@ def test_real_c192_september_batch_lead_time(real_lines: pd.DataFrame) -> None:
 
     Brief section 8 quotes its accrual date (29 Sep 2026) and expected-by date (21 Nov 2026);
     the analysis date is pinned to Monday 23 Nov 2026, after it falls due.
+
+    A44: the account holds a debit balance (more paid than accrued), so with the balance check
+    on (the default) the batch is not raised. The brief's lead-time values are checked with the
+    check off, the rule the example was written for.
     """
     from app.services.pipeline import run_engines
 
-    records = run_engines(real_lines, Rules(), date(2026, 11, 23)).records
+    checked = run_engines(real_lines, Rules(), date(2026, 11, 23)).records
+    assert not [
+        r for r in checked
+        if (r.entity, r.account, r.type) == ("C192", "279006", "pulse_missing_payment")
+    ]  # fmt: skip
+    unchecked = Rules(missing_payment_balance_check=False)
+    records = run_engines(real_lines, unchecked, date(2026, 11, 23)).records
     sep = [
         r for r in records
         if (r.entity, r.account) == ("C192", "279006")
@@ -535,6 +648,8 @@ def test_real_s2_fixed_assets_lead_time(real_all_lines: pd.DataFrame) -> None:
 
     Not run when #17 was built (the Fixed assets workbook was not available), so it checks
     the rule rather than fixed dates. #11 (S2 as built) was still open; S2 itself is on main.
+    Its close review falls before the 18 Nov analysis date, so the badge reads as a replay
+    (A8, review of 22 Nov 2026, fix 7).
     """
     from app.engines.leadtime import close_review_date, next_run_on_or_after
     from app.services.pipeline import run_engines
@@ -548,14 +663,18 @@ def test_real_s2_fixed_assets_lead_time(real_all_lines: pd.DataFrame) -> None:
     assert hit.today_detection == close_review_date(hit.first_signal, rules)
     run = next_run_on_or_after(hit.first_signal, rules.weekly_run_weekday)
     assert hit.lead_days == (hit.today_detection - run).days >= 0
-    assert hit.facts["lead_badge"] == f"Caught {hit.lead_days} days before the close review"
+    assert hit.today_detection < AS_OF and hit.facts["replay"] == "yes"
+    assert hit.facts["lead_badge"] == (
+        f"Would have been caught {hit.lead_days} days before the close review"
+    )
 
 
 def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
     """Demo step 4 opens the top exception: the C192 social security gap.
 
-    A9 (#18), aggregates only: first at 79.4 ahead of 69.8 at 500K; still first at 100K (demo
-    step 6), 90 ahead of 89. No Miner pattern sits on C192 279006, so its repeats points are 0.
+    A9 (#18), aggregates only: first at 79.4 ahead of 65.0 at 500K; still first at 100K (demo
+    step 6), 90 ahead of 67. No Miner pattern sits on C192 279006, so its repeats points are 0.
+    (Before the balance check, A44, the runner-up was a missing payment at 69.8, 89 at 100K.)
     """
     from app.services.pipeline import run_engines
 
@@ -563,23 +682,26 @@ def test_real_top_exception_is_c192_gap(real_lines: pd.DataFrame) -> None:
     top = output.records[0]
     assert (top.type, top.entity, top.account) == ("pulse_gap", "C192", "279006")
     assert output.counts["exposure_groups_above"] == 4
-    assert (top.score, output.records[1].score) == (79.4, 69.8)
+    assert (top.score, output.records[1].score) == (79.4, 65.0)
     assert top.score_breakdown["repeats"] == 0
     assert top.score == round(sum(top.score_breakdown.values()), 1)
 
     lower = run_engines(real_lines, Rules(materiality_eur=100_000), AS_OF).records
     assert (lower[0].type, lower[0].entity, lower[0].account) == ("pulse_gap", "C192", "279006")
-    assert (lower[0].score, lower[1].score) == (90.0, 89.0)
+    assert (lower[0].score, lower[1].score) == (90.0, 67.0)
 
 
 def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
-    """A25 (#21), aggregates only: 46 findings; the default view holds 19 at 500K (24 at 100K),
-    with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs."""
+    """A25 (#21), aggregates only: 48 findings; the default view holds 21 at 500K (31 at 100K),
+    with the C192 gap first; 17 mistake prompts and 6 repeated postings sit on their own tabs.
+    (46, 19 and 24 before the balance check, A44, removed 6 missing payments; A46 then added 3
+    open balances and 5 wrong-side balances at 500K, 6 and 7 at 100K. The Miner's paired-share
+    switch, A7, is off by default; on, it drops 2 repeated postings.)"""
     from collections import Counter
 
     from app.services.pipeline import run_engines
 
-    for materiality, expected in ((500_000, 19), (100_000, 24)):
+    for materiality, expected in ((500_000, 21), (100_000, 31)):
         rules = Rules(materiality_eur=materiality)
         records = run_engines(real_lines, rules, AS_OF).records
         views = Counter(r.inbox_view for r in records)
@@ -587,7 +709,57 @@ def test_real_default_inbox_view(real_lines: pd.DataFrame) -> None:
         assert (views["prompts"], views["repeats"]) == (17, 6)
         first = next(r for r in records if r.inbox_view == "attention")
         assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
-    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 46
+    assert len(run_engines(real_lines, Rules(), AS_OF).records) == 48
+
+
+# ----- account balances (A46, review of 22 Nov 2026) ----------------------------------------
+def test_real_open_and_wrong_side_balances(real_lines: pd.DataFrame) -> None:
+    """A46, account codes and account-level totals only, at the extract date (23 Oct 2026).
+
+    Open balances: the "really open" accounts with no Pulse finding, 3 at 500K and 6 at 100K.
+    Wrong-side balances: 6 accounts at 500K; C192 279006 has a gap, so its fact goes on the gap
+    and 5 records are new. At 100K two more accounts. C192 179004 (an asset in credit) moved to
+    the wrong side in mid-October 2026.
+    """
+    from app.services.pipeline import run_engines
+
+    def accounts(records: list, type_: str) -> list[tuple[str, str, str]]:  # type: ignore
+        return sorted((r.erp, r.entity, r.account) for r in records if r.type == type_)
+
+    at_500k = run_engines(real_lines, Rules(), date(2026, 10, 23)).records
+    assert accounts(at_500k, "open_balance") == [
+        ("BPP", "C242", "34900001"), ("P20", "C192", "179003"), ("P20", "C192", "279014"),
+    ]  # fmt: skip
+    wrong = {r.account: r for r in at_500k if r.type == "wrong_side_balance"}
+    assert accounts(at_500k, "wrong_side_balance") == [
+        ("BPP", "C133", "34900011"), ("BPP", "C242", "34900009"), ("BPP", "C242", "48900004"),
+        ("P20", "C192", "179004"), ("P20", "C192", "279002")]  # fmt: skip
+    assert {a: round(r.exposure_eur / 1e6, 2) for a, r in wrong.items()} == {
+        "48900004": 36.4,
+        "279002": 2.96,
+        "34900009": 2.8,
+        "179004": -2.64,
+        "34900011": 1.49,
+    }
+    assert all(r.suggested_class == "Required Adjustment Item" for r in wrong.values())
+    crossed = wrong["179004"].first_signal
+    assert (crossed.year, crossed.month) == (2026, 10) and 10 <= crossed.day <= 20
+    gap = next(r for r in at_500k if r.type == "pulse_gap" and r.entity == "C192")
+    assert gap.facts["wrong_side_balance"] == "yes" and "wrong_side_since" in gap.facts
+    first = next(r for r in at_500k if r.inbox_view == "attention")
+    assert (first.type, first.entity, first.account) == ("pulse_gap", "C192", "279006")
+    opened = [r for r in at_500k if r.type == "open_balance"]
+    assert all(r.today_detection and r.lead_days is None for r in opened), "listed, not blind"
+
+    at_100k = run_engines(real_lines, Rules(materiality_eur=100_000), date(2026, 10, 23)).records
+    more_open = [("BPP", "C133", "34900002"), ("P20", "C192", "279001"), ("P20", "C192", "279004")]
+    assert accounts(at_100k, "open_balance") == sorted(
+        [*accounts(at_500k, "open_balance"), *more_open]
+    )
+    more_wrong = [("BPP", "C242", "34900003"), ("P20", "C172", "279006")]
+    assert accounts(at_100k, "wrong_side_balance") == sorted(
+        [*accounts(at_500k, "wrong_side_balance"), *more_wrong]
+    )
 
 
 # ----- extract date (A38) -------------------------------------------------------------------
@@ -604,10 +776,12 @@ def test_real_extract_dates(real_payroll, real_fixed_assets) -> None:  # type: i
 def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
     """A38: a live run uses the Payroll extract date (23 Oct 2026), not the run date.
 
-    Aggregates only. With the 12-month missing-payment limit (A15, #20), which counts back from
-    the analysis date: 6 missing payments instead of 7 at 18 Nov. C242's October 2026 batch is
-    expected by 13 Nov, after the extract, so it is not yet due. 36 dated findings (37), median
-    still 11 days; the C192 gap still ranks first at 79.4 (A9, #18) and 4 groups stay above 500K.
+    Aggregates only. With the balance check (A44), none of the 6 batches the 12-month limit
+    (A15, #20) would raise at the extract date is still held in its account's balance, so no
+    missing payment remains (C242's October 2026 batch is expected by 13 Nov, after the
+    extract). 35 dated findings (5 of them wrong-side balances, A46), median 11 days; the C192
+    gap still ranks first at 79.4 (A9, #18) and 4 groups stay above 500K. Before A44: 6 missing
+    payments, 36 dated, median 11; between A44 and A46: 30 dated, median 8.5.
     """
     import statistics
 
@@ -615,12 +789,9 @@ def test_real_figures_at_the_extract_date(real_lines: pd.DataFrame) -> None:
 
     output = run_engines(real_lines, Rules(), date(2026, 10, 23))
     records = output.records
-    missing = [r for r in records if r.type == "pulse_missing_payment"]
-    assert sorted(r.facts["batch_period"] for r in missing if r.entity == "C192") == [
-        "2026-04", "2026-05", "2026-06", "2026-07"]  # fmt: skip
-    assert sum(r.entity == "C242" for r in missing) == 2
+    assert not [r for r in records if r.type == "pulse_missing_payment"]
     assert (records[0].type, records[0].entity, round(records[0].score, 1)) == (
         "pulse_gap", "C192", 79.4)  # fmt: skip
     assert output.counts["exposure_groups_above"] == 4
     leads = [r.lead_days for r in records if r.lead_days is not None]
-    assert (len(leads), statistics.median(leads)) == (36, 11)
+    assert (len(leads), statistics.median(leads)) == (35, 11)

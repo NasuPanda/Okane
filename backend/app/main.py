@@ -17,11 +17,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.ai.client import load_seed
+from app.ai.client import assistant_status, load_seed
 from app.api import AppState, exceptions, exposure, kpis, pulse, rules, runs, uploads
 from app.config import Settings, get_settings
 from app.database import Database
 from app.jobs import Jobs
+from app.schemas import AssistantState
 from app.services.pipeline import EventBus, Pipeline
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -89,8 +90,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/health", tags=["meta"])
     def health() -> dict[str, str]:
-        """Liveness probe."""
+        """Liveness probe. It calls nothing else: the hosted demo leaves it open (A41)."""
         return {"status": "ok"}
+
+    @app.get("/api/assistant", tags=["meta"])
+    def assistant() -> AssistantState:
+        """Whether the assistant can draft notes (A45)."""
+        return assistant_status(settings)
 
     _mount_frontend(app, settings)
     return app
