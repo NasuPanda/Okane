@@ -161,7 +161,7 @@ const GROUPS = Object.keys(GROUP_LABEL) as TypeGroup[];
 // Inbox tabs (docs/ASSUMPTIONS.md A25): the default view holds findings at or above materiality
 // and missing batches; everything else is one tap away. Every finding sits on exactly one of the
 // four tabs (the server's inbox_view), so their counts always add up to "Everything". Tabs can
-// be combined: the list shows every finding on any selected tab (A48).
+// be combined: the list shows every finding on any selected tab (A49).
 const VIEWS: { value: InboxView; label: string; dot?: string }[] = [
   { value: "attention", label: "Above materiality", dot: "var(--hot)" },
   { value: "other", label: "Below materiality", dot: "var(--muted-foreground)" },
@@ -171,7 +171,7 @@ const VIEWS: { value: InboxView; label: string; dot?: string }[] = [
 const ALL_VIEWS = VIEWS.map((v) => v.value);
 const viewOf = (r: ExceptionRecord): InboxView => r.inbox_view ?? "other";
 
-// The book the page reads (A48): Payroll or Fixed assets, or both together.
+// The book the page reads (A49): Payroll or Fixed assets, or both together.
 type PrimaryBook = "Payroll" | "Fixed assets";
 
 /** Toggle switch between the two books, with "Both books" for the combined view. */
