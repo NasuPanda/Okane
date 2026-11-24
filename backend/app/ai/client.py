@@ -14,6 +14,9 @@
 - If Ollama is unreachable or disabled, the labelled template is returned with
   ``verifier = "not_run"`` (not cached); the app keeps working.
 - Errors and logs never carry the model's text: it can quote line texts and amounts (rule 3).
+- The hosted demo may seed the cache at startup with outcomes drafted earlier on the synthetic
+  sample (``load_seed``, ``make ai-seed``; A48). A seeded entry is used exactly like one this
+  copy drafted: only an identical prompt finds it.
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 from pydantic import BaseModel, Field, ValidationError
@@ -89,6 +93,21 @@ def cached_comment(record: ExceptionRecord, db: Database, settings: Settings) ->
     if payload is None:
         return None
     return Comment.model_validate({**payload, "cached": True})
+
+
+def load_seed(path: Path, db: Database) -> int:
+    """Add the seed file's cache entries that are missing. Returns how many were added.
+
+    The file is ``{"synthetic": true, "generated_at": ..., "data": {cache key: outcome}}``,
+    written by ``make ai-seed`` from the synthetic sample only. Anything else is refused.
+    """
+    wrapped = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(wrapped, dict) or wrapped.get("synthetic") is not True:
+        raise ValueError(f"{path.name} is not marked synthetic; refusing to load it")
+    data = wrapped.get("data")
+    if not isinstance(data, dict) or not all(isinstance(v, dict) for v in data.values()):
+        raise ValueError(f"{path.name} has no cache entries")
+    return db.cache_seed(data)
 
 
 def template(record: ExceptionRecord) -> Comment:

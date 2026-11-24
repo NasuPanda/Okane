@@ -1,0 +1,62 @@
+# Okane full stack on one Docker VM (docs/ASSUMPTIONS.md A41; steps in deploy/README.md).
+# Okane + Ollama + Caddy (HTTPS and basic auth). Only Caddy publishes ports.
+# SYNTHETIC DATA ONLY: the app has no login of its own.
+#
+#   cd deploy && cp .env.example .env   # then fill in .env
+#   docker compose up -d ollama
+#   docker compose exec ollama ollama pull qwen2.5:7b-instruct
+#   docker compose up -d --build
+
+name: okane
+
+services:
+  okane:
+    build:
+      context: ..
+      dockerfile: Dockerfile.demo
+      target: app
+    image: okane-demo:local
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    environment:
+      OKANE_OLLAMA_URL: http://ollama:11434
+      OKANE_OLLAMA_MODEL: qwen2.5:7b-instruct
+      # A 7B model on a few CPU cores takes minutes per draft; the default 60 s is too short.
+      OKANE_OLLAMA_TIMEOUT_S: "600"
+      # Runs do not wait for new drafts; comments are drafted once after deploy (README step 8)
+      # and served from the cache in /data.
+      OKANE_AI_PREDRAFT_TOP: "0"
+    volumes:
+      - okane-data:/data
+
+  ollama:
+    image: ollama/ollama:0.40.16
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: "-1"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    volumes:
+      - ollama:/root/.ollama
+
+  caddy:
+    image: caddy:2.11.9
+    restart: unless-stopped
+    depends_on:
+      - okane
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  okane-data:
+  ollama:
+  caddy-data:
+  caddy-config:

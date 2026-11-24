@@ -37,14 +37,15 @@ so nobody re-investigates).
 | A38 | How the weekly extract reaches Okane | Decide | Decided (#23), built (#24): upload page plus watched folder through one intake step; analysis date = extract date; late at the Monday run; archive |
 | A39 | Tutorial mode with a guide (Mr. Kentaro) | Decide | Decided (20 Nov 2026, requested by the team): a read-only guided tour of every page; built on `feat/tutorial-mode`, not yet merged |
 | A40 | Report period on the Inbox and Sentinel pages | Decide | Decided (review of PR #65): day to year or overall, from the analysis date; open balances always shown; header counts the whole check |
-| A41 | Where the demo is hosted | Decide | Decided (#67): practice-data UI on Cloudflare (a Worker with static assets) now; Oracle Always Free VM with the full app later, Cloudflare kept as the backup |
+| A41 | Where the demo is hosted | Decide | Decided (#67): Render free web service with the full app (pre-drafted AI comments per A48, basic auth, kept awake by an uptime check) as the main link; practice-data UI on Cloudflare (a Worker with static assets) as the backup |
 | A42 | Phones and tablets | Decide | Decided (20 Nov 2026, requested by the team): every page works from 360px wide with no sideways scroll; the desktop layout is unchanged |
 | A43 | A gap's direction and each account's normal side | Decide | Decided (review of 22 Nov 2026; departure from the brief signed off in the review of PR #73): normal side by account prefix in Rules, pending mentor Q10; the C192 gap now reads "below expected: more paid than accrued" |
 | A44 | Missing payments the balance shows as paid | Decide | Decided (review of 22 Nov 2026; departure from the brief signed off in the review of PR #73): check the account's open credit balance first; none of the 6 real alerts at 23 Oct remains |
 | A45 | Is the assistant running? | Info | Review of 22 Nov 2026: Ollama was not installed on the demo laptop; the run dock now says "Assistant on (model)" or "Assistant offline" |
 | A46 | Open balances and balances on the wrong side | Decide | Decided (review of 22 Nov 2026): two new finding types: open_balance (3 at 500K on real data) and wrong_side_balance (5 new, 1 folded into the C192 gap) |
-| A49 | Inbox book, tabs that add up | Decide | Decided (review of 22 Nov 2026): on the Inbox page only, a Payroll / Fixed assets switch (Payroll first; "Both books" for the combined view) scopes every tab count, card and the header; a "Below materiality" tab holds the inbox_view "other", so the four tabs add up to Everything; tabs combine as a union; filters sit on their own row above the tabs. The dock and the run toast still count the whole check |
 | A47 | What is really open in Fixed assets | Decide | Decided (review of 22 Nov 2026): a Fixed assets section on Exposure from exact pairs; recent unpaired = this month's accruals (60 days); EUR marked "estimated rate" for JPY and PLN |
+| A48 | AI comments on the hosted demo | Decide | Decided (24 Nov 2026, requested by the team): the demo image carries comments drafted earlier on the sample (`make ai-seed`); changed findings get the template |
+| A49 | Inbox book, tabs that add up | Decide | Decided (review of 22 Nov 2026): on the Inbox page only, a Payroll / Fixed assets switch (Payroll first; "Both books" for the combined view) scopes every tab count, card and the header; a "Below materiality" tab holds the inbox_view "other", so the four tabs add up to Everything; tabs combine as a union; filters sit on their own row above the tabs. The dock and the run toast still count the whole check |
 
 ## Data and ingestion
 
@@ -871,7 +872,8 @@ before code freeze, on a free tier, with no long cold start.
   is exposed and the missing login does not matter. Settings are in `deploy/README.md`.
 - Hosted as a Worker with static assets (`frontend/wrangler.jsonc`), not Pages: the Cloudflare
   dashboard's "Create application" now offers only the Workers import from Git. Same build,
-  same limits; the link is `okane.<account>.workers.dev`.
+  same limits; the link is `okane.recon-copilot.workers.dev`. The Render link is
+  `okane-ilp5.onrender.com`.
 - What it cannot show: it is a fixed snapshot of the synthetic sample run. Check now and Upload
   extract only simulate a run; an uploaded file is never read (the message says so). AI
   comments are the ones stored in the fixtures. Decisions and rule changes live in that browser
@@ -879,13 +881,32 @@ before code freeze, on a free tier, with no long cold start.
 - Upkeep: the fixtures are a copy of the API's answers. After a change to `schemas.py`, an
   engine or the fixture client in `frontend/src/api/client.ts`, run `make fixtures` and commit
   the result, or the hosted page goes stale.
-- Later: an Oracle Always Free ARM VM (option A) runs the full app with Ollama behind HTTPS and
-  basic auth, on synthetic data only. The account signup starts now because card verification
-  and ARM capacity are the slow part. When A runs, it becomes the main link and Cloudflare stays as
-  the always-on backup; the deck and submission list both.
-- Rejected for now: A first (the mentor would wait an unknown time for the account and VM);
-  Render free tier (C) and Cloud Run (B) for their cold starts; a laptop tunnel (E) for a URL
-  that changes on every restart.
+- Main link (decided 21 Nov 2026): the full app on Render's free web service (option C), on
+  synthetic data only, with no app code change. We planned an Oracle Always Free VM (option A)
+  first, but could not create the account. Cloudflare stays as the always-on backup, and the deck
+  and submission list both links. Config: `Dockerfile.demo` (stage `render`) and
+  `deploy/Caddyfile`; the steps are in `deploy/README.md`.
+  - Data: the image bakes in the synthetic sample workbooks and sample rates. A run reads them
+    whenever nothing has been uploaded (A20).
+  - Analysis date: the extract date (A21), as with `make demo`. It is not pinned to 18 Nov 2026
+    like the Cloudflare fixtures, so the two links can show different dates and lead times.
+  - Access: Caddy runs in the same container as Okane and asks for a basic auth password on
+    everything except `/api/health`; Render adds HTTPS. The password is shared in the submission,
+    never in Git.
+  - Cold start: the free instance sleeps after 15 minutes without visits. A free uptime check on
+    `/api/health` every 5 to 10 minutes keeps it awake (one service fits in the 750 free hours a
+    month). If it does sleep, it wakes in about a minute, and the first run takes about 35 s more
+    (measured under the same 512 MB and 0.1 CPU limits).
+  - What it cannot keep: the disk resets on every restart or redeploy, so decisions, rule changes
+    and uploads start over, and the Inbox is rebuilt from the sample.
+  - AI: no model on the host. The image carries comments drafted earlier on the same sample
+    (A48); a finding whose facts change gets the labelled template. For a recording,
+    `OKANE_OLLAMA_URL` can point at a laptop's Ollama through a temporary tunnel.
+- Kept for any Docker VM: `deploy/compose.yaml` (stage `app`, Ollama 7B and Caddy with HTTPS)
+  runs the same app with AI comments and a persistent disk. It was tested on a laptop and is not
+  hosted anywhere.
+- Rejected: Cloud Run (B) for its cold start and card; a laptop tunnel (E) as the main link,
+  because its URL changes on every restart.
 Owner: team.
 
 **A42. Phones and tablets.** *Decided (20 Nov 2026, requested by the team).* Okane was built for
@@ -909,6 +930,23 @@ a desktop screen; reviewers and mentors also open the link on a phone. Every pag
   end for that). A section fixed to the bottom of the screen (the run dock) cannot scroll, so for
   it the card docks at the top instead. A finger drag on the page scrolls it, as the mouse wheel
   does; nothing can be tapped. Still read-only.
+Owner: team.
+
+**A48. AI comments on the hosted demo.** *Decided (24 Nov 2026, requested by the team).* The
+Render copy (A41) has no model, so every comment was the labelled template. It only ever runs the
+synthetic sample with the extract date as the analysis date, so its findings and prompts are the
+same on every run. `make ai-seed` runs that same setup locally with Ollama (qwen2.5 7B), drafts a
+comment for every finding, and saves the comment cache to `fixtures/ai_cache.json` (marked
+synthetic, like the other fixtures). The demo image loads it at startup (`OKANE_AI_SEED_PATH`)
+into the comment cache, adding only missing entries.
+- A seeded draft passed the same verifier as a live one, and it is found only by the identical
+  prompt: a finding whose facts change (a rule change, an upload) gets a live draft or the
+  labelled template, as before.
+- The assistant status still says the model is offline on the host; that is true.
+- Only the demo image sets the seed. The local app and the Cloudflare practice-data UI are
+  unchanged.
+- A test fails when the committed seed no longer covers every sample finding (prompts, engines,
+  default rules, rates or the generator changed). Fix: run `make ai-seed` with Ollama running.
 Owner: team.
 
 ## Mentor questions

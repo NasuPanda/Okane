@@ -1,0 +1,222 @@
+{
+ "data": {
+  "comment:qwen2.5:7b-instruct:09009a7b2874e46d:4cfaac881d0ed05d": {
+   "checked_figures": [
+    "12 Jun 2023",
+    "12 Aug 2023",
+    "679,839",
+    "679,839"
+   ],
+   "comment": "The account has a debit balance of 679,839 EUR from 12 Jun 2023 to 12 Aug 2023, netting to 679,839 EUR. Check the supporting documents as no payment-rhythm check covers this account.",
+   "exception_id": "09009a7b2874e46d",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:0c33474c40046521:9aeea9f5fd01e145": {
+   "checked_figures": [
+    "14 Sep 2026",
+    "4,200"
+   ],
+   "comment": "On 14 Sep 2026, 4,200 posted in both EUR and RWF. Check for duplicate postings.",
+   "exception_id": "0c33474c40046521",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:0c7228820c2b5ca8:bf0377a4777ef05c": {
+   "checked_figures": [
+    "August 2025"
+   ],
+   "comment": "No accrual batch for August 2025, despite typical monthly accruals. Check if accrual was recorded elsewhere.",
+   "exception_id": "0c7228820c2b5ca8",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:1578d0ba41872186:7f7b33544b47edf8": {
+   "checked_figures": [],
+   "comment": "The document currency GHC is invalid; it should be EUR. Verify the source document's currency.",
+   "exception_id": "1578d0ba41872186",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:233ad39a5cb011cd:bacbe3811b1625d4": {
+   "checked_figures": [
+    "-2,060,000",
+    "-2,060,000"
+   ],
+   "comment": "The account has -2,060,000 EUR overdue credits, netting to -2,060,000 EUR. No payment-rhythm check covers this. Verify the supporting documents.",
+   "exception_id": "233ad39a5cb011cd",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:3267f451b8da112e:88c1f81731b47a13": {
+   "checked_figures": [
+    "1",
+    "62x"
+   ],
+   "comment": "The text 'URSAAF' appears twice, 1 letter off from 'URSSAF' (62x). Check and correct if necessary.",
+   "exception_id": "3267f451b8da112e",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:4b75e13ab2dc5a8d:005e544f8309a188": {
+   "checked_figures": [
+    "5 Oct 2026",
+    "-9,870,000",
+    "4874.1x"
+   ],
+   "comment": "The payroll entry for 5 Oct 2026 is -9,870,000 EUR, 4874.1x the usual amount. Verify the source document and keying.",
+   "exception_id": "4b75e13ab2dc5a8d",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:5a2ed0b6c0c57484:9795e0037d8008a9": {
+   "checked_figures": [
+    "August 2026",
+    "-2,531,446",
+    "4.1x"
+   ],
+   "comment": "The August 2026 accrual batch of -2,531,446 EUR is 4.1x larger than usual. Verify this is a genuine one-off event.",
+   "exception_id": "5a2ed0b6c0c57484",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:5cb790939c58a948:8d876f8e1a132952": {
+   "checked_figures": [
+    "1,459x",
+    "2,400,000,000"
+   ],
+   "comment": "The fixed asset entry for C218 is 1,459x the median amount, 2,400,000,000 JPY. Verify the source document and keying.",
+   "exception_id": "5cb790939c58a948",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:61ca766fbdf173e5:f5788a5e3cd8b7c9": {
+   "checked_figures": [
+    "20 Aug 2026",
+    "Jun 2026",
+    "-598,600"
+   ],
+   "comment": "The accrual batch of -598,600 EUR from Jun 2026 has not been paid, despite the expected-by date of 20 Aug 2026 having passed. Check if the payment was recorded under another reference or if it is still owed.",
+   "exception_id": "61ca766fbdf173e5",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:6c91062e6c599fb8:d3ac4b503d0fad0e": {
+   "checked_figures": [
+    "24 Sep 2026",
+    "12,500"
+   ],
+   "comment": "The same amount 12,500 was posted in EUR and PLN on 24 Sep 2026. Check for duplicate postings.",
+   "exception_id": "6c91062e6c599fb8",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:b80b0b905e1fe118:09e6672819e346fe": {
+   "checked_figures": [
+    "-2,534,699",
+    "-2,534,699",
+    "4"
+   ],
+   "comment": "The payroll account has a credit balance of -2,534,699 EUR, -2,534,699 EUR more than expected. Check the 4 unmatched accrual batches listed as evidence.",
+   "exception_id": "b80b0b905e1fe118",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:ca26141f45d62ffe:dc07faa9c7fa3a01": {
+   "checked_figures": [
+    "January 2026",
+    "February 2026"
+   ],
+   "comment": "The payment text names January 2026, but settles February 2026. Check the payment text.",
+   "exception_id": "ca26141f45d62ffe",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:d00346a86e3ca1d6:5a393eb92df4d6f1": {
+   "checked_figures": [
+    "6",
+    "18,368"
+   ],
+   "comment": "The same manual posting by hand for 6 months, totaling 18,368 EUR. Consider automating this process.",
+   "exception_id": "d00346a86e3ca1d6",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:f04ae2adff34c19c:bb5f09aaef27f103": {
+   "checked_figures": [
+    "1 Jan 2002"
+   ],
+   "comment": "The document currency is invalid or was replaced by the euro after 1 Jan 2002. Check the source document currency.",
+   "exception_id": "f04ae2adff34c19c",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "comment:qwen2.5:7b-instruct:f4d7086d081a2e09:11b1c59e2b6e9a3b": {
+   "checked_figures": [
+    "1"
+   ],
+   "comment": "The text 'Pauroll' was found, 1 letter off from 'Payroll'. Check and correct if necessary.",
+   "exception_id": "f4d7086d081a2e09",
+   "failed_figures": [],
+   "rejected_draft": null,
+   "rejected_reasons": [],
+   "source": "model",
+   "verifier": "passed"
+  },
+  "typo:qwen2.5:7b-instruct:4a96b9fe99a711fe": {
+   "is_typo": true,
+   "suggestion": "Payroll"
+  },
+  "typo:qwen2.5:7b-instruct:97f490bde1269d1e": {
+   "is_typo": true,
+   "suggestion": "URSSAF"
+  }
+ },
+ "generated_at": "2026-10-23",
+ "synthetic": true
+}
